@@ -1,0 +1,47 @@
+default_stages: [commit]
+default_install_hook_types: [pre-commit, commit-msg, pre-push]
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+        stages: ["commit"]
+      - id: end-of-file-fixer
+        stages: ["commit"]
+      - id: mixed-line-ending
+        name: LF for all files
+        args: [--fix=lf]
+      - id: check-json
+      - id: check-added-large-files
+        exclude: resources/styles/
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.9.10
+    hooks:
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix, --extend-fixable=F401]
+      - id: ruff-format
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.13.0
+    hooks:
+      - id: mypy
+        additional_dependencies:
+          - PyQt5-stubs==5.15.6.0
+  - repo: https://github.com/PyCQA/flake8
+    rev: 6.0.0
+    hooks:
+      - id: flake8
+        additional_dependencies:
+          - flake8-pyproject==1.2.3
+          - flake8-qgis==1.0.0
+          - flake8-spellcheck==0.28.0
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.32.2
+    hooks:
+      - id: markdownlint
+        args: ["--fix"]
+  # commit-msg hooks
+  - repo: https://github.com/jorisroovers/gitlint
+    rev: v0.18.0
+    hooks:
+      - id: gitlint
+        stages: [commit-msg]

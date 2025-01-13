@@ -1,0 +1,109 @@
+[tool.ruff]
+src = ["src"]
+
+lint.ignore = [
+    "ANN101", # Missing type annotation for self in method
+    "ANN401", # Dynamically typed expressions (typing.Any) are disallowed
+    "PGH003", # Use specific rule codes when ignoring type issues
+    "N999", # Invalid module name: 'JobManager'
+]
+
+lint.unfixable = [
+    "F401", # Unused imports
+    "F841", # Unused variables
+]
+
+line-length = 88
+
+# List of all rules https://docs.astral.sh/ruff/rules/
+lint.select = [
+    "ANN", # flake8-annotations
+    "B", # flake8-bugbear
+    "C", # flake8-comprehensions
+    "C90", # flake8, mccabe
+    "E", # flake8, pycodestyle
+    "F", # flake8, Pyflakes
+    "I", # isort
+    "INP", # flake8-no-pep420
+    "N", # pep8-naming
+    "PIE", # flake8-pie
+    "PGH", # pygrep-hooks
+    "PL", # pylint
+    "PT", # flake8-pytest-style
+    "RUF", # Ruff-specific rules
+    "SIM", # flake8-simplify
+    "T", # flake8-print
+    "ICN", # flake8-import-conventions
+    "TCH", # flake8-type-checking
+    "TID", # flake8-tidy-imports
+    "W", # flake8, pycodestyle
+    "UP", # pyupgrade
+]
+
+# Avoiding flagging (and removing) `SC200` from any `# noqa`
+# directives, despite Ruff's lack of support for `flake8-spellcheck`.
+lint.external = ["SC200"]
+
+target-version = "py39"
+
+[tool.ruff.lint.flake8-tidy-imports]
+ban-relative-imports = "all"
+
+[tool.ruff.lint.per-file-ignores]
+"test*" = [
+    "INP001",
+    "ANN201",
+    "ANN202",
+    "E501",
+    "PLR2004", # Magic value used in comparison, consider replacing {value} with a constant variable
+    "PLR0913", # Too many arguments to function call (len(args) > 5)
+]
+
+
+[tool.flake8]
+max-line-length = 88
+spellcheck-targets = "names"
+dictionaries = "en_US,python,technical"
+select = [
+    "SC",
+    "QGS"
+]
+
+per-file-ignores = [
+    "test/*:INP001,SC200,QGS105",
+]
+
+[tool.mypy]
+python_version = 3.9
+follow_imports = "normal"
+show_column_numbers = true
+check_untyped_defs = true
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+
+[tool.coverage.paths]
+source = ["src", "**/site-packages"]
+
+[tool.coverage.run]
+branch = true
+source_pkgs = ["Profiler"]
+omit = []
+
+[tool.coverage.report]
+exclude_also = [
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+]
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.qgis_plugin_dev_tools]
+plugin_package_name = "Profiler"
+version_number_source = "distribution"
+runtime_requires = [
+    "qgis_plugin_tools",
+]

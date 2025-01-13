@@ -1,0 +1,18 @@
+# linting
+pre-commit==3.4.0
+mypy==1.13.0
+ruff==0.9.10
+
+# flake8 libraries not included in ruff
+flake8==6.0.0
+flake8-pyproject==1.2.3
+flake8-spellcheck==0.28.0
+flake8-qgis==1.0.0
+
+# Stubs
+PyQt5-stubs==5.15.6.0
+
+# NOTE: Runtime requirements for QGIS plugin are defined in setup.cfg
+
+# repo itself
+-e file:.
