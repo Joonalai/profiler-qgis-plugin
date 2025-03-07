@@ -2,7 +2,6 @@
 src = ["src"]
 
 lint.ignore = [
-    "ANN101", # Missing type annotation for self in method
     "ANN401", # Dynamically typed expressions (typing.Any) are disallowed
     "PGH003", # Use specific rule codes when ignoring type issues
     "N999", # Invalid module name: 'JobManager'
@@ -102,8 +101,9 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [tool.qgis_plugin_dev_tools]
-plugin_package_name = "Profiler"
+plugin_package_name = "profiler_plugin"
 version_number_source = "distribution"
 runtime_requires = [
     "qgis_plugin_tools",
+    "profiler-qgis-plugin"
 ]
