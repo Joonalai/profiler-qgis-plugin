@@ -16,4 +16,15 @@
 #  You should have received a copy of the GNU General Public License
 #  along with profiler-qgis-plugin. If not, see <https://www.gnu.org/licenses/>.
 
-__version__ = "0.0.1"
+from typing import TYPE_CHECKING
+
+from profiler_plugin.plugin import ProfilerPlugin
+
+if TYPE_CHECKING:
+    from qgis.gui import QgisInterface
+
+
+def classFactory(  # noqa: N802 (qgis naming)
+    iface: "QgisInterface",
+) -> ProfilerPlugin:
+    return ProfilerPlugin()

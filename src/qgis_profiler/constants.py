@@ -16,4 +16,10 @@
 #  You should have received a copy of the GNU General Public License
 #  along with profiler-qgis-plugin. If not, see <https://www.gnu.org/licenses/>.
 
-__version__ = "0.0.1"
+QT_VERSION_MIN: str = "5.13.1"
+
+EPSILON = 1e-3
+
+# Cache interval for settings
+CACHE_INTERVAL = 5.0
+MS_EPSILON = 20

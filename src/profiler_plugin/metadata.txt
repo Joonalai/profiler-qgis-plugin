@@ -1,0 +1,17 @@
+[general]
+name=Profiler
+description=Tool and library to make profiling QGIS and plugins easy
+about=Tool and library to make profiling QGIS and plugins easy
+version=0.0.0.development
+qgisMinimumVersion=3.34
+qgisMaximumVersion=3.99
+# icon=
+author=Joonalai
+email=joona.laine@cofactor.fi
+changelog=
+tags= profiling, profiler, macro, performance, development
+repository=https://github.com/Joonalai/profiler-qgis-plugin
+tracker=https://github.com/Joonalai/profiler-qgis-plugin/issues
+homepage=https://github.com/Joonalai/profiler-qgis-plugin
+experimental=False
+deprecated=False

@@ -1,3 +1,14 @@
+# testing
+pytest==8.3.5
+exceptiongroup==1.2.2 # needed for python 3.9
+pytest-qt==4.4.0
+pytest-cov==6.0.0
+pytest-mock==3.14.0
+pytest-qgis==2.1.0
+pytest-timeout==2.3.1
+pytest-dotenv==0.5.2
+pytest-subtests==0.14.1
+
 # linting
 pre-commit==3.4.0
 mypy==1.13.0
@@ -11,6 +22,9 @@ flake8-qgis==1.0.0
 
 # Stubs
 PyQt5-stubs==5.15.6.0
+
+# tools
+qgis-plugin-dev-tools==0.9.1
 
 # NOTE: Runtime requirements for QGIS plugin are defined in setup.cfg
 
