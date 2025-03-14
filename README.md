@@ -1,5 +1,10 @@
 # QGIS profiler plugin
 
+![tests](https://github.com/Joonalai/profiler-qgis-plugin/workflows/Tests/badge.svg)
+[![GPLv3 license](https://img.shields.io/badge/License-GPLv3-blue.svg)](http://perso.crans.org/besson/LICENSE.html)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
+
 **UNDER ACTIVE DEVELOPMENT!**
 
 The QGIS Profiler Plugin is a plugin ment to extend QGIS development tools
@@ -31,12 +36,13 @@ Open QGIS development tools and interact with profiling and macro panel.
 
 ## Requirements
 
-* QGIS version **3.22** or higher.
+* QGIS version **3.34** or higher.
 
 ## Contributing
 
 Contributions are welcome! Feel free to open issues or submit pull requests.
-Development instructions coming soon.
+
+See [development readme](docs/DEVELOPMENT.md) for details.
 
 ## Inspirations
 
@@ -45,7 +51,8 @@ These awesome plugins are used as an inspiration for the plugin structure:
 * <https://github.com/nlsfi/pickLayer>
 * <https://github.com/nlsfi/segment-reshape-qgis-plugin>
 
-## License
+## License & copyright
 
-This plugin is released under the GNU General Public License (GPL) version 3. See
-the [LICENSE](LICENSE) file for more details.
+Licensed under GNU GPL v3.0.
+
+Copyright (C) 2022 profiler-qgis-plugin contributors.

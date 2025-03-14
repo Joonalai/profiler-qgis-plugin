@@ -1,5 +1,6 @@
 # testing
 pytest==8.3.5
+exceptiongroup==1.2.2 # needed for python 3.9
 pytest-qt==4.4.0
 pytest-cov==6.0.0
 pytest-mock==3.14.0
