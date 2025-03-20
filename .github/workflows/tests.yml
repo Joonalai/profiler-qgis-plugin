@@ -28,6 +28,4 @@ jobs:
           .venv/bin/pip3 install -q -r requirements.txt --no-deps --only-binary=:all:
           .venv/bin/pip3 install . --no-deps
       - run: |
-          .venv/bin/pytest
-        env:
-          QT_QPA_PLATFORM: offscreen
+          .venv/bin/pytest --qgis_disable_gui
