@@ -28,7 +28,7 @@ jobs:
           .venv/bin/pip3 install -q -r requirements.txt --no-deps --only-binary=:all:
           .venv/bin/pip3 install . --no-deps
       - run: |
-          .venv/bin/pytest --qgis_disable_gui --cov --cov-branch --cov-report=xml
+          .venv/bin/pytest --qgis_disable_gui --cov --cov-branch --cov-report=xml --junitxml=junit.xml -o junit_family=legacy
 
       - name: Upload coverage reports to Codecov
         if: ${{ matrix.qgis-image-tags == 'latest' }}
@@ -37,3 +37,9 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: Joonalai/profiler-qgis-plugin
           fail_ci_if_error: true
+
+      - name: Upload test results to Codecov
+        if: ${{ !cancelled() && matrix.qgis-image-tags == 'latest' }}
+        uses: codecov/test-results-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
