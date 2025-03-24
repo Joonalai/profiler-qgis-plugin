@@ -51,9 +51,10 @@ These awesome plugins are used as an inspiration for the plugin structure:
 
 * <https://github.com/nlsfi/pickLayer>
 * <https://github.com/nlsfi/segment-reshape-qgis-plugin>
+* <https://github.com/GispoCoding/pytest-qgis>
 
 ## License & copyright
 
 Licensed under GNU GPL v3.0.
 
-Copyright (C) 2022 profiler-qgis-plugin contributors.
+Copyright (C) 2025 profiler-qgis-plugin contributors.

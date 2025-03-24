@@ -86,7 +86,7 @@ source = ["src", "**/site-packages"]
 
 [tool.coverage.run]
 branch = true
-source_pkgs = ["Profiler"]
+source_pkgs = ["profiler_plugin", "qgis_profiler"]
 omit = []
 
 [tool.coverage.report]
