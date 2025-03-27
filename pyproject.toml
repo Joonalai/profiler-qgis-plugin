@@ -3,6 +3,7 @@ src = ["src"]
 
 lint.ignore = [
     "ANN401", # Dynamically typed expressions (typing.Any) are disallowed
+    "G002", # Logging statement uses %
     "PGH003", # Use specific rule codes when ignoring type issues
 ]
 
@@ -17,23 +18,34 @@ line-length = 88
 lint.select = [
     "ANN", # flake8-annotations
     "B", # flake8-bugbear
-    "C", # flake8-comprehensions
+    "C4", # flake8-comprehensions
     "C90", # flake8, mccabe
+    # "D", # pydocstyle # TODO: enable before first actual release
     "E", # flake8, pycodestyle
     "F", # flake8, Pyflakes
+    "FURB", # refurb
+    "G", # flake8-logging-format
+    "FBT", # flake8-boolean-trap
     "I", # isort
     "ICN", # flake8-import-conventions
     "INP", # flake8-no-pep420
+    "ISC", # flake8-implicit-str-concat
+    "LOG", # flake8-logging
     "N", # pep8-naming
+    "PERF", # perflint
     "PIE", # flake8-pie
     "PGH", # pygrep-hooks
     "PL", # pylint
     "PT", # flake8-pytest-style
+    "PTH", # flake8-use-pathlib
+    "RET", # flake8-return
     "RUF", # Ruff-specific rules
+    "S", # flake8-bandit
     "SIM", # flake8-simplify
     "T", # flake8-print
-    "TCH", # flake8-type-checking
+    "TC", # flake8-type-checking
     "TID", # flake8-tidy-imports
+    "TRY", # tryceratops
     "UP", # pyupgrade
     "W", # flake8, pycodestyle
 ]
@@ -55,6 +67,8 @@ ban-relative-imports = "all"
     "E501",
     "PLR2004", # Magic value used in comparison, consider replacing {value} with a constant variable
     "PLR0913", # Too many arguments to function call (len(args) > 5)
+    "S101", # Use of assert detected
+    "FBT001", # Boolean-typed positional argument in function definition
 ]
 
 
