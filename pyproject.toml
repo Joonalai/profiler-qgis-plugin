@@ -4,7 +4,6 @@ src = ["src"]
 lint.ignore = [
     "ANN401", # Dynamically typed expressions (typing.Any) are disallowed
     "PGH003", # Use specific rule codes when ignoring type issues
-    "N999", # Invalid module name: 'JobManager'
 ]
 
 lint.unfixable = [
@@ -23,6 +22,7 @@ lint.select = [
     "E", # flake8, pycodestyle
     "F", # flake8, Pyflakes
     "I", # isort
+    "ICN", # flake8-import-conventions
     "INP", # flake8-no-pep420
     "N", # pep8-naming
     "PIE", # flake8-pie
@@ -32,11 +32,10 @@ lint.select = [
     "RUF", # Ruff-specific rules
     "SIM", # flake8-simplify
     "T", # flake8-print
-    "ICN", # flake8-import-conventions
     "TCH", # flake8-type-checking
     "TID", # flake8-tidy-imports
-    "W", # flake8, pycodestyle
     "UP", # pyupgrade
+    "W", # flake8, pycodestyle
 ]
 
 # Avoiding flagging (and removing) `SC200` from any `# noqa`
