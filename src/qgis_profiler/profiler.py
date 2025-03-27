@@ -28,8 +28,12 @@ from qgis.core import QgsApplication, QgsRuntimeProfiler
 from qgis.PyQt.QtCore import QCoreApplication, QElapsedTimer, QObject
 
 from qgis_profiler.constants import EPSILON
-from qgis_profiler.settings import ProfilerSettings
-from qgis_profiler.utils import resolve_group_name
+from qgis_profiler.exceptions import EventNotFoundError, ProfilerNotFoundError
+from qgis_profiler.settings import (
+    ProfilerSettings,
+    resolve_group_name,
+    resolve_group_name_with_cache,
+)
 
 LOGGER = logging.getLogger(__name__)
 
@@ -132,11 +136,11 @@ class RecoveryMeasurer(QObject):
     def measure_recovery_time(self) -> float:
         """Measure the recovery time of an operation."""
         self._timer.start()
-        LOGGER.debug(f"Normal time: {self._normal_time_ms}ms")
+        LOGGER.debug("Normal time: %sms", self._normal_time_ms)
         while (t := self._measure()) > self._normal_time_ms:
-            LOGGER.debug(f"Recovery time: {t}ms")
+            LOGGER.debug("Recovery time: %sms", t)
             if self._timer.elapsed() > self._timeout_ms:
-                raise TimeoutError("Recovery time exceeded timeout.")
+                raise TimeoutError("Recovery time exceeded timeout.")  # noqa: TRY003
             QCoreApplication.processEvents()
         return round(self._timer.elapsed() / 1000, 3)
 
@@ -160,7 +164,7 @@ class ProfilerWrapper:
     def __init__(self) -> None:
         profiler = QgsApplication.profiler()
         if profiler is None:
-            raise ValueError("QgsApplication.profiler() is None")
+            raise ProfilerNotFoundError
         self._profiler: QgsRuntimeProfiler = profiler
         self._profiler_events: dict[str, list[str]] = defaultdict(list)
 
@@ -182,7 +186,7 @@ class ProfilerWrapper:
         group: Optional[str] = None,
     ) -> Generator[str, None, None]:
         """Profile a block of code."""
-        group = resolve_group_name(group)
+        group = resolve_group_name_with_cache(group)
         try:
             yield self.start(name, group)
         finally:
@@ -229,9 +233,9 @@ class ProfilerWrapper:
 
     def get_event_time(self, event_id: str, group: Optional[str] = None) -> float:
         """Get the duration of a profiling event in seconds."""
-        group = resolve_group_name(group, use_cache=False)
+        group = resolve_group_name_with_cache(group)
         if event_id not in self._profiler_events[group]:
-            raise ValueError(f"Event ID {event_id} not found in group {group}")
+            raise EventNotFoundError(event_id, group)
         return self._profiler.profileTime(event_id, group)
 
     def get_profiler_data(
@@ -246,7 +250,7 @@ class ProfilerWrapper:
 
         # To get the complete tree, the text version has to be parsed
         # Since python bindings do not exist for all needed methods
-        group = resolve_group_name(group)
+        group = resolve_group_name_with_cache(group)
         results = ProfilerResult.parse_from_text(self._profiler.asText(group), group)
         if not name:
             return results
@@ -269,7 +273,7 @@ class ProfilerWrapper:
         Clear all profiling data for a given group.
         This does not remove the group.
         """
-        group = resolve_group_name(group, use_cache=False)
+        group = resolve_group_name(group)
         self.end(group)
         self.end(group)
         self.end(group)

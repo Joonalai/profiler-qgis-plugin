@@ -21,8 +21,10 @@ from typing import Any, Callable, Optional
 from qgis_plugin_tools.tools.i18n import tr
 
 from qgis_profiler.profiler import ProfilerWrapper
-from qgis_profiler.settings import ProfilerSettings
-from qgis_profiler.utils import resolve_group_name
+from qgis_profiler.settings import (
+    ProfilerSettings,
+    resolve_group_name_with_cache,
+)
 
 LOGGER = logging.getLogger(__name__)
 
@@ -49,7 +51,7 @@ def profile(*, name: Optional[str] = None, group: Optional[str] = None) -> Calla
                 LOGGER.debug("Profiling is disabled.")
                 return function(*args, **kwargs)
 
-            group_name = resolve_group_name(group)
+            group_name = resolve_group_name_with_cache(group)
             event_name = name if name is not None else function.__name__
             ProfilerWrapper.get().start(event_name, group_name)
             try:

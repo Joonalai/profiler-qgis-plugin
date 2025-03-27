@@ -96,6 +96,7 @@ class MacroMouseMoveEvent(MacroEvent):
         for position in self.positions:
             QCursor.setPos(*position)
             QgsApplication.processEvents()
+        return None
 
     def perform_event_action_with_event(self) -> None:
         for position in self.positions:
@@ -145,9 +146,10 @@ class MacroMouseEvent(MacroEvent):
 
     def perform_event_action(self) -> None:
         position = QPoint(*self.position)
-        widget = utils.get_widget_under_cursor(set_focus=True)
+        widget = utils.get_widget_under_cursor()
         if not widget:
             return
+        widget.setFocus()
         position = widget.mapFromGlobal(position)
         if not self.is_release:
             # Ensure the widget under the mouse cursor is focused
@@ -184,9 +186,9 @@ class MacroMouseDoubleClickEvent(MacroEvent):
 
     def perform_event_action(self) -> None:
         position = QPoint(*self.position)
-        widget = utils.get_widget_under_cursor(set_focus=True)
+        widget = utils.get_widget_under_cursor()
         if widget:
-            LOGGER.info(f"Widget under cursor: {widget}")
+            widget.setFocus()
             position = widget.mapFromGlobal(position)
         QTest.mouseDClick(
             widget,
@@ -222,7 +224,7 @@ class MacroRecorder(QObject):
 
     def __init__(
         self,
-        filter_out_mouse_movements: bool = True,
+        filter_out_mouse_movements: bool = True,  # noqa: FBT001, FBT002
     ) -> None:
         super().__init__(None)
         self._recorded_events: list[MacroEvent] = []

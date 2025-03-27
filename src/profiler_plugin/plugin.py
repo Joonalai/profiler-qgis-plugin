@@ -16,10 +16,9 @@
 #  You should have received a copy of the GNU General Public License
 #  along with profiler-qgis-plugin. If not, see <https://www.gnu.org/licenses/>.
 
-from typing import Optional, cast
+from typing import TYPE_CHECKING, Optional, cast
 
 import qgis_plugin_tools
-from qgis.gui import QgisInterface
 from qgis.PyQt.QtCore import QObject
 from qgis.PyQt.QtWidgets import QDockWidget, QVBoxLayout, QWidget
 from qgis.utils import iface as iface_
@@ -38,7 +37,10 @@ from qgis_profiler.constants import QT_VERSION_MIN
 from qgis_profiler.event_recorder import ProfilerEventRecorder
 from qgis_profiler.settings import ProfilerSettings
 
-iface = cast(QgisInterface, iface_)
+if TYPE_CHECKING:
+    from qgis.gui import QgisInterface
+
+iface = cast("QgisInterface", iface_)
 
 
 class ProfilerPlugin(QObject):

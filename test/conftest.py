@@ -90,8 +90,7 @@ def _clear_profiling_data_and_reset_settings(profiler: "ProfilerWrapper"):
 
 @pytest.fixture
 def default_group() -> str:
-    get = ProfilerSettings.active_group.get()
-    return get
+    return ProfilerSettings.active_group.get()
 
 
 @pytest.fixture

@@ -83,7 +83,7 @@ def macro_panel(
 def macro_model(macro_panel: MacroPanel) -> MacroTableModel:
     model = macro_panel.table_view.model()
     assert model is not None
-    return cast(MacroTableModel, model)
+    return cast("MacroTableModel", model)
 
 
 @pytest.fixture

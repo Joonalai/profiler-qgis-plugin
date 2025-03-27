@@ -18,9 +18,8 @@
 
 import logging
 from functools import partial
-from typing import Any, cast
+from typing import TYPE_CHECKING, Any, cast
 
-from qgis.gui import QgisInterface
 from qgis.PyQt.QtCore import QEvent, QObject, pyqtSignal
 from qgis.PyQt.QtWidgets import QAbstractButton, QApplication
 from qgis.utils import iface as iface_
@@ -30,7 +29,10 @@ from qgis_profiler.constants import QT_VERSION_MIN
 from qgis_profiler.profiler import ProfilerWrapper
 from qgis_profiler.utils import disconnect_signal
 
-iface = cast(QgisInterface, iface_)
+if TYPE_CHECKING:
+    from qgis.gui import QgisInterface
+
+iface = cast("QgisInterface", iface_)
 
 LOGGER = logging.getLogger(__name__)
 
@@ -58,7 +60,7 @@ class ProfilerEventRecorder(QObject):
     Note: requires at least Qt version 3.13.1
     """
 
-    def __init__(self, group_name: str, measure_recovery_time: bool) -> None:
+    def __init__(self, group_name: str, measure_recovery_time: bool) -> None:  # noqa: FBT001
         super().__init__()
         self.group = group_name
         self._recording = False
@@ -66,7 +68,7 @@ class ProfilerEventRecorder(QObject):
         self._connections: dict[str, tuple[pyqtSignal, Any]] = {}
 
         if not utils.has_suitable_qt_version(QT_VERSION_MIN):
-            raise ValueError(
+            raise ValueError(  # noqa: TRY003
                 f"Qt version is too old. Please upgrade to {QT_VERSION_MIN}+"
             )
 
@@ -103,7 +105,7 @@ class ProfilerEventRecorder(QObject):
                 return super().eventFilter(obj, event)
 
             # If no suitable actions are found, connect to button.clicked
-            button = cast(QAbstractButton, widget)
+            button = cast("QAbstractButton", widget)
             name = button.text() or button.objectName()
             if name and name not in self._connections:
                 connection = button.clicked.connect(
@@ -113,7 +115,7 @@ class ProfilerEventRecorder(QObject):
                 self._start_profiling(name)
 
         if event.type() == StopProfilingEvent.TYPE:
-            stop_event = cast(StopProfilingEvent, event)
+            stop_event = cast("StopProfilingEvent", event)
             LOGGER.debug("End profiling for %s", stop_event.name)
             ProfilerWrapper.get().end(
                 stop_event.group,

@@ -18,9 +18,8 @@
 import enum
 import os
 import time
-from dataclasses import dataclass
 from functools import lru_cache
-from typing import Any
+from typing import Any, NamedTuple, Optional
 
 from qgis_plugin_tools.tools.i18n import tr
 from qgis_plugin_tools.tools.settings import (
@@ -31,8 +30,7 @@ from qgis_plugin_tools.tools.settings import (
 from qgis_profiler.constants import CACHE_INTERVAL
 
 
-@dataclass
-class Setting:
+class Setting(NamedTuple):
     description: str
     default: Any
     category: str = "Profiling"
@@ -50,29 +48,36 @@ class ProfilerSettings(enum.Enum):
 
     # Profiler settings
     active_group = Setting(
-        tr("A profiling group used with plugin profiling"), tr("Plugins")
+        description=tr("A profiling group used with plugin profiling"),
+        default=tr("Plugins"),
     )
     recorded_group = Setting(
-        tr("A profiling group used with recorded event profiling"),
-        tr("Recorded Events"),
+        description=("A profiling group used with recorded event profiling"),
+        default=("Recorded Events"),
     )
     recovery_group = Setting(
-        tr("A profiling group used with recovery profiling"), tr("Recovery")
+        description=("A profiling group used with recovery profiling"),
+        default=("Recovery"),
     )
     profiler_enabled = Setting(
-        tr("Is profiling enabled when using profiling decorations"), True
+        description=("Is profiling enabled when using profiling decorations"),
+        default=True,
     )
     normal_time = Setting(
-        tr("A time in seconds it normally takes to run recovery test"), 0.8
+        description=("A time in seconds it normally takes to run recovery test"),
+        default=0.8,
     )  # TODO: add calibration method
     timeout = Setting(
-        tr("A timeout in seconds after recovery measurement should exit"), 20
+        description=("A timeout in seconds after recovery measurement should exit"),
+        default=20,
     )
     process_event_count = Setting(
-        tr("Number of process events call in recovery measurement"), 100000
+        description=("Number of process events call in recovery measurement"),
+        default=100000,
     )
     measure_recovery_when_recording = Setting(
-        tr("Measure recovery profiling with recorded event profiling"), True
+        description=("Measure recovery profiling with recorded event profiling"),
+        default=True,
     )
 
     @staticmethod
@@ -108,3 +113,17 @@ class ProfilerSettings(enum.Enum):
         that cache stays valid maximum of CACHE_INTERVAL seconds.
         """
         return self.get()
+
+
+def resolve_group_name(group: Optional[str] = None) -> str:
+    """Helper method to resolve the group name, falling back to settings."""
+    if group is not None:
+        return group
+    return ProfilerSettings.active_group.get()
+
+
+def resolve_group_name_with_cache(group: Optional[str] = None) -> str:
+    """Helper method to resolve the group name with cache, falling back to settings."""
+    if group is not None:
+        return group
+    return ProfilerSettings.active_group.get_with_cache()

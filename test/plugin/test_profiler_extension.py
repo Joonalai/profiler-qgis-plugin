@@ -101,7 +101,7 @@ def profiler_extension(
 ) -> ProfilerExtension:
     profiler_extension = ProfilerExtension(
         event_recorder=mock_event_recorder,
-        profiler_panel=cast(QWidget, stub_profiler_panel),
+        profiler_panel=cast("QWidget", stub_profiler_panel),
     )
     stub_profiler_panel.vbox_layout.insertWidget(0, profiler_extension)
     return profiler_extension

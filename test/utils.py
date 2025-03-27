@@ -65,17 +65,15 @@ def profiler_data_with_group(
     group: str, profile_data: list[ProfilerResult]
 ) -> list[ProfilerResult]:
     """Set group for all profiler results."""
-    results = []
-    for result in profile_data:
-        results.append(
-            ProfilerResult(
-                result.name,
-                group,
-                result.duration,
-                profiler_data_with_group(group, result.children),
-            )
+    return [
+        ProfilerResult(
+            result.name,
+            group,
+            result.duration,
+            profiler_data_with_group(group, result.children),
         )
-    return results
+        for result in profile_data
+    ]
 
 
 class WidgetEventListener(QObject):

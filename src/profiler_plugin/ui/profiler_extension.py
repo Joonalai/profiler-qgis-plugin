@@ -26,6 +26,7 @@ from qgis_plugin_tools.tools.resources import load_ui_from_file
 
 from profiler_plugin.ui.settings_dialog import SettingsDialog
 from qgis_profiler.event_recorder import ProfilerEventRecorder
+from qgis_profiler.exceptions import ProfilerNotFoundError
 from qgis_profiler.profiler import ProfilerWrapper
 
 LOGGER = logging.getLogger(__name__)
@@ -60,7 +61,7 @@ class ProfilerExtension(QWidget, UI_CLASS):
         self._settings_dialog = SettingsDialog()
         combo_box = profiler_panel.findChild(QComboBox)
         if combo_box is None:
-            raise ValueError("Could not find combo box in profiler panel")
+            raise ProfilerNotFoundError(item=tr("Profiler panel combo box"))
         self.combo_box_group: QComboBox = combo_box
         self.combo_box_group.currentIndexChanged.connect(self._update_ui_state)
         self._initial_groups = {
