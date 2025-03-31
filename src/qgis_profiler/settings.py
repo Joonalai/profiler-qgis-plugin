@@ -93,9 +93,9 @@ class ProfilerSettings(enum.Enum):
         description=("A profiling group used with recorded event profiling"),
         default=("Recorded Events"),
     )
-    recovery_group = Setting(
-        description=("A profiling group used with recovery profiling"),
-        default=("Recovery"),
+    meters_group = Setting(
+        description=("A profiling group used with various meters"),
+        default=("Meters"),
     )
     profiler_enabled = Setting(
         description=("Is profiling enabled"),

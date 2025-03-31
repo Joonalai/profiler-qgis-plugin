@@ -25,10 +25,11 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 from qgis.core import QgsApplication, QgsRuntimeProfiler
-from qgis.PyQt.QtCore import QCoreApplication, QElapsedTimer, QObject
+from qgis.PyQt.QtCore import QCoreApplication
 
 from qgis_profiler.constants import EPSILON
 from qgis_profiler.exceptions import EventNotFoundError, ProfilerNotFoundError
+from qgis_profiler.meters.recovery_measurer import RecoveryMeasurer
 from qgis_profiler.settings import (
     ProfilerSettings,
     resolve_group_name,
@@ -117,40 +118,6 @@ class ProfilerResult:
         return parse_lines(lines[1:], group)
 
 
-class RecoveryMeasurer(QObject):
-    """A class for measuring the recovery time of an operation."""
-
-    def __init__(
-        self,
-        process_event_count: int,
-        normal_time_s: int,
-        timeout_s: int,
-    ) -> None:
-        super().__init__()
-        self._process_event_count = process_event_count
-        self._normal_time_ms = normal_time_s * 1000
-        self._timeout_ms = timeout_s * 1000
-        self._timer = QElapsedTimer()
-        self._recovery_timer = QElapsedTimer()
-
-    def measure_recovery_time(self) -> float:
-        """Measure the recovery time of an operation."""
-        self._timer.start()
-        LOGGER.debug("Normal time: %sms", self._normal_time_ms)
-        while (t := self._measure()) > self._normal_time_ms:
-            LOGGER.debug("Recovery time: %sms", t)
-            if self._timer.elapsed() > self._timeout_ms:
-                raise TimeoutError("Recovery time exceeded timeout.")  # noqa: TRY003
-            QCoreApplication.processEvents()
-        return round(self._timer.elapsed() / 1000, 3)
-
-    def _measure(self) -> int:
-        self._recovery_timer.start()
-        for _ in range(self._process_event_count):
-            QCoreApplication.processEvents()
-        return self._recovery_timer.elapsed()  # ms
-
-
 class ProfilerWrapper:
     """
     A wrapper for the QgsRuntimeProfiler class
@@ -203,7 +170,7 @@ class ProfilerWrapper:
         group = (
             group
             if group is not None
-            else ProfilerSettings.recovery_group.get_with_cache()
+            else ProfilerSettings.meters_group.get_with_cache()
         )
         recovery_measurer = RecoveryMeasurer(
             process_event_count=ProfilerSettings.process_event_count.get(),

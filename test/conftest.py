@@ -26,6 +26,7 @@ from qgis.PyQt.QtWidgets import (
 )
 
 from profiler_test_utils import utils
+from profiler_test_utils.decorator_utils import DecoratorTester
 from profiler_test_utils.utils import Dialog
 from qgis_profiler.profiler import ProfilerWrapper
 from qgis_profiler.settings import ProfilerSettings
@@ -94,3 +95,8 @@ def dialog_widget_positions(dialog: Dialog) -> dict[str, utils.WidgetInfo]:
         for name in dir(dialog)
         if isinstance((widget := getattr(dialog, name, None)), QWidget)
     }
+
+
+@pytest.fixture
+def decorator_tester() -> DecoratorTester:
+    return DecoratorTester()
