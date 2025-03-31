@@ -22,6 +22,7 @@ from typing import TYPE_CHECKING
 import pytest
 from qgis.PyQt.QtCore import Qt
 
+from profiler_test_utils.utils import Dialog, WidgetEventListener, WidgetInfo
 from qgis_profiler.macro import (
     Macro,
     MacroKeyEvent,
@@ -31,8 +32,6 @@ from qgis_profiler.macro import (
     MacroPlayer,
     MacroRecorder,
 )
-from test.conftest import Dialog
-from test.utils import WidgetEventListener, WidgetInfo
 
 WAIT_MS = 5
 

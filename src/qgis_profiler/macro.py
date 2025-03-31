@@ -262,7 +262,7 @@ class MacroRecorder(QObject):
             if self._filter_out_mouse_movements
             else self._recorded_events
         )
-        LOGGER.info(events)
+        LOGGER.debug(events)
         return Macro(events)
 
     def eventFilter(self, watched_object: QObject, event: QEvent) -> bool:  # noqa: N802

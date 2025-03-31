@@ -83,6 +83,7 @@ select = [
 
 per-file-ignores = [
     "test/*:INP001,SC200,QGS105",
+    "src/profiler_test_utils/*:INP001,SC200,QGS105",
 ]
 
 [tool.mypy]
@@ -93,6 +94,13 @@ check_untyped_defs = true
 
 [tool.pytest.ini_options]
 minversion = "6.0"
+timeout = 1000
+log_cli = true
+log_cli_level = "INFO"
+log_cli_format = "%(asctime)s %(levelname)-10s (%(filename)s) %(message)s"
+log_cli_date_format = "%H:%M:%S"
+qt_log_level_fail = "CRITICAL"
+qgis_qui_enabled = true
 
 [tool.coverage.paths]
 source = ["src", "**/site-packages"]

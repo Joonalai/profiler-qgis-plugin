@@ -20,6 +20,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
+from profiler_test_utils import utils
 from qgis_profiler.decorators import profile, profile_recovery_time
 from qgis_profiler.profiler import (
     ProfilerResult,
@@ -27,7 +28,6 @@ from qgis_profiler.profiler import (
     RecoveryMeasurer,
 )
 from qgis_profiler.settings import ProfilerSettings
-from test import utils
 
 EXTRA_GROUP = "New group"
 

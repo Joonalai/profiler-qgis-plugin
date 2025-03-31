@@ -28,7 +28,7 @@ if TYPE_CHECKING:
 
     from pytestqt.qtbot import QtBot
 
-    from test.conftest import Dialog
+    from profiler_test_utils.utils import Dialog
 
 
 @pytest.fixture
