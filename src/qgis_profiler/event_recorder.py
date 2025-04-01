@@ -26,6 +26,7 @@ from qgis.utils import iface as iface_
 
 from qgis_profiler import utils
 from qgis_profiler.constants import QT_VERSION_MIN
+from qgis_profiler.meters.meter import Meter
 from qgis_profiler.profiler import ProfilerWrapper
 from qgis_profiler.utils import disconnect_signal
 
@@ -48,7 +49,7 @@ class StopProfilingEvent(QEvent):
         self.group = group
 
 
-class ProfilerEventRecorder(QObject):
+class ProfilerEventRecorder(Meter):
     """
     Handles profiling events and manages signal connections.
 

@@ -176,8 +176,9 @@ class ProfilerWrapper:
             process_event_count=ProfilerSettings.process_event_count.get(),
             normal_time_s=ProfilerSettings.normal_time.get(),
             timeout_s=ProfilerSettings.timeout.get(),
+            context=name,
         )
-        recovery_time = recovery_measurer.measure_recovery_time()
+        recovery_time = recovery_measurer.measure()
         self.add_record(name, group, recovery_time)
         return recovery_time
 

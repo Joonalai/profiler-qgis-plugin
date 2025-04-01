@@ -36,6 +36,7 @@ def recovery_measurer() -> RecoveryMeasurer:
         process_event_count=ProfilerSettings.process_event_count.get(),
         normal_time_s=ProfilerSettings.normal_time.get(),
         timeout_s=ProfilerSettings.timeout.get(),
+        context="test",
     )
 
 
@@ -57,7 +58,7 @@ def test_profile_recovery_time_decorator_should_not_profile_if_profiling_is_disa
 
 @pytest.mark.xfail(reason="Test is not done yet")
 def test_recovery_measurer(default_group: str, recovery_measurer: RecoveryMeasurer):
-    assert recovery_measurer.measure_recovery_time() == pytest.approx(0.1, abs=1e-1)
+    assert recovery_measurer.measure() == pytest.approx(0.1, abs=1e-1)
 
 
 @pytest.mark.xfail(reason="Test is not done yet")
