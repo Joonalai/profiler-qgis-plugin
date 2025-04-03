@@ -16,6 +16,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with profiler-qgis-plugin. If not, see <https://www.gnu.org/licenses/>.
 import logging
+from contextlib import suppress
 from pathlib import Path
 from typing import Any, Optional
 
@@ -27,7 +28,10 @@ from qgis_plugin_tools.tools.resources import load_ui_from_file
 from profiler_plugin.ui.settings_dialog import SettingsDialog
 from qgis_profiler.event_recorder import ProfilerEventRecorder
 from qgis_profiler.exceptions import ProfilerNotFoundError
+from qgis_profiler.meters.meter import Meter, MeterAnomaly
+from qgis_profiler.meters.recovery_measurer import RecoveryMeasurer
 from qgis_profiler.profiler import ProfilerWrapper
+from qgis_profiler.settings import ProfilerSettings
 
 LOGGER = logging.getLogger(__name__)
 
@@ -57,7 +61,10 @@ class ProfilerExtension(QWidget, UI_CLASS):
         """
         super().__init__(profiler_panel)
         self.setupUi(self)
-        self._action_recorder: Optional[ProfilerEventRecorder] = event_recorder
+        self._event_recorder: Optional[ProfilerEventRecorder] = event_recorder
+        self._meters: list[Meter] = []
+        self._meters_group = ProfilerSettings.meters_group.get()
+
         combo_box = profiler_panel.findChild(QComboBox)
         if combo_box is None:
             raise ProfilerNotFoundError(item=tr("Profiler panel combo box"))
@@ -68,9 +75,27 @@ class ProfilerExtension(QWidget, UI_CLASS):
             for i in range(self.combo_box_group.count())
         }
 
+        # Configure meters
+        self._reset_meters()
+
         # Configure buttons
         self._configure_buttons()
         self._update_ui_state()
+
+    def cleanup(self) -> None:
+        if self._event_recorder and self._event_recorder.is_recording():
+            self._stop_recording()
+        for meter in self._meters:
+            meter.cleanup()
+            with suppress(TypeError):
+                meter.anomaly_detected.disconnect(self._profile_meter_anomaly)
+        self._meters.clear()
+
+        with suppress(TypeError):
+            if self._event_recorder:
+                self._event_recorder.event_finished.disconnect(
+                    self._event_recorder_event_finished
+                )
 
     def _configure_buttons(self) -> None:
         """
@@ -88,7 +113,7 @@ class ProfilerExtension(QWidget, UI_CLASS):
             self.button_save: (
                 None,
                 "/mActionFileSave.svg",
-            ),  # Disabled by default
+            ),  # Not implemented yet
             self.button_settings: (
                 self._open_settings,
                 "/console/iconSettingsConsole.svg",
@@ -101,24 +126,62 @@ class ProfilerExtension(QWidget, UI_CLASS):
             if action:
                 button.clicked.connect(action)
 
+    def _reset_meters(self) -> None:
+        self.cleanup()
+        self._meters_group = ProfilerSettings.meters_group.get()
+
+        if ProfilerSettings.recovery_meter_enabled.get():
+            self._meters.append(RecoveryMeasurer.get())
+        else:
+            RecoveryMeasurer.get().enabled = False
+
+        for meter in self._meters:
+            meter.reset_parameters()
+            meter.anomaly_detected.connect(self._profile_meter_anomaly)
+
+        if self._event_recorder:
+            self._event_recorder.event_finished.connect(
+                self._event_recorder_event_finished
+            )
+
+    def _profile_meter_anomaly(self, anomaly: MeterAnomaly) -> None:
+        LOGGER.debug("Meter anomaly: %s", anomaly)
+        ProfilerWrapper.get().add_record(
+            anomaly.name, self._meters_group, anomaly.duration_seconds
+        )
+
+    def _event_recorder_event_finished(self, event_name: str) -> None:
+        RecoveryMeasurer.get().set_context(f"{event_name} (recovery)")
+        RecoveryMeasurer.get().measure()
+
     def _toggle_recording(self) -> None:
-        if not self._action_recorder:
+        if not self._event_recorder:
             return
 
-        recorder_group = self._action_recorder.group
+        recorder_group = self._event_recorder.group
         available_groups = {
             self.combo_box_group.itemText(i)
             for i in range(self.combo_box_group.count())
         }
-        if not self._action_recorder.is_recording():
+        if not self._event_recorder.is_recording():
             if recorder_group not in available_groups:
                 ProfilerWrapper.get().create_group(recorder_group)
             self.combo_box_group.setCurrentText(recorder_group)
-            self._action_recorder.start_recording()
+            self._start_recording()
         else:
-            self._action_recorder.stop_recording()
+            self._stop_recording()
 
         self._update_ui_state()
+
+    def _start_recording(self) -> None:
+        if not self._event_recorder:
+            return
+        self._event_recorder.start_recording()
+
+    def _stop_recording(self) -> None:
+        if not self._event_recorder:
+            return
+        self._event_recorder.stop_recording()
 
     def _clear_current_group(self) -> None:
         current_group = self.combo_box_group.currentText()
@@ -127,18 +190,20 @@ class ProfilerExtension(QWidget, UI_CLASS):
 
     def _open_settings(self) -> None:
         SettingsDialog().exec()
+        # There might be changes in meter configuration
+        self._reset_meters()
         self._update_ui_state()
 
     def _update_ui_state(self, *args: Any) -> None:
         """
         Updates the state of the UI components based on the current profiling state.
         """
-        self.button_record.setEnabled(self._action_recorder is not None)
-        if not self._action_recorder:
+        self.button_record.setEnabled(self._event_recorder is not None)
+        if not self._event_recorder:
             self.button_record.setToolTip(tr("Cannot use the recording functionality"))
 
         self.button_record.setChecked(
-            self._action_recorder is not None and self._action_recorder.is_recording()
+            self._event_recorder is not None and self._event_recorder.is_recording()
         )
         self.button_clear.setEnabled(
             self.combo_box_group.currentText() not in self._initial_groups

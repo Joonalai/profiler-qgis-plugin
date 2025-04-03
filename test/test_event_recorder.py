@@ -33,41 +33,30 @@ if TYPE_CHECKING:
 
 @pytest.fixture
 def event_recorder(default_group: str) -> Iterator[ProfilerEventRecorder]:
-    recorder = ProfilerEventRecorder(
-        group_name=default_group, measure_recovery_time=True
-    )
+    recorder = ProfilerEventRecorder(group_name=default_group)
     yield recorder
     recorder.stop_recording()
 
 
-@pytest.mark.parametrize("measure_recovery_time", [True, False])
 def test_recorder_should_profile_button_click(
     event_recorder: ProfilerEventRecorder,
     mock_profiler: "MagicMock",
     dialog: "Dialog",
     qtbot: "QtBot",
     default_group: str,
-    measure_recovery_time: bool,
 ) -> None:
     # Arrange
-    event_recorder._measure_recovery_time = measure_recovery_time
     event_recorder.start_recording()
 
     # Act
     qtbot.mouseMove(dialog.button)
-    qtbot.mouseClick(dialog.button, Qt.LeftButton)
-    qtbot.wait(1)
+    with qtbot.waitSignal(event_recorder.event_finished, timeout=100):
+        qtbot.mouseClick(dialog.button, Qt.LeftButton)
+        qtbot.wait(1)
 
     # Assert
     mock_profiler.start.assert_called_once_with(dialog.button.text(), default_group)
     mock_profiler.end.assert_called_once_with(default_group)
-
-    if measure_recovery_time:
-        mock_profiler.profile_recovery_time.assert_called_once_with(
-            f"{dialog.button.text()} (recovery)"
-        )
-    else:
-        mock_profiler.profile_recovery_time.assert_not_called()
 
 
 def test_recorder_should_handle_multiple_button_clicks(

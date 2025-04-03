@@ -90,34 +90,36 @@ class ProfilerSettings(enum.Enum):
         default=tr("Plugins"),
     )
     recorded_group = Setting(
-        description=("A profiling group used with recorded event profiling"),
-        default=("Recorded Events"),
+        description=tr("A profiling group used with recorded event profiling"),
+        default=tr("Recorded Events"),
     )
     meters_group = Setting(
-        description=("A profiling group used with various meters"),
-        default=("Meters"),
+        description=tr("A profiling group used with various meters"),
+        default=tr("Meters"),
     )
     profiler_enabled = Setting(
-        description=("Is profiling enabled"),
+        description=tr("Is profiling enabled"),
         default=True,
     )
-    normal_time = Setting(
-        description=("A time in seconds it normally takes to run recovery test"),
+
+    # Recovery measurement meter settings
+    recovery_meter_enabled = Setting(
+        description=tr("Measure recovery profiling with recorder"),
+        default=True,
+    )
+    recovery_threshold = Setting(
+        description=tr("A time in seconds it normally takes to run recovery check"),
         default=0.8,
         widget_config=WidgetConfig(minimum=0.0, maximum=100.0, step=0.1),
     )  # TODO: add calibration method
-    timeout = Setting(
-        description=("A timeout in seconds after recovery measurement should exit"),
-        default=20,
+    recovery_timeout = Setting(
+        description=tr("A timeout in seconds after recovery measurement should exit"),
+        default=10,
     )
-    process_event_count = Setting(
-        description=("Number of process events call in recovery measurement"),
+    recovery_process_event_count = Setting(
+        description=tr("Number of process events call in recovery measurement"),
         default=100000,
         widget_config=WidgetConfig(minimum=1, maximum=1000000, step=10),
-    )
-    measure_recovery_when_recording = Setting(
-        description=("Measure recovery profiling with recorded event profiling"),
-        default=True,
     )
 
     @staticmethod

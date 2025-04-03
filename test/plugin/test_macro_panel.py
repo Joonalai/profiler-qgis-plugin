@@ -189,6 +189,7 @@ def test_macro_panel_play_macro(
     mock_macro: "MagicMock",
     qtbot: "QtBot",
     mock_profiler: "MagicMock",
+    mock_meter_recovery_measurer: "MagicMock",
     default_group: str,
 ) -> None:
     # Act
@@ -197,9 +198,7 @@ def test_macro_panel_play_macro(
     # Assert
     mock_macro_player.play.assert_called_once_with(mock_macro)
     mock_profiler.profile.assert_called_once_with(f"Macro: {MACRO_NAME}", default_group)
-    mock_profiler.profile_recovery_time.assert_called_once_with(
-        f"Macro: {MACRO_NAME} (recovery)"
-    )
+    mock_meter_recovery_measurer.measure.assert_called_once()
 
 
 @pytest.mark.usefixtures("record_macro", "set_macro_selected")
