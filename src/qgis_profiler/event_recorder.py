@@ -61,11 +61,12 @@ class ProfilerEventRecorder(Meter):
     Note: requires at least Qt version 3.13.1
     """
 
-    def __init__(self, group_name: str, measure_recovery_time: bool) -> None:  # noqa: FBT001
+    event_finished = pyqtSignal(str)
+
+    def __init__(self, group_name: str) -> None:
         super().__init__()
         self.group = group_name
         self._recording = False
-        self._measure_recovery_time = measure_recovery_time
         self._connections: dict[str, tuple[pyqtSignal, Any]] = {}
 
         if not utils.has_suitable_qt_version(QT_VERSION_MIN):
@@ -121,10 +122,7 @@ class ProfilerEventRecorder(Meter):
             ProfilerWrapper.get().end(
                 stop_event.group,
             )
-            if self._measure_recovery_time:
-                ProfilerWrapper.get().profile_recovery_time(
-                    f"{stop_event.name} (recovery)"
-                )
+            self.event_finished.emit(stop_event.name)
 
             # Internal signal, no need to pass around
             return False

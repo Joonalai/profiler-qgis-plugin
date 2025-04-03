@@ -28,6 +28,7 @@ from qgis.PyQt.QtWidgets import (
 from profiler_test_utils import utils
 from profiler_test_utils.decorator_utils import DecoratorTester
 from profiler_test_utils.utils import Dialog
+from qgis_profiler.meters.recovery_measurer import RecoveryMeasurer
 from qgis_profiler.profiler import ProfilerWrapper
 from qgis_profiler.settings import ProfilerSettings
 
@@ -73,6 +74,13 @@ def mock_profiler(mocker: "MockerFixture") -> MagicMock:
     mock_profiler = mocker.create_autospec(ProfilerWrapper, instance=True)
     mocker.patch.object(ProfilerWrapper, "get", return_value=mock_profiler)
     return mock_profiler
+
+
+@pytest.fixture
+def mock_meter_recovery_measurer(mocker: "MockerFixture") -> MagicMock:
+    mock_meter = mocker.MagicMock()
+    mocker.patch.object(RecoveryMeasurer, "get", return_value=mock_meter)
+    return mock_meter
 
 
 @pytest.fixture

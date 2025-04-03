@@ -32,6 +32,7 @@ from qgis_plugin_tools.tools.resources import load_ui_from_file
 
 from profiler_plugin.ui.macro.macro_model import MacroTableModel
 from qgis_profiler.macro import MacroPlayer, MacroRecorder
+from qgis_profiler.meters.recovery_measurer import RecoveryMeasurer
 from qgis_profiler.profiler import ProfilerWrapper
 from qgis_profiler.settings import ProfilerSettings
 
@@ -141,10 +142,10 @@ class MacroPanel(UI_CLASS, QgsDevToolWidget):  # type: ignore
                 f"Macro: {macro.name}", ProfilerSettings.active_group.get()
             ):
                 self._player.play(macro)
-            # TODO: make setting of recovery
-            ProfilerWrapper.get().profile_recovery_time(
-                f"Macro: {macro.name} (recovery)"
-            )
+            # Measure recovery time if the meter is enabled
+            meter = RecoveryMeasurer.get()
+            meter.set_context(f"Macro: {macro.name} (recovery)")
+            meter.measure()
         else:
             self._player.play(macro)
 

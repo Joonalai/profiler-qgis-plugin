@@ -65,7 +65,6 @@ class ProfilerPlugin(QObject):
         if utils.has_suitable_qt_version(QT_VERSION_MIN):
             self._event_recorder = ProfilerEventRecorder(
                 group_name=ProfilerSettings.recorded_group.get(),
-                measure_recovery_time=ProfilerSettings.measure_recovery_when_recording.get(),
             )
         else:
             MsgBar.error(
@@ -102,7 +101,7 @@ class ProfilerPlugin(QObject):
         iface.unregisterDevToolWidgetFactory(self._macro_factory)
 
         if self._event_recorder:
-            self._event_recorder.stop_recording()
+            self._event_recorder.cleanup()
         if self._profiler_panel_layout:
             self._profiler_panel_layout.removeWidget(self._profiler_extension)
         if self._profiler_extension:

@@ -91,14 +91,14 @@ def test_settings_dialog_initialization(settings_dialog: "SettingsDialog") -> No
             lambda widget, value: widget.setChecked(value),
         ),
         (
-            "normal_time",
+            "recovery_threshold",
             QDoubleSpinBox,
             "value",
             1.23,
             lambda widget, value: widget.setValue(value),
         ),
         (
-            "process_event_count",
+            "recovery_process_event_count",
             QSpinBox,
             "value",
             10,

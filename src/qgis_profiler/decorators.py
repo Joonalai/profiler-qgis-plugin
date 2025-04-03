@@ -20,6 +20,7 @@ from typing import Any, Callable, Optional
 
 from qgis_plugin_tools.tools.i18n import tr
 
+from qgis_profiler.meters.recovery_measurer import RecoveryMeasurer
 from qgis_profiler.profiler import ProfilerWrapper
 from qgis_profiler.settings import (
     ProfilerSettings,
@@ -90,12 +91,20 @@ def profile_recovery_time(
                 LOGGER.debug("Profiling is disabled.")
                 return function(*args, **kwargs)
 
+            group_name = resolve_group_name_with_cache(group)
             event_name = name if name is not None else function.__name__
             event_name += f" {tr('(recovery)')}"
             try:
                 return function(*args, **kwargs)
             finally:
-                ProfilerWrapper.get().profile_recovery_time(event_name, group)
+                meter = RecoveryMeasurer.get()
+                meter.set_context(event_name)
+                duration = meter.measure()
+                # Meter might not be enabled
+                if duration is not None:
+                    ProfilerWrapper.get().add_record(event_name, group_name, duration)
+                else:
+                    LOGGER.debug("Recovery time measurement is disabled.")
 
         return wrapper
 

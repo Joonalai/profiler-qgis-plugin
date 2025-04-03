@@ -29,9 +29,7 @@ from qgis.PyQt.QtCore import QCoreApplication
 
 from qgis_profiler.constants import EPSILON
 from qgis_profiler.exceptions import EventNotFoundError, ProfilerNotFoundError
-from qgis_profiler.meters.recovery_measurer import RecoveryMeasurer
 from qgis_profiler.settings import (
-    ProfilerSettings,
     resolve_group_name,
     resolve_group_name_with_cache,
 )
@@ -164,23 +162,6 @@ class ProfilerWrapper:
         with self.profile("Temporary message", group_name):
             QCoreApplication.processEvents()
         self.clear(group_name)
-
-    def profile_recovery_time(self, name: str, group: Optional[str] = None) -> float:
-        """Profile a recovery time after an operation."""
-        group = (
-            group
-            if group is not None
-            else ProfilerSettings.meters_group.get_with_cache()
-        )
-        recovery_measurer = RecoveryMeasurer(
-            process_event_count=ProfilerSettings.process_event_count.get(),
-            normal_time_s=ProfilerSettings.normal_time.get(),
-            timeout_s=ProfilerSettings.timeout.get(),
-            context=name,
-        )
-        recovery_time = recovery_measurer.measure()
-        self.add_record(name, group, recovery_time)
-        return recovery_time
 
     def start(self, name: str, group: str) -> str:
         """
