@@ -144,8 +144,8 @@ class MacroPanel(UI_CLASS, QgsDevToolWidget):  # type: ignore
                 self._player.play(macro)
             # Measure recovery time if the meter is enabled
             meter = RecoveryMeasurer.get()
-            meter.set_context(f"Macro: {macro.name} (recovery)")
-            meter.measure()
+            with meter.context(f"Macro: {macro.name}"):
+                meter.measure()
         else:
             self._player.play(macro)
 

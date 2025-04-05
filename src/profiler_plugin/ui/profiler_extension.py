@@ -143,6 +143,9 @@ class ProfilerExtension(QWidget, UI_CLASS):
             self._event_recorder.event_finished.connect(
                 self._event_recorder_event_finished
             )
+            self._event_recorder.event_started.connect(
+                self._event_recorder_event_started
+            )
 
     def _profile_meter_anomaly(self, anomaly: MeterAnomaly) -> None:
         LOGGER.debug("Meter anomaly: %s", anomaly)
@@ -150,9 +153,14 @@ class ProfilerExtension(QWidget, UI_CLASS):
             anomaly.name, self._meters_group, anomaly.duration_seconds
         )
 
-    def _event_recorder_event_finished(self, event_name: str) -> None:
-        RecoveryMeasurer.get().set_context(f"{event_name} (recovery)")
-        RecoveryMeasurer.get().measure()
+    def _event_recorder_event_started(self, event_name: str) -> None:
+        for meter in self._meters:
+            meter.add_context(event_name)
+
+    def _event_recorder_event_finished(self, _: str) -> None:
+        for meter in self._meters:
+            meter.measure()
+            meter.pop_context()
 
     def _toggle_recording(self) -> None:
         if not self._event_recorder:

@@ -33,6 +33,7 @@ class RecoveryMeasurer(Meter):
     become fully responsive again.
     """
 
+    _short_name = "recovery"
     _instance: Optional["RecoveryMeasurer"] = None
 
     def __init__(

@@ -16,7 +16,9 @@
 #  You should have received a copy of the GNU General Public License
 #  along with profiler-qgis-plugin. If not, see <https://www.gnu.org/licenses/>.
 import abc
-from typing import NamedTuple, Optional
+from collections.abc import Generator
+from contextlib import contextmanager
+from typing import ClassVar, NamedTuple, Optional
 
 from qgis.PyQt.QtCore import QObject, pyqtSignal
 
@@ -29,11 +31,14 @@ class MeterAnomaly(NamedTuple):
 class Meter(QObject):
     __metaclass__ = abc.ABCMeta
 
+    _short_name: ClassVar[str] = ""
+
     anomaly_detected = pyqtSignal(MeterAnomaly)
 
     def __init__(self) -> None:
         super().__init__(None)
-        self._context: str = self.__class__.__name__
+        self._default_context: str = self.__class__.__name__
+        self._context_stack: list[str] = []
         self._enabled: bool = True
 
     @classmethod
@@ -45,7 +50,11 @@ class Meter(QObject):
 
     @property
     def current_context(self) -> str:
-        return self._context
+        context = (
+            self._context_stack[-1] if self._context_stack else self._default_context
+        )
+
+        return context + f" ({self._short_name})" if self._short_name else ""
 
     @property
     def enabled(self) -> bool:
@@ -55,11 +64,30 @@ class Meter(QObject):
     def enabled(self, enabled: bool) -> None:
         self._enabled = enabled
 
-    def set_context(self, context: str) -> None:
+    @contextmanager
+    def context(self, context: str) -> Generator[str, None, None]:
+        """Context manager for the meter in certain context."""
+        self.add_context(context)
+        try:
+            yield self.current_context
+        finally:
+            self.pop_context()
+
+    def add_context(self, context: str) -> None:
         """
-        Set the current context of the meter.
+        Adds context to the context stack
         """
-        self._context = context
+        self._context_stack.append(context)
+
+    def pop_context(self) -> Optional[str]:
+        """
+        Remove the last context from the context stack if it exists.
+
+        :return: Context or None if context stack is empty.
+        """
+        if self._context_stack:
+            return self._context_stack.pop()
+        return None
 
     def measure(self) -> Optional[float]:
         """
