@@ -22,3 +22,4 @@ metaclass
 func
 varnames
 argcount
+poller

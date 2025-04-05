@@ -45,13 +45,17 @@ class MeterAnomaly(NamedTuple):
 
 
 class Meter(QObject):
+    """
+    Abstract base class for meters to detect anomalies in QGIS performance.
+    """
+
     __metaclass__ = abc.ABCMeta
 
     _short_name: ClassVar[str] = ""
 
     anomaly_detected = pyqtSignal(MeterAnomaly)
 
-    def __init__(self) -> None:
+    def __init__(self, supports_continuous_measurement: bool = False) -> None:  # noqa: FBT001, FBT002
         super().__init__(None)
         self._default_context = MeterContext(
             self.__class__.__name__, ProfilerSettings.meters_group.get()
@@ -59,6 +63,15 @@ class Meter(QObject):
         self._context_stack: list[MeterContext] = []
         self._enabled = True
         self._connected_to_profiler = False
+        self._supports_continuous_measuring: bool = supports_continuous_measurement
+        self._is_measuring: bool = False
+
+
+    def __del__(self) -> None:
+        """
+        Ensure cleanup when the object is garbage collected.
+        """
+        self.cleanup()
 
     @classmethod
     @abc.abstractmethod
@@ -146,6 +159,10 @@ class Meter(QObject):
         return self._connected_to_profiler
 
     @property
+    def supports_continuous_measuring(self) -> bool:
+        return self._supports_continuous_measuring
+
+    @property
     def enabled(self) -> bool:
         """:return Whether the meter is enabled."""
         return self._enabled
@@ -153,6 +170,10 @@ class Meter(QObject):
     @enabled.setter
     def enabled(self, enabled: bool) -> None:
         self._enabled = enabled
+
+    @property
+    def is_measuring(self) -> bool:
+        return self._is_measuring
 
     @contextmanager
     def context(self, name: str, group: str) -> Generator[MeterContext, None, None]:
@@ -206,10 +227,31 @@ class Meter(QObject):
             return duration
         return None
 
+    def start_measuring(self) -> bool:
+        """
+        Starts the measurement process and reflects the status of whether
+        measurements have started successfully.
+
+        :return: A boolean indicating if the measurement
+            process was initiated successfully.
+        """
+        if self._supports_continuous_measuring:
+            self._is_measuring = True
+            return self._start_measuring()
+        return False
+
+    def stop_measuring(self) -> None:
+        """
+        Stops the continuous measurement process if applicable.
+        """
+        self._is_measuring = False
+        self._stop_measuring()
+
     def cleanup(self) -> None:
         """
-        Cleanup the meter.
+        Cleanup the meter and stop measuring if continuous measuring is supported.
         """
+        self.stop_measuring()
         with suppress(TypeError):
             self.anomaly_detected.disconnect(self._profile_anomaly)
         self._connected_to_profiler = False
@@ -240,3 +282,9 @@ class Meter(QObject):
     def _emit_anomaly(self, duration: float) -> None:
         """Emit anomaly_detected signal."""
         self.anomaly_detected.emit(MeterAnomaly(self.current_context, duration))
+
+    def _start_measuring(self) -> bool:
+        return False
+
+    def _stop_measuring(self) -> None:
+        pass
