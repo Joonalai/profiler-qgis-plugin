@@ -42,7 +42,7 @@ from qgis_plugin_tools.tools.custom_logging import (
 from qgis_plugin_tools.tools.resources import load_ui_from_file
 from qgis_plugin_tools.tools.settings import set_setting
 
-from qgis_profiler.settings import ProfilerSettings, WidgetType
+from qgis_profiler.settings import ProfilerSettings, SettingCategory, WidgetType
 
 UI_CLASS: QWidget = load_ui_from_file(
     str(Path(__file__).parent.joinpath("settings_dialog.ui"))
@@ -69,7 +69,7 @@ class SettingsDialog(QDialog, UI_CLASS):  # type: ignore
         self.setupUi(self)
         self.setWindowIcon(QgsApplication.getThemeIcon("/propertyicons/settings.svg"))
         self._widgets: dict[ProfilerSettings, QWidget] = {}
-        self._groups: dict[str, QgsCollapsibleGroupBox] = {}
+        self._groups: dict[SettingCategory, QgsCollapsibleGroupBox] = {}
 
         self._setup_plugin_settings()
         self._setup_logging_settings()
@@ -107,7 +107,7 @@ class SettingsDialog(QDialog, UI_CLASS):  # type: ignore
         category = setting_meta.category
 
         if category not in self._groups:
-            group_box = QgsCollapsibleGroupBox(category)
+            group_box = QgsCollapsibleGroupBox(category.value)
             group_box.setLayout(QFormLayout())
             self._groups[category] = group_box
             self.layout_setting_items.addWidget(group_box)

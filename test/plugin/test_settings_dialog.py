@@ -30,7 +30,7 @@ from qgis.PyQt.QtWidgets import (
 )
 
 from profiler_plugin.ui.settings_dialog import SettingsDialog
-from qgis_profiler.settings import ProfilerSettings
+from qgis_profiler.settings import ProfilerSettings, SettingCategory
 
 if TYPE_CHECKING:
     from pytestqt.qtbot import QtBot
@@ -64,6 +64,7 @@ def test_settings_dialog_initialization(settings_dialog: "SettingsDialog") -> No
 
     assert len(settings_dialog._widgets) == len(ProfilerSettings)
     assert set(settings_dialog._widgets.keys()) == set(ProfilerSettings)
+    assert set(settings_dialog._groups.keys()) == set(SettingCategory)
     # utils.wait(10000)
 
 
