@@ -15,9 +15,14 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with profiler-qgis-plugin. If not, see <https://www.gnu.org/licenses/>.
+import time
 
 from profiler_test_utils import utils
-from qgis_profiler.decorators import profile, profile_class
+from qgis_profiler.decorators import (
+    profile,
+    profile_class,
+)
+from qgis_profiler.meters.thread_health_checker import MainThreadHealthChecker
 
 EXTRA_GROUP = "New group"
 EXPECTED_TIME = 0.01
@@ -27,6 +32,10 @@ class DecoratorTester:
     @profile()
     def add(self, a: int, b: int) -> int:
         return _add(a, b)
+
+    @MainThreadHealthChecker.monitor()
+    def monitor_thread_health(self) -> None:
+        time.sleep(0.1)
 
     @profile(name="Add numbers")
     def add_with_name_kwarg(self, a: int, b: int) -> int:

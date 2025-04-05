@@ -20,6 +20,7 @@ from collections.abc import Generator
 from contextlib import contextmanager, suppress
 from typing import Any, Callable, ClassVar, NamedTuple, Optional
 
+from qgis.core import QgsApplication
 from qgis.PyQt.QtCore import QObject, pyqtSignal, pyqtSlot
 
 from qgis_profiler import decorators
@@ -66,7 +67,6 @@ class Meter(QObject):
         self._supports_continuous_measuring: bool = supports_continuous_measurement
         self._is_measuring: bool = False
 
-
     def __del__(self) -> None:
         """
         Ensure cleanup when the object is garbage collected.
@@ -81,18 +81,20 @@ class Meter(QObject):
         """
 
     @classmethod
-    def monitor(
+    def monitor(  # noqa: PLR0913
         cls,
         name: Optional[str] = None,
         group: Optional[str] = None,
         name_args: Optional[list[str]] = None,
         connect_to_profiler: bool = True,  # noqa: FBT001, FBT002
+        start_continuous_measuring: bool = True,  # noqa: FBT001, FBT002
         measure_after_call: bool = False,  # noqa: FBT001, FBT002
     ) -> Callable:
         """
         Decorator for monitoring the meter by setting the meter context
-        within a function call and by optionally measuring the meter
-        after the function call. If the meter is disabled, nothing is done.
+        within a function call and, by starting continuous measuring if supported
+        and by optionally measuring the meter after the function call.
+        If the meter is disabled, nothing is done.
 
         If you want to profile the anomalies found during the function call,
         connect to profiler using the `connect_to_profiler` argument.
@@ -105,8 +107,9 @@ class Meter(QObject):
         name. If specified, the context name will include these argument values.
         :param connect_to_profiler: Optional flag to connect to meter to a profiler
         if not yet connected.
+        :param start_continuous_measuring: Optional flag to start continuous measuring.
         :param measure_after_call: Optional flag to measure the meter after the function
-        call.
+        call. For some meters this might be expensive.
         :return: A callable decorator function that wraps the given function to
         set the meter context during the function call.
         """
@@ -129,10 +132,18 @@ class Meter(QObject):
 
                 if connect_to_profiler and not meter.is_connected_to_profiler:
                     meter.connect_to_profiler()
+
                 with meter.context(context_name, group_name):
+                    if (
+                        start_continuous_measuring
+                        and meter.supports_continuous_measuring
+                        and not meter.is_measuring
+                    ):
+                        meter.start_measuring()
                     try:
                         return function(*args, **kwargs)
                     finally:
+                        QgsApplication.processEvents()
                         if measure_after_call:
                             meter.measure()
 

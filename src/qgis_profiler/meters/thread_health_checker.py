@@ -18,7 +18,8 @@
 
 import logging
 import time
-from typing import Optional
+import warnings
+from typing import Callable, Optional
 
 from qgis.core import QgsApplication
 from qgis.PyQt.QtCore import (
@@ -125,6 +126,30 @@ class MainThreadHealthChecker(Meter):
             )
             cls._instance.enabled = ProfilerSettings.thread_health_checker_enabled.get()
         return cls._instance
+
+    @classmethod
+    def monitor(  # noqa: PLR0913
+        cls,
+        name: Optional[str] = None,
+        group: Optional[str] = None,
+        name_args: Optional[list[str]] = None,
+        connect_to_profiler: bool = True,  # noqa: FBT001, FBT002
+        start_continuous_measuring: bool = True,  # noqa: FBT001, FBT002
+        measure_after_call: bool = False,  # noqa: FBT001, FBT002
+    ) -> Callable:
+        if measure_after_call:
+            warnings.warn(
+                "measure_after_call is not recommended for MainThreadHealthChecker",
+                stacklevel=1,
+            )
+        return super().monitor(
+            name,
+            group,
+            name_args,
+            connect_to_profiler,
+            start_continuous_measuring,
+            measure_after_call,
+        )
 
     def reset_parameters(self) -> None:
         self._poll_interval_ms = (
