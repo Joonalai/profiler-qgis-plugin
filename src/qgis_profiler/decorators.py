@@ -16,9 +16,14 @@
 #  You should have received a copy of the GNU General Public License
 #  along with profiler-qgis-plugin. If not, see <https://www.gnu.org/licenses/>.
 import logging
+from contextlib import suppress
 from typing import Any, Callable, Optional
 
+from qgis.core import QgsApplication
+
+from qgis_profiler.meters.meter import MeterAnomaly
 from qgis_profiler.meters.recovery_measurer import RecoveryMeasurer
+from qgis_profiler.meters.thread_health_checker import MainThreadHealthChecker
 from qgis_profiler.profiler import ProfilerWrapper
 from qgis_profiler.settings import (
     ProfilerSettings,
@@ -102,6 +107,56 @@ def profile_recovery_time(
                     ProfilerWrapper.get().add_record(context, group_name, duration)
                 else:
                     LOGGER.debug("Recovery time measurement is disabled.")
+
+        return wrapper
+
+    return profile_recovery_time_wrapper
+
+
+def monitor_main_thread_health(
+    *, name: Optional[str] = None, group: Optional[str] = None
+) -> Callable:
+    """
+    Monitor the health of the main thread during the execution of a
+    function using MainThreadHealthChecker. Only anomalies in main thread
+    health checks are profiled.
+
+    :param name: Optional context name of this monitoring. If not provided, the
+        name of the function being wrapped will be used.
+    :param group: Optional group name under which this profiling record will
+        be categorized in the profiler.
+    :return: A callable decorator function that wraps the given function to
+        monitor the main thread health during the execution.
+    """
+
+    def profile_recovery_time_wrapper(function: Callable) -> Callable:
+        from functools import wraps
+
+        @wraps(function)
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
+            if not ProfilerSettings.profiler_enabled.get_with_cache():
+                LOGGER.debug("Profiling is disabled.")
+                return function(*args, **kwargs)
+
+            group_name = resolve_group_name_with_cache(group)
+            event_name = name if name is not None else function.__name__
+
+            def _profile_anomaly(anomaly: MeterAnomaly) -> None:
+                ProfilerWrapper.get().add_record(
+                    anomaly.name, group_name, anomaly.duration_seconds
+                )
+
+            meter = MainThreadHealthChecker.get()
+            with meter.context(event_name):
+                meter.anomaly_detected.connect(_profile_anomaly)
+                try:
+                    meter.start_measuring()
+                    return function(*args, **kwargs)
+                finally:
+                    QgsApplication.processEvents()
+                    meter.stop_measuring()
+                    with suppress(TypeError):
+                        meter.anomaly_detected.disconnect(_profile_anomaly)
 
         return wrapper
 
