@@ -41,6 +41,7 @@ class WidgetType(enum.Enum):
 class SettingCategory(enum.Enum):
     PROFILING = tr("Profiling")
     RECOVERY_METER = tr("Recovery time measuring meter")
+    THREAD_HEALTH_CHECKER_METER = tr("Main thread health checker meter")
 
 
 @dataclass
@@ -129,6 +130,27 @@ class ProfilerSettings(enum.Enum):
         default=100000,
         widget_config=WidgetConfig(minimum=1, maximum=1000000, step=10),
         category=SettingCategory.RECOVERY_METER,
+    )
+
+    # Health checker meter settings
+    thread_health_checker_enabled = Setting(
+        description=tr("Enable measure main thread health check meter"),
+        default=True,
+        category=SettingCategory.THREAD_HEALTH_CHECKER_METER,
+    )
+    thread_health_checker_poll_interval = Setting(
+        description=tr("A time in seconds between health check measurements"),
+        default=1.0,
+        category=SettingCategory.THREAD_HEALTH_CHECKER_METER,
+    )
+    thread_health_checker_threshold = Setting(
+        description=tr(
+            "A threshold in seconds of how fast main "
+            "thread should respond to health check"
+        ),
+        default=0.1,
+        category=SettingCategory.THREAD_HEALTH_CHECKER_METER,
+        widget_config=WidgetConfig(minimum=0.001, maximum=100.0, step=0.001),
     )
 
     @staticmethod

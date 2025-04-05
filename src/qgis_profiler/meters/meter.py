@@ -29,17 +29,22 @@ class MeterAnomaly(NamedTuple):
 
 
 class Meter(QObject):
+    """
+    Abstract base class for meters to detect anomalies in QGIS performance.
+    """
+
     __metaclass__ = abc.ABCMeta
 
     _short_name: ClassVar[str] = ""
 
     anomaly_detected = pyqtSignal(MeterAnomaly)
 
-    def __init__(self) -> None:
+    def __init__(self, supports_continuous_measurement: bool = False) -> None:  # noqa: FBT001, FBT002
         super().__init__(None)
         self._default_context: str = self.__class__.__name__
         self._context_stack: list[str] = []
         self._enabled: bool = True
+        self._supports_continuous_measuring: bool = supports_continuous_measurement
 
     @classmethod
     @abc.abstractmethod
@@ -55,6 +60,10 @@ class Meter(QObject):
         )
 
         return context + f" ({self._short_name})" if self._short_name else ""
+
+    @property
+    def supports_continuous_measuring(self) -> bool:
+        return self._supports_continuous_measuring
 
     @property
     def enabled(self) -> bool:
@@ -103,10 +112,26 @@ class Meter(QObject):
             return duration
         return None
 
+    def start_measuring(self) -> bool:
+        """
+        Starts the measurement process and reflects the status of whether
+        measurements have started successfully.
+
+        :return: A boolean indicating if the measurement
+            process was initiated successfully.
+        """
+        return False
+
+    def stop_measuring(self) -> None:
+        """
+        Stops the continuous measurement process if applicable.
+        """
+
     def cleanup(self) -> None:
         """
-        Cleanup the meter.
+        Cleanup the meter and stop measuring if continuous measuring is supported.
         """
+        self.stop_measuring()
 
     @abc.abstractmethod
     def reset_parameters(self) -> None:
