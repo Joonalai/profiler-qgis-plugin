@@ -96,6 +96,7 @@ def profiler_extension(
     mock_event_recorder: "MagicMock",
     mock_settings_dialog: "MagicMock",
     mock_meter_recovery_measurer: "MagicMock",
+    mock_thread_health_checker_meter: "MagicMock",
     _modify_mock_profiler: None,
     stub_profiler_panel: StubProfilerPanel,
 ) -> ProfilerExtension:
@@ -117,7 +118,7 @@ def test_profiler_extension_initialization(
     assert profiler_extension.combo_box_group.itemText(0) == "Group 1"
     assert profiler_extension.button_record.isEnabled()
     assert not profiler_extension.button_record.isChecked()
-    assert len(profiler_extension._meters) == 1
+    assert len(profiler_extension._meters) == 2
     # Not enabled for existing groups
     assert not profiler_extension.button_clear.isEnabled()
     assert not profiler_extension.button_save.isEnabled()
@@ -133,6 +134,7 @@ def test_toggle_recording(
     profiler_extension: ProfilerExtension,
     mock_event_recorder: "MagicMock",
     mock_profiler: "MagicMock",
+    mock_thread_health_checker_meter: "MagicMock",
     stub_profiler_panel: StubProfilerPanel,
     qtbot: "QtBot",
     subtests: "SubTests",
@@ -144,6 +146,7 @@ def test_toggle_recording(
         # Assert
         mock_event_recorder.start_recording.assert_called_once()
         mock_profiler.create_group.assert_called_once_with(TEST_GROUP)
+        mock_thread_health_checker_meter.start_measuring.assert_called_once()
         assert profiler_extension.button_record.isChecked()
         assert stub_profiler_panel.combo_box_group.currentText() == TEST_GROUP
 
@@ -153,6 +156,7 @@ def test_toggle_recording(
 
         # Assert
         mock_event_recorder.stop_recording.assert_called_once()
+        mock_thread_health_checker_meter.stop_measuring.assert_called_once()
         assert not profiler_extension.button_record.isChecked()
 
     assert profiler_extension.button_clear.isEnabled()
@@ -178,6 +182,7 @@ def test_button_settings_should_open_settings_dialog(
     profiler_extension: ProfilerExtension,
     mock_settings_dialog: "MagicMock",
     mock_meter_recovery_measurer: "MagicMock",
+    mock_thread_health_checker_meter: "MagicMock",
     qtbot: "QtBot",
 ) -> None:
     # Arrange
@@ -190,16 +195,20 @@ def test_button_settings_should_open_settings_dialog(
     mock_settings_dialog.exec.assert_called_once()
     mock_meter_recovery_measurer.cleanup.assert_called_once()
     mock_meter_recovery_measurer.reset_parameters.assert_called_once()
+    mock_thread_health_checker_meter.cleanup.assert_called_once()
+    mock_thread_health_checker_meter.reset_parameters.assert_called()
 
 
 def test_cleanup_should_clean_meters(
     profiler_extension: ProfilerExtension,
     mock_settings_dialog: "MagicMock",
     mock_meter_recovery_measurer: "MagicMock",
+    mock_thread_health_checker_meter: "MagicMock",
 ) -> None:
     # Act
     profiler_extension.cleanup()
 
     # Assert
     mock_meter_recovery_measurer.cleanup.assert_called_once()
+    mock_thread_health_checker_meter.cleanup.assert_called_once()
     assert profiler_extension._meters == []

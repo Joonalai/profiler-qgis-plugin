@@ -25,6 +25,7 @@ import pytest
 from profiler_test_utils.decorator_utils import ClassDecoratorTester, DecoratorTester
 from profiler_test_utils.utils import Dialog
 from qgis_profiler.meters.recovery_measurer import RecoveryMeasurer
+from qgis_profiler.meters.thread_health_checker import MainThreadHealthChecker
 from qgis_profiler.profiler import ProfilerWrapper
 from qgis_profiler.settings import ProfilerSettings
 
@@ -84,6 +85,13 @@ def mock_profiler(mocker: "MockerFixture") -> MagicMock:
 def mock_meter_recovery_measurer(mocker: "MockerFixture") -> MagicMock:
     mock_meter = mocker.MagicMock()
     mocker.patch.object(RecoveryMeasurer, "get", return_value=mock_meter)
+    return mock_meter
+
+
+@pytest.fixture
+def mock_thread_health_checker_meter(mocker: "MockerFixture") -> MagicMock:
+    mock_meter = mocker.MagicMock()
+    mocker.patch.object(MainThreadHealthChecker, "get", return_value=mock_meter)
     return mock_meter
 
 
