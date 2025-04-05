@@ -118,7 +118,7 @@ class ProfilerSettings(enum.Enum):
         default=0.8,
         widget_config=WidgetConfig(minimum=0.0, maximum=100.0, step=0.1),
         category=SettingCategory.RECOVERY_METER,
-    )  # TODO: add calibration method
+    )
     recovery_timeout = Setting(
         description=tr("A timeout in seconds after recovery measurement should exit"),
         default=10,

@@ -30,6 +30,7 @@ from qgis.PyQt.QtWidgets import (
     QFormLayout,
     QLabel,
     QLineEdit,
+    QPushButton,
     QSpinBox,
     QVBoxLayout,
     QWidget,
@@ -39,9 +40,11 @@ from qgis_plugin_tools.tools.custom_logging import (
     get_log_level_key,
     get_log_level_name,
 )
+from qgis_plugin_tools.tools.i18n import tr
 from qgis_plugin_tools.tools.resources import load_ui_from_file
 from qgis_plugin_tools.tools.settings import set_setting
 
+from qgis_profiler.meters.recovery_measurer import RecoveryMeasurer
 from qgis_profiler.settings import ProfilerSettings, SettingCategory, WidgetType
 
 UI_CLASS: QWidget = load_ui_from_file(
@@ -71,6 +74,8 @@ class SettingsDialog(QDialog, UI_CLASS):  # type: ignore
         self._widgets: dict[ProfilerSettings, QWidget] = {}
         self._groups: dict[SettingCategory, QgsCollapsibleGroupBox] = {}
 
+        self._button_calibrate_recovery_meter = QPushButton(tr("Calibrate threshold"))
+
         self._setup_plugin_settings()
         self._setup_logging_settings()
 
@@ -78,10 +83,15 @@ class SettingsDialog(QDialog, UI_CLASS):  # type: ignore
         self.button_box.button(QDialogButtonBox.Reset).clicked.connect(
             self._reset_settings
         )
+        self._button_calibrate_recovery_meter.clicked.connect(
+            self._calibrate_recovery_meter
+        )
 
     def _setup_plugin_settings(self) -> None:
         for setting in ProfilerSettings:
             self._add_setting(setting)
+        if group_box := self._groups.get(SettingCategory.RECOVERY_METER):
+            group_box.layout().addWidget(self._button_calibrate_recovery_meter)
 
     def _reset_settings(self) -> None:
         # Clear all items from the settings layout
@@ -159,3 +169,22 @@ class SettingsDialog(QDialog, UI_CLASS):  # type: ignore
         self.combo_box_log_level_console.currentTextChanged.connect(
             lambda level: set_setting(get_log_level_key(LogTarget.STREAM), level)
         )
+
+    def _calibrate_recovery_meter(self) -> None:
+        self._button_calibrate_recovery_meter.setEnabled(False)
+        try:
+            meter = RecoveryMeasurer(
+                process_event_count=self._widgets[
+                    ProfilerSettings.recovery_process_event_count
+                ].value(),
+                threshold_s=100,  # large number in order to calibrate the threshold
+                timeout_s=100,  # large number in order to calibrate the threshold
+            )
+            times = list(filter(None, [meter.measure() for _ in range(10)]))
+            average_time = sum(times) / len(times)
+            LOGGER.info("Calibrated average recovery time: %s seconds", average_time)
+            self._widgets[ProfilerSettings.recovery_threshold].setValue(
+                round(average_time, 3)
+            )
+        finally:
+            self._button_calibrate_recovery_meter.setEnabled(True)

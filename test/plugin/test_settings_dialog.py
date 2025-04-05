@@ -19,6 +19,7 @@
 from typing import TYPE_CHECKING, Any, Callable
 
 import pytest
+from pytest_mock import MockerFixture
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtWidgets import (
     QCheckBox,
@@ -30,14 +31,20 @@ from qgis.PyQt.QtWidgets import (
 )
 
 from profiler_plugin.ui.settings_dialog import SettingsDialog
+from qgis_profiler.meters.recovery_measurer import RecoveryMeasurer
 from qgis_profiler.settings import ProfilerSettings, SettingCategory
 
 if TYPE_CHECKING:
+    from unittest.mock import MagicMock
+
     from pytestqt.qtbot import QtBot
 
 
 @pytest.fixture
-def settings_dialog(qtbot: "QtBot") -> "SettingsDialog":
+def settings_dialog(
+    qtbot: "QtBot",
+    mock_meter_recovery_measurer: "MagicMock",
+) -> "SettingsDialog":
     dialog = SettingsDialog()
     qtbot.addWidget(dialog)
     dialog.show()
@@ -65,7 +72,8 @@ def test_settings_dialog_initialization(settings_dialog: "SettingsDialog") -> No
     assert len(settings_dialog._widgets) == len(ProfilerSettings)
     assert set(settings_dialog._widgets.keys()) == set(ProfilerSettings)
     assert set(settings_dialog._groups.keys()) == set(SettingCategory)
-    # utils.wait(10000)
+    assert settings_dialog._button_calibrate_recovery_meter.isEnabled()
+    # utils.wait(4000)
 
 
 @pytest.mark.parametrize(
@@ -152,3 +160,22 @@ def test_reset_settings_dialog(
     widget = settings_dialog._widgets.get(ProfilerSettings.profiler_enabled)
     assert isinstance(widget, QCheckBox)
     assert widget.isChecked()
+
+
+def test_calibrate_recovery_threshold(
+    settings_dialog: "SettingsDialog",
+    qtbot: "QtBot",
+    mocker: MockerFixture,
+) -> None:
+    # Arrange
+    mock_measure = mocker.patch.object(
+        RecoveryMeasurer, "measure", side_effect=map(float, range(10))
+    )
+
+    # Act
+    qtbot.mouseClick(settings_dialog._button_calibrate_recovery_meter, Qt.LeftButton)
+
+    # Assert
+    assert mock_measure.call_count == 10
+    assert settings_dialog._widgets[ProfilerSettings.recovery_threshold].value() == 5.0
+    assert settings_dialog._button_calibrate_recovery_meter.isEnabled()
