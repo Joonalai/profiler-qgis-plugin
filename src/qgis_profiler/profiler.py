@@ -215,21 +215,38 @@ class ProfilerWrapper:
         return recovery_time
 
     def start(self, name: str, group: str) -> str:
-        """Start a new profiling event."""
+        """
+        Start a new profiling event.
+
+        :return: Returns a unique identifier for the event.
+        """
         event_id = str(uuid.uuid4())
         self._profiler.start(name, group, event_id)
         self._profiler_events[group].append(event_id)
         return event_id
 
-    def end(self, group: str) -> None:
-        """End the current profiling event for a group."""
-        self._profiler.end(group)
+    def end(self, group: str) -> str:
+        """
+        End the current profiling event for a group.
 
-    def add_record(self, name: str, group: str, time: float) -> None:
-        """Add a new profiling record to the profiler."""
+        :return: Returns a unique identifier for the event.
+        """
+        self._profiler.end(group)
+        return self._profiler_events.get(group, ["invalid"])[-1]
+
+    def add_record(self, name: str, group: str, time: float) -> str:
+        """
+        Adds a performance profiling record.
+
+        :param name: Name for the profiling event.
+        :param group: Group category for the event being profiled.
+        :param time: Time duration associated with the profiling event in seconds.
+        :return: Returns a unique identifier for the record.
+        """
         event_id = str(uuid.uuid4())
         self._profiler.record(name, time, group, event_id)
         self._profiler_events[group].append(event_id)
+        return event_id
 
     def get_event_time(self, event_id: str, group: Optional[str] = None) -> float:
         """Get the duration of a profiling event in seconds."""
@@ -287,4 +304,4 @@ class ProfilerWrapper:
         """
         for group in self.groups:
             self.clear(group)
-            self._profiler.clear()
+        self._profiler.clear()

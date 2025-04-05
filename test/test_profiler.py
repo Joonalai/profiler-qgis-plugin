@@ -155,13 +155,32 @@ def test_profiler_start_and_end(
     # Act
     event_id = profiler.start("test", default_group)
     qtbot.wait(10)
+    event_id2 = profiler.end(default_group)
+
+    # Assert
+    assert event_id
+    assert event_id == event_id2
+
+    data = profiler.get_profiler_data("test")
+    assert data == [ProfilerResult("test", ProfilerSettings.active_group.get(), 0.01)]
+    assert profiler.get_event_time(event_id) == pytest.approx(0.0, abs=1e-1)
+
+
+def test_profiler_add_record(
+    profiler: "ProfilerWrapper", qtbot: "QtBot", default_group: str
+):
+    # Act
+    event_id = profiler.add_record("added_record", default_group, 0.01)
+    qtbot.wait(10)
     profiler.end(default_group)
 
     # Assert
     assert event_id
 
-    data = profiler.get_profiler_data("test")
-    assert data == [ProfilerResult("test", ProfilerSettings.active_group.get(), 0.01)]
+    data = profiler.get_profiler_data("added_record")
+    assert data == [
+        ProfilerResult("added_record", ProfilerSettings.active_group.get(), 0.01)
+    ]
     assert profiler.get_event_time(event_id) == pytest.approx(0.0, abs=1e-1)
 
 
