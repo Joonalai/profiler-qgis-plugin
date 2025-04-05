@@ -32,6 +32,7 @@ from qgis.PyQt.QtWidgets import (
 
 from profiler_plugin.ui.settings_dialog import SettingsDialog
 from qgis_profiler.meters.recovery_measurer import RecoveryMeasurer
+from qgis_profiler.meters.thread_health_checker import MainThreadHealthChecker
 from qgis_profiler.settings import ProfilerSettings, SettingCategory
 
 if TYPE_CHECKING:
@@ -73,7 +74,7 @@ def test_settings_dialog_initialization(settings_dialog: "SettingsDialog") -> No
     assert set(settings_dialog._widgets.keys()) == set(ProfilerSettings)
     assert set(settings_dialog._groups.keys()) == set(SettingCategory)
     assert settings_dialog._button_calibrate_recovery_meter.isEnabled()
-    # utils.wait(4000)
+    # utils.wait(10000)
 
 
 @pytest.mark.parametrize(
@@ -179,3 +180,29 @@ def test_calibrate_recovery_threshold(
     assert mock_measure.call_count == 10
     assert settings_dialog._widgets[ProfilerSettings.recovery_threshold].value() == 9.45
     assert settings_dialog._button_calibrate_recovery_meter.isEnabled()
+
+
+def test_calibrate_health_checker_threshold(
+    settings_dialog: "SettingsDialog",
+    qtbot: "QtBot",
+    mocker: MockerFixture,
+) -> None:
+    # Arrange
+    mock_measure = mocker.patch.object(
+        MainThreadHealthChecker, "measure", side_effect=map(float, range(10))
+    )
+
+    # Act
+    qtbot.mouseClick(
+        settings_dialog._button_calibrate_thread_health_checker, Qt.LeftButton
+    )
+
+    # Assert
+    assert mock_measure.call_count == 10
+    assert (
+        settings_dialog._widgets[
+            ProfilerSettings.thread_health_checker_threshold
+        ].value()
+        == 9.45
+    )
+    assert settings_dialog._button_calibrate_thread_health_checker.isEnabled()

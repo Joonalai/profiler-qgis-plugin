@@ -45,6 +45,7 @@ from qgis_plugin_tools.tools.resources import load_ui_from_file
 from qgis_plugin_tools.tools.settings import set_setting
 
 from qgis_profiler.meters.recovery_measurer import RecoveryMeasurer
+from qgis_profiler.meters.thread_health_checker import MainThreadHealthChecker
 from qgis_profiler.settings import ProfilerSettings, SettingCategory, WidgetType
 
 UI_CLASS: QWidget = load_ui_from_file(
@@ -76,6 +77,9 @@ class SettingsDialog(QDialog, UI_CLASS):  # type: ignore
         self._groups: dict[SettingCategory, QgsCollapsibleGroupBox] = {}
 
         self._button_calibrate_recovery_meter = QPushButton(tr("Calibrate threshold"))
+        self._button_calibrate_thread_health_checker = QPushButton(
+            tr("Calibrate threshold")
+        )
 
         self._setup_plugin_settings()
         self._setup_logging_settings()
@@ -87,12 +91,17 @@ class SettingsDialog(QDialog, UI_CLASS):  # type: ignore
         self._button_calibrate_recovery_meter.clicked.connect(
             self._calibrate_recovery_meter
         )
+        self._button_calibrate_thread_health_checker.clicked.connect(
+            self._calibrate_thread_health_checker
+        )
 
     def _setup_plugin_settings(self) -> None:
         for setting in ProfilerSettings:
             self._add_setting(setting)
         if group_box := self._groups.get(SettingCategory.RECOVERY_METER):
             group_box.layout().addWidget(self._button_calibrate_recovery_meter)
+        if group_box := self._groups.get(SettingCategory.THREAD_HEALTH_CHECKER_METER):
+            group_box.layout().addWidget(self._button_calibrate_thread_health_checker)
 
     def _reset_settings(self) -> None:
         # Clear all items from the settings layout
@@ -141,6 +150,7 @@ class SettingsDialog(QDialog, UI_CLASS):  # type: ignore
                 widget = QSpinBox()
             else:
                 widget = QDoubleSpinBox()
+                widget.setDecimals(3)
             if widget_config:
                 if widget_config.minimum is not None:
                     widget.setMinimum(widget_config.minimum)
@@ -184,10 +194,28 @@ class SettingsDialog(QDialog, UI_CLASS):  # type: ignore
             times = list(filter(None, [meter.measure() for _ in range(10)]))
             safe_threshold_time = max(times) * CALIBRATION_COEFFICIENT
             LOGGER.info(
-                "Calibrated average recovery time: %s seconds", safe_threshold_time
+                "Calibrated recovery time threshold: %s seconds", safe_threshold_time
             )
             self._widgets[ProfilerSettings.recovery_threshold].setValue(
                 round(safe_threshold_time, 3)
             )
         finally:
             self._button_calibrate_recovery_meter.setEnabled(True)
+
+    def _calibrate_thread_health_checker(self) -> None:
+        self._button_calibrate_thread_health_checker.setEnabled(False)
+        try:
+            meter = MainThreadHealthChecker(
+                poll_interval_s=0.1,  # Don't want the calibration to take too long
+                threshold_s=100,  # Large number so no anomaly is detected
+            )
+            times = list(filter(None, [meter.measure() for _ in range(10)]))
+            safe_threshold_time = max(times) * CALIBRATION_COEFFICIENT
+            LOGGER.info(
+                "Calibrated poll time threshold: %s seconds", safe_threshold_time
+            )
+            self._widgets[ProfilerSettings.thread_health_checker_threshold].setValue(
+                round(safe_threshold_time, 3)
+            )
+        finally:
+            self._button_calibrate_thread_health_checker.setEnabled(True)
