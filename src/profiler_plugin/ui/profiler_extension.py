@@ -29,6 +29,7 @@ from profiler_plugin.ui.settings_dialog import SettingsDialog
 from qgis_profiler.event_recorder import ProfilerEventRecorder
 from qgis_profiler.exceptions import ProfilerNotFoundError
 from qgis_profiler.meters.recovery_measurer import RecoveryMeasurer
+from qgis_profiler.meters.thread_health_checker import MainThreadHealthChecker
 from qgis_profiler.profiler import ProfilerWrapper
 from qgis_profiler.settings import ProfilerSettings
 
@@ -135,6 +136,11 @@ class ProfilerExtension(QWidget, UI_CLASS):
         else:
             RecoveryMeasurer.get().enabled = False
 
+        if ProfilerSettings.thread_health_checker_enabled.get():
+            self._meters.append(MainThreadHealthChecker.get())
+        else:
+            MainThreadHealthChecker.get().enabled = False
+
         for meter in self._meters:
             meter.reset_parameters()
             meter.connect_to_profiler()
@@ -179,11 +185,17 @@ class ProfilerExtension(QWidget, UI_CLASS):
         if not self._event_recorder:
             return
         self._event_recorder.start_recording()
+        for meter in self._meters:
+            if meter.supports_continuous_measuring:
+                meter.start_measuring()
 
     def _stop_recording(self) -> None:
         if not self._event_recorder:
             return
         self._event_recorder.stop_recording()
+        for meter in self._meters:
+            if meter.supports_continuous_measuring:
+                meter.stop_measuring()
 
     def _clear_current_group(self) -> None:
         current_group = self.combo_box_group.currentText()
