@@ -104,7 +104,7 @@ class SettingsDialog(QDialog, UI_CLASS):  # type: ignore
         setting_meta = setting.value
         widget_type = setting_meta.widget_type
         widget_config = setting_meta.widget_config
-        category = setting_meta.category
+        category = setting_meta.category.value
 
         if category not in self._groups:
             group_box = QgsCollapsibleGroupBox(category)

@@ -38,6 +38,11 @@ class WidgetType(enum.Enum):
     SPIN_BOX = "spin_box"
 
 
+class SettingCategory(enum.Enum):
+    PROFILING = tr("Profiling")
+    RECOVERY_METER = tr("Recovery time measuring meter")
+
+
 @dataclass
 class WidgetConfig:
     """Configuration options for different widget types."""
@@ -51,7 +56,7 @@ class WidgetConfig:
 class Setting:
     description: str
     default: Any
-    category: str = tr("Profiling")
+    category: SettingCategory = SettingCategory.PROFILING
     widget_config: Optional[WidgetConfig] = None
     widget_type: Optional[WidgetType] = None
 
@@ -85,6 +90,10 @@ class ProfilerSettings(enum.Enum):
     """
 
     # Profiler settings
+    profiler_enabled = Setting(
+        description=tr("Is profiling enabled"),
+        default=True,
+    )
     active_group = Setting(
         description=tr("A profiling group used with plugin profiling"),
         default=tr("Plugins"),
@@ -97,29 +106,29 @@ class ProfilerSettings(enum.Enum):
         description=tr("A profiling group used with various meters"),
         default=tr("Meters"),
     )
-    profiler_enabled = Setting(
-        description=tr("Is profiling enabled"),
-        default=True,
-    )
 
     # Recovery measurement meter settings
     recovery_meter_enabled = Setting(
-        description=tr("Measure recovery profiling with recorder"),
+        description=tr("Is recovery meter enabled"),
         default=True,
+        category=SettingCategory.RECOVERY_METER,
     )
     recovery_threshold = Setting(
         description=tr("A time in seconds it normally takes to run recovery check"),
         default=0.8,
         widget_config=WidgetConfig(minimum=0.0, maximum=100.0, step=0.1),
+        category=SettingCategory.RECOVERY_METER,
     )  # TODO: add calibration method
     recovery_timeout = Setting(
         description=tr("A timeout in seconds after recovery measurement should exit"),
         default=10,
+        category=SettingCategory.RECOVERY_METER,
     )
     recovery_process_event_count = Setting(
         description=tr("Number of process events call in recovery measurement"),
         default=100000,
         widget_config=WidgetConfig(minimum=1, maximum=1000000, step=10),
+        category=SettingCategory.RECOVERY_METER,
     )
 
     @staticmethod
