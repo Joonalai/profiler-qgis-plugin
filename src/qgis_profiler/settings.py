@@ -18,8 +18,9 @@
 import enum
 import os
 import time
+from dataclasses import dataclass
 from functools import lru_cache
-from typing import Any, NamedTuple, Optional
+from typing import Any, Optional, Union
 
 from qgis_plugin_tools.tools.i18n import tr
 from qgis_plugin_tools.tools.settings import (
@@ -28,12 +29,49 @@ from qgis_plugin_tools.tools.settings import (
 )
 
 from qgis_profiler.constants import CACHE_INTERVAL
+from qgis_profiler.exceptions import InvalidSettingValueError
 
 
-class Setting(NamedTuple):
+class WidgetType(enum.Enum):
+    LINE_EDIT = "line_edit"
+    CHECKBOX = "checkbox"
+    SPIN_BOX = "spin_box"
+
+
+@dataclass
+class WidgetConfig:
+    """Configuration options for different widget types."""
+
+    minimum: Optional[Union[int, float]] = None
+    maximum: Optional[Union[int, float]] = None
+    step: Optional[Union[int, float]] = None
+
+
+@dataclass
+class Setting:
     description: str
     default: Any
-    category: str = "Profiling"
+    category: str = tr("Profiling")
+    widget_config: Optional[WidgetConfig] = None
+    widget_type: Optional[WidgetType] = None
+
+    def __post_init__(self) -> None:
+        """Deduces the widget type based on the default value's type."""
+        if isinstance(self.default, bool):
+            self.widget_type = WidgetType.CHECKBOX
+        elif isinstance(self.default, (int, float)):
+            self.widget_type = WidgetType.SPIN_BOX
+            # Provide default widget configuration for numeric inputs if not set
+            if self.widget_config is None:
+                self.widget_config = WidgetConfig(
+                    minimum=0,
+                    maximum=100,
+                    step=1 if isinstance(self.default, int) else 0.1,
+                )
+        elif isinstance(self.default, str):
+            self.widget_type = WidgetType.LINE_EDIT
+        else:
+            raise NotImplementedError
 
 
 class ProfilerSettings(enum.Enum):
@@ -60,12 +98,13 @@ class ProfilerSettings(enum.Enum):
         default=("Recovery"),
     )
     profiler_enabled = Setting(
-        description=("Is profiling enabled when using profiling decorations"),
+        description=("Is profiling enabled"),
         default=True,
     )
     normal_time = Setting(
         description=("A time in seconds it normally takes to run recovery test"),
         default=0.8,
+        widget_config=WidgetConfig(minimum=0.0, maximum=100.0, step=0.1),
     )  # TODO: add calibration method
     timeout = Setting(
         description=("A timeout in seconds after recovery measurement should exit"),
@@ -74,6 +113,7 @@ class ProfilerSettings(enum.Enum):
     process_event_count = Setting(
         description=("Number of process events call in recovery measurement"),
         default=100000,
+        widget_config=WidgetConfig(minimum=1, maximum=1000000, step=10),
     )
     measure_recovery_when_recording = Setting(
         description=("Measure recovery profiling with recorded event profiling"),
@@ -104,6 +144,11 @@ class ProfilerSettings(enum.Enum):
 
     def set(self, value: Any) -> bool:
         """Sets the setting value."""
+        if not isinstance(value, type(self.value.default)):
+            if isinstance(self.value.default, bool):
+                value = bool(value)
+            else:
+                raise InvalidSettingValueError(self.name, value)
         return set_setting(self.name, value)
 
     @lru_cache

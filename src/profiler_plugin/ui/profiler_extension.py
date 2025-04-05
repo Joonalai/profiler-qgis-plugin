@@ -58,7 +58,6 @@ class ProfilerExtension(QWidget, UI_CLASS):
         super().__init__(profiler_panel)
         self.setupUi(self)
         self._action_recorder: Optional[ProfilerEventRecorder] = event_recorder
-        self._settings_dialog = SettingsDialog()
         combo_box = profiler_panel.findChild(QComboBox)
         if combo_box is None:
             raise ProfilerNotFoundError(item=tr("Profiler panel combo box"))
@@ -127,7 +126,7 @@ class ProfilerExtension(QWidget, UI_CLASS):
         self._update_ui_state()
 
     def _open_settings(self) -> None:
-        self._settings_dialog.show()
+        SettingsDialog().exec()
         self._update_ui_state()
 
     def _update_ui_state(self, *args: Any) -> None:

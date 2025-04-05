@@ -35,3 +35,10 @@ class ProfilerNotFoundError(ProfilerPluginError):
 class EventNotFoundError(ProfilerPluginError):
     def __init__(self, event_id: str, group: str) -> None:
         super().__init__(tr("{} event not found in {} group", event_id, group))
+
+
+class InvalidSettingValueError(ProfilerPluginError):
+    def __init__(self, setting_name: str, setting_value: str) -> None:
+        super().__init__(
+            tr("Invalid value for {} setting: {}", setting_name, setting_value)
+        )

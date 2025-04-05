@@ -182,4 +182,4 @@ def test_button_settings_should_open_settings_dialog(
     qtbot.mouseClick(profiler_extension.button_settings, Qt.LeftButton)
 
     # Assert
-    mock_settings_dialog.show.assert_called_once()
+    mock_settings_dialog.exec.assert_called_once()
