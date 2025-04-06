@@ -19,3 +19,4 @@ pytestqt
 qtbot
 subtests
 metaclass
+func

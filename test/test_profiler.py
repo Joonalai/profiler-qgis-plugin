@@ -24,6 +24,7 @@ from profiler_test_utils import utils
 from profiler_test_utils.decorator_utils import (
     EXPECTED_TIME,
     EXTRA_GROUP,
+    ClassDecoratorTester,
     DecoratorTester,
 )
 from qgis_profiler.profiler import (
@@ -217,6 +218,98 @@ def test_profile_decorator_should_profile_method(
     assert default_group in profiler.groups
     data = profiler.get_profiler_data(expected_name)
     assert data == utils.profiler_data_with_group(default_group, expected_data)
+
+
+@pytest.mark.parametrize(
+    argnames=("method", "method_result", "expected_name", "expected_data"),
+    argvalues=[
+        (
+            "add",
+            3,
+            "add",
+            [ProfilerResult("add", "", EXPECTED_TIME)],
+        ),
+        (
+            "static_add",
+            3,
+            "static_add",
+            [ProfilerResult("static_add", "", EXPECTED_TIME)],
+        ),
+        (
+            "classmethod_add",
+            3,
+            "classmethod_add",
+            [ProfilerResult("classmethod_add", "", EXPECTED_TIME)],
+        ),
+        (
+            "add_complex",
+            6,
+            "add_complex",
+            [
+                ProfilerResult(
+                    "add_complex",
+                    "",
+                    EXPECTED_TIME * 3,
+                    children=[
+                        ProfilerResult(
+                            name="add", group="", duration=EXPECTED_TIME, children=[]
+                        ),
+                        ProfilerResult(
+                            name="add",
+                            group="",
+                            duration=EXPECTED_TIME,
+                            children=[],
+                        ),
+                    ],
+                ),
+            ],
+        ),
+        (
+            "add_excluded",
+            3,
+            "add_excluded",
+            None,
+        ),
+        (
+            "static_add_excluded",
+            3,
+            "static_add_excluded",
+            None,
+        ),
+        (
+            "classmethod_add_excluded",
+            3,
+            "classmethod_add_excluded",
+            None,
+        ),
+    ],
+    ids=[
+        "auto profile method",
+        "auto profile static method",
+        "auto profile class method",
+        "auto profile complex method",
+        "exclude method",
+        "exclude static method",
+        "exclude class method",
+    ],
+)
+@pytest.mark.usefixtures("log_profiler_data")
+def test_profile_class_decorator_should_profile_class(
+    profiler: "ProfilerWrapper",
+    default_group: str,
+    class_decorator_tester: ClassDecoratorTester,
+    method: str,
+    method_result: int,
+    expected_name: str,
+    expected_data: list[ProfilerResult],
+):
+    assert getattr(class_decorator_tester, method)(1, 2) == method_result
+    assert default_group in profiler.groups
+    data = profiler.get_profiler_data(expected_name)
+    if expected_data is None:
+        assert not data
+    else:
+        assert data == utils.profiler_data_with_group(default_group, expected_data)
 
 
 def test_profile_decorator_should_profile_method_with_group_kwarg(

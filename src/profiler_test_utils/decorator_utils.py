@@ -17,7 +17,7 @@
 #  along with profiler-qgis-plugin. If not, see <https://www.gnu.org/licenses/>.
 
 from profiler_test_utils import utils
-from qgis_profiler.decorators import profile, profile_recovery_time
+from qgis_profiler.decorators import profile, profile_class, profile_recovery_time
 
 EXTRA_GROUP = "New group"
 EXPECTED_TIME = 0.01
@@ -53,6 +53,37 @@ class DecoratorTester:
     @staticmethod
     @profile()
     def static_add(a: int, b: int = 2) -> int:
+        return _add(a, b)
+
+
+@profile_class(
+    exclude=["add_excluded", "static_add_excluded", "classmethod_add_excluded"]
+)
+class ClassDecoratorTester:
+    def add(self, a: int, b: int) -> int:
+        return _add(a, b)
+
+    def add_complex(self, a: int, b: int) -> int:
+        utils.wait(int(EXPECTED_TIME * 1000))
+        return self.add(a, b) + self.add(a, b)
+
+    @staticmethod
+    def static_add(a: int, b: int) -> int:
+        return _add(a, b)
+
+    @classmethod
+    def classmethod_add(cls, a: int, b: int) -> int:
+        return _add(a, b)
+
+    def add_excluded(self, a: int, b: int) -> int:
+        return _add(a, b)
+
+    @staticmethod
+    def static_add_excluded(a: int, b: int) -> int:
+        return _add(a, b)
+
+    @classmethod
+    def classmethod_add_excluded(cls, a: int, b: int) -> int:
         return _add(a, b)
 
 

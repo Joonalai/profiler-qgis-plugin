@@ -63,6 +63,58 @@ def profile(*, name: Optional[str] = None, group: Optional[str] = None) -> Calla
     return profiling_wrapper
 
 
+def profile_class(
+    *,
+    group: Optional[str] = None,
+    include: Optional[list[str]] = None,
+    exclude: Optional[list[str]] = None,
+) -> Callable[[type], type]:
+    """
+    A class decorator to automatically wrap methods with the 'profile' decorator.
+
+    :param group: Optional name for the profiler group. If not provided, the group name
+    is read from settings.
+    :param include: List of method names to include
+    (only these will be wrapped if provided).
+    :param exclude: List of method names to exclude
+    (these will NOT be wrapped, overrides include).
+    :return: A class with decorated methods based on the include/exclude criteria.
+    """
+
+    def decorator(cls: type) -> type:
+        for attr_name, attr_value in cls.__dict__.items():
+            # Ignore special methods (__ methods)
+            if attr_name.startswith("__"):
+                continue
+
+            # Apply wrapping rules based on include/exclude
+            if include and attr_name not in include:
+                continue  # Skip methods not in the "include" list
+            if exclude and attr_name in exclude:
+                continue  # Skip methods in the "exclude" list
+
+            wrapper = profile(name=attr_name, group=group)
+
+            # Handle staticmethod and classmethod separately
+            if isinstance(attr_value, staticmethod):
+                # Unwrap staticmethod before decorating
+                original_func = attr_value.__func__
+                wrapped_func = wrapper(original_func)
+                setattr(cls, attr_name, staticmethod(wrapped_func))
+            elif isinstance(attr_value, classmethod):
+                # Unwrap classmethod before decorating
+                original_func = attr_value.__func__
+                wrapped_func = wrapper(original_func)
+                setattr(cls, attr_name, classmethod(wrapped_func))
+            # Check if the attribute is a callable (method)
+            elif callable(attr_value):
+                # Wrap the method with @profile
+                setattr(cls, attr_name, wrapper(attr_value))
+        return cls
+
+    return decorator
+
+
 def profile_recovery_time(
     *, name: Optional[str] = None, group: Optional[str] = None
 ) -> Callable:
