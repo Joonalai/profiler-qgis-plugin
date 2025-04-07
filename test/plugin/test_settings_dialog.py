@@ -177,5 +177,5 @@ def test_calibrate_recovery_threshold(
 
     # Assert
     assert mock_measure.call_count == 10
-    assert settings_dialog._widgets[ProfilerSettings.recovery_threshold].value() == 5.0
+    assert settings_dialog._widgets[ProfilerSettings.recovery_threshold].value() == 9.45
     assert settings_dialog._button_calibrate_recovery_meter.isEnabled()

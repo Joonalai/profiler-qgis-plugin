@@ -52,6 +52,7 @@ UI_CLASS: QWidget = load_ui_from_file(
 )
 
 LOGGER = logging.getLogger(__name__)
+CALIBRATION_COEFFICIENT = 1.05
 
 LOGGING_LEVELS = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
 
@@ -181,10 +182,12 @@ class SettingsDialog(QDialog, UI_CLASS):  # type: ignore
                 timeout_s=100,  # large number in order to calibrate the threshold
             )
             times = list(filter(None, [meter.measure() for _ in range(10)]))
-            average_time = sum(times) / len(times)
-            LOGGER.info("Calibrated average recovery time: %s seconds", average_time)
+            safe_threshold_time = max(times) * CALIBRATION_COEFFICIENT
+            LOGGER.info(
+                "Calibrated average recovery time: %s seconds", safe_threshold_time
+            )
             self._widgets[ProfilerSettings.recovery_threshold].setValue(
-                round(average_time, 3)
+                round(safe_threshold_time, 3)
             )
         finally:
             self._button_calibrate_recovery_meter.setEnabled(True)
