@@ -21,11 +21,7 @@ from typing import TYPE_CHECKING
 from unittest.mock import MagicMock
 
 import pytest
-from qgis.PyQt.QtWidgets import (
-    QWidget,
-)
 
-from profiler_test_utils import utils
 from profiler_test_utils.decorator_utils import DecoratorTester
 from profiler_test_utils.utils import Dialog
 from qgis_profiler.meters.recovery_measurer import RecoveryMeasurer
@@ -35,6 +31,9 @@ from qgis_profiler.settings import ProfilerSettings
 if TYPE_CHECKING:
     from pytest_mock import MockerFixture
     from pytestqt.qtbot import QtBot
+    from qgis.PyQt.QtWidgets import (
+        QWidget,
+    )
 
 LOGGER = logging.getLogger(__name__)
 
@@ -94,15 +93,6 @@ def dialog(qtbot: "QtBot", qgis_parent: "QWidget") -> Dialog:
     qtbot.wait(WAIT_AFTER_MOUSE_MOVE)
     qtbot.wait(WAIT_AFTER_MOUSE_MOVE)
     return dialog
-
-
-@pytest.fixture
-def dialog_widget_positions(dialog: Dialog) -> dict[str, utils.WidgetInfo]:
-    return {
-        name: utils.WidgetInfo.from_widget(name, widget)
-        for name in dir(dialog)
-        if isinstance((widget := getattr(dialog, name, None)), QWidget)
-    }
 
 
 @pytest.fixture

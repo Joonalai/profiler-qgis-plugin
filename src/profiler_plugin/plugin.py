@@ -30,7 +30,6 @@ from qgis_plugin_tools.tools.messages import MsgBar
 
 import profiler_plugin
 import qgis_profiler
-from profiler_plugin.ui.macro.macro_panel import MacroToolFactory
 from profiler_plugin.ui.profiler_extension import ProfilerExtension
 from qgis_profiler import utils
 from qgis_profiler.constants import QT_VERSION_MIN
@@ -52,7 +51,6 @@ class ProfilerPlugin(QObject):
         self._profiler_panel_layout: Optional[QVBoxLayout] = None
         self._event_recorder: Optional[ProfilerEventRecorder] = None
         self._profiler_extension: Optional[ProfilerExtension] = None
-        self._macro_factory = MacroToolFactory()
 
     def initGui(self) -> None:  # noqa: N802
         self._teardown_loggers = setup_loggers(
@@ -77,9 +75,6 @@ class ProfilerPlugin(QObject):
 
         self._add_profiler_extension()
 
-        # Register the macro panel via factory
-        iface.registerDevToolWidgetFactory(self._macro_factory)
-
     def _add_profiler_extension(self) -> None:
         """
         Modify the QgsProfilerPanelBase to include the ProfilerExtension
@@ -98,7 +93,6 @@ class ProfilerPlugin(QObject):
     def unload(self) -> None:
         self._teardown_loggers()
         self._teardown_loggers = lambda: None
-        iface.unregisterDevToolWidgetFactory(self._macro_factory)
 
         if self._event_recorder:
             self._event_recorder.cleanup()
