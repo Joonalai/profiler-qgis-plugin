@@ -237,6 +237,12 @@ def test_profile_decorator_should_profile_method(
             [ProfilerResult("add", "", EXPECTED_TIME)],
         ),
         (
+            "add_with_event_args",
+            3,
+            "add_with_event_args(a=1, b=2)",
+            [ProfilerResult("add_with_event_args(a=1, b=2)", "", EXPECTED_TIME)],
+        ),
+        (
             "static_add",
             3,
             "static_add",
@@ -292,6 +298,7 @@ def test_profile_decorator_should_profile_method(
     ],
     ids=[
         "auto profile method",
+        "auto profile method with event args",
         "auto profile static method",
         "auto profile class method",
         "auto profile complex method",

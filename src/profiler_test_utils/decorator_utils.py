@@ -71,6 +71,10 @@ class ClassDecoratorTester:
         utils.wait(int(EXPECTED_TIME * 1000))
         return self.add(a, b) + self.add(a, b)
 
+    @profile(event_args=["a", "b"])
+    def add_with_event_args(self, a: int, b: int) -> int:
+        return _add(a, b)
+
     @staticmethod
     def static_add(a: int, b: int) -> int:
         return _add(a, b)

@@ -68,12 +68,14 @@ def profile(
             finally:
                 ProfilerWrapper.get().end(group_name)
 
+        # Mark wrapper as profiled
+        wrapper._profiled = True  # type: ignore
         return wrapper
 
     return profiling_wrapper
 
 
-def profile_class(
+def profile_class(  # noqa: C901
     *,
     group: Optional[str] = None,
     include: Optional[list[str]] = None,
@@ -81,6 +83,7 @@ def profile_class(
 ) -> Callable[[type], type]:
     """
     A class decorator to automatically wrap methods with the 'profile' decorator.
+    If 'profile' decorator is already applied to a method, it will be skipped.
 
     :param group: Optional name for the profiler group. If not provided, the group name
     is read from settings.
@@ -91,7 +94,7 @@ def profile_class(
     :return: A class with decorated methods based on the include/exclude criteria.
     """
 
-    def decorator(cls: type) -> type:
+    def decorator(cls: type) -> type:  # noqa: C901
         for attr_name, attr_value in cls.__dict__.items():
             # Ignore special methods (__ methods)
             if attr_name.startswith("__"):
@@ -103,23 +106,36 @@ def profile_class(
             if exclude and attr_name in exclude:
                 continue  # Skip methods in the "exclude" list
 
+            # Handle staticmethod and classmethod separately
+            is_static = isinstance(attr_value, staticmethod)
+            is_class_method = isinstance(attr_value, classmethod)
+            is_method = callable(attr_value)
+
+            if is_static or is_class_method:
+                original_func = attr_value.__func__
+            elif is_method:
+                original_func = attr_value
+            else:
+                continue
+
+            # Omit if method is already decorated with profiler
+            if hasattr(original_func, "_profiled"):
+                continue
+
             wrapper = profile(name=attr_name, group=group)
 
-            # Handle staticmethod and classmethod separately
-            if isinstance(attr_value, staticmethod):
+            if is_static:
                 # Unwrap staticmethod before decorating
-                original_func = attr_value.__func__
                 wrapped_func = wrapper(original_func)
                 setattr(cls, attr_name, staticmethod(wrapped_func))
-            elif isinstance(attr_value, classmethod):
+            elif is_class_method:
                 # Unwrap classmethod before decorating
-                original_func = attr_value.__func__
                 wrapped_func = wrapper(original_func)
                 setattr(cls, attr_name, classmethod(wrapped_func))
             # Check if the attribute is a callable (method)
-            elif callable(attr_value):
+            elif is_method:
                 # Wrap the method with @profile
-                setattr(cls, attr_name, wrapper(attr_value))
+                setattr(cls, attr_name, wrapper(original_func))
         return cls
 
     return decorator
