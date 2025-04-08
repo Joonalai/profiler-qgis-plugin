@@ -16,6 +16,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with profiler-qgis-plugin. If not, see <https://www.gnu.org/licenses/>.
 import logging
+from functools import wraps
 from typing import Any, Callable, Optional
 
 from qgis_profiler.meters.recovery_measurer import RecoveryMeasurer
@@ -49,8 +50,6 @@ def profile(
     """
 
     def profiling_wrapper(function: Callable) -> Callable:
-        from functools import wraps
-
         @wraps(function)
         def wrapper(*args: Any, **kwargs: Any) -> Any:
             if not ProfilerSettings.profiler_enabled.get_with_cache():
@@ -164,8 +163,6 @@ def profile_recovery_time(
     """
 
     def profile_recovery_time_wrapper(function: Callable) -> Callable:
-        from functools import wraps
-
         @wraps(function)
         def wrapper(*args: Any, **kwargs: Any) -> Any:
             if not ProfilerSettings.profiler_enabled.get_with_cache():
@@ -181,11 +178,11 @@ def profile_recovery_time(
                 return function(*args, **kwargs)
             finally:
                 meter = RecoveryMeasurer.get()
-                with meter.context(event_name) as context:
+                with meter.context(event_name, group_name) as context:
                     duration = meter.measure()
                 # Meter might not be enabled
                 if duration is not None:
-                    ProfilerWrapper.get().add_record(context, group_name, duration)
+                    ProfilerWrapper.get().add_record(context.name, group_name, duration)
                 else:
                     LOGGER.debug("Recovery time measurement is disabled.")
 

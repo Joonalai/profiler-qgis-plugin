@@ -18,7 +18,7 @@
 import logging
 from contextlib import suppress
 from pathlib import Path
-from typing import Any, Optional
+from typing import TYPE_CHECKING, Any, Optional
 
 from qgis.core import QgsApplication
 from qgis.PyQt.QtWidgets import QComboBox, QToolButton, QWidget
@@ -28,10 +28,12 @@ from qgis_plugin_tools.tools.resources import load_ui_from_file
 from profiler_plugin.ui.settings_dialog import SettingsDialog
 from qgis_profiler.event_recorder import ProfilerEventRecorder
 from qgis_profiler.exceptions import ProfilerNotFoundError
-from qgis_profiler.meters.meter import Meter, MeterAnomaly
 from qgis_profiler.meters.recovery_measurer import RecoveryMeasurer
 from qgis_profiler.profiler import ProfilerWrapper
 from qgis_profiler.settings import ProfilerSettings
+
+if TYPE_CHECKING:
+    from qgis_profiler.meters.meter import Meter
 
 LOGGER = logging.getLogger(__name__)
 
@@ -87,8 +89,6 @@ class ProfilerExtension(QWidget, UI_CLASS):
             self._stop_recording()
         for meter in self._meters:
             meter.cleanup()
-            with suppress(TypeError):
-                meter.anomaly_detected.disconnect(self._profile_meter_anomaly)
         self._meters.clear()
 
         with suppress(TypeError):
@@ -137,7 +137,7 @@ class ProfilerExtension(QWidget, UI_CLASS):
 
         for meter in self._meters:
             meter.reset_parameters()
-            meter.anomaly_detected.connect(self._profile_meter_anomaly)
+            meter.connect_to_profiler()
 
         if self._event_recorder:
             self._event_recorder.event_finished.connect(
@@ -147,15 +147,9 @@ class ProfilerExtension(QWidget, UI_CLASS):
                 self._event_recorder_event_started
             )
 
-    def _profile_meter_anomaly(self, anomaly: MeterAnomaly) -> None:
-        LOGGER.debug("Meter anomaly: %s", anomaly)
-        ProfilerWrapper.get().add_record(
-            anomaly.name, self._meters_group, anomaly.duration_seconds
-        )
-
     def _event_recorder_event_started(self, event_name: str) -> None:
         for meter in self._meters:
-            meter.add_context(event_name)
+            meter.add_context(event_name, self._meters_group)
 
     def _event_recorder_event_finished(self, _: str) -> None:
         for meter in self._meters:

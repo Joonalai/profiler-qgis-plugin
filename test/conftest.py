@@ -57,6 +57,11 @@ def default_group() -> str:
 
 
 @pytest.fixture
+def meters_group() -> str:
+    return ProfilerSettings.meters_group.get()
+
+
+@pytest.fixture
 def log_profiler_data(profiler: ProfilerWrapper, default_group: str) -> Iterator[None]:
     assert profiler._profiler
     yield

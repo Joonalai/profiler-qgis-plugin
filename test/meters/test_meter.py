@@ -19,7 +19,7 @@ from typing import TYPE_CHECKING, Optional
 
 import pytest
 
-from qgis_profiler.meters.meter import Meter
+from qgis_profiler.meters.meter import Meter, MeterContext
 
 if TYPE_CHECKING:
     from pytestqt.qtbot import QtBot
@@ -52,28 +52,37 @@ def test_meter_should_emit_anomaly_detected(meter: Meter, qtbot: "QtBot"):
         assert meter.measure() == 1.0
 
 
-def test_meter_context_stack(meter: Meter):
+def test_meter_context_stack(meter: Meter, meters_group: str):
+    group1 = "group1"
+    group2 = "group2"
+    initial_context = MeterContext("StubMeter (stub)", meters_group)
+
     assert meter._context_stack == []
-    assert meter.current_context == "StubMeter (stub)"
+    assert meter.current_context == initial_context
 
-    meter.add_context("foo")
-    assert meter.current_context == "foo (stub)"
-    meter.add_context("bar")
-    assert meter.current_context == "bar (stub)"
-    assert meter.pop_context() == "bar"
-    assert meter.current_context == "foo (stub)"
-    assert meter.pop_context() == "foo"
-    assert meter.current_context == "StubMeter (stub)"
+    meter.add_context("foo", group1)
+    assert meter.current_context == MeterContext("foo (stub)", group1)
+    meter.add_context("bar", group2)
+    assert meter.current_context == MeterContext("bar (stub)", group2)
+    assert meter.pop_context() == MeterContext("bar", group2)
+    assert meter.current_context == MeterContext("foo (stub)", group1)
+    assert meter.pop_context() == MeterContext("foo", group1)
+    assert meter.current_context == initial_context
 
 
-def test_meter_context_stack_with_context_manager(meter: Meter):
+def test_meter_context_stack_with_context_manager(meter: Meter, meters_group: str):
+    group1 = "group1"
+    group2 = "group2"
+    initial_context = MeterContext("StubMeter (stub)", meters_group)
+
     assert meter._context_stack == []
-    assert meter.current_context == "StubMeter (stub)"
+    assert meter.current_context == initial_context
 
-    with meter.context("foo") as context:
-        assert context == "foo (stub)"
-        with meter.context("bar") as context2:
-            assert context2 == "bar (stub)"
-            assert meter.current_context == "bar (stub)"
-        assert meter.current_context == "foo (stub)"
-    assert meter.current_context == "StubMeter (stub)"
+    with meter.context("foo", group1) as context1:
+        assert context1 == MeterContext("foo (stub)", group1)
+        assert meter.current_context == context1
+        with meter.context("bar", group2) as context2:
+            assert context2 == MeterContext("bar (stub)", group2)
+            assert meter.current_context == context2
+        assert meter.current_context == context1
+    assert meter.current_context == initial_context

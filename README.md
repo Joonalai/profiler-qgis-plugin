@@ -8,8 +8,9 @@
 
 **UNDER ACTIVE DEVELOPMENT!**
 
-The QGIS Profiler Plugin is a plugin ment to extend QGIS development tools
-dock widgetby making the QGIS profiling more useful
+The QGIS Profiler Plugin aims to extend QGIS Profiler development tool
+to be able to profile plugins and QGIS itself easily.
+
 ![profiling.gif](docs/profiling.gif?raw=True "Profiling")
 
 ## Features
