@@ -19,7 +19,6 @@ import logging
 from functools import wraps
 from typing import Any, Callable, Optional
 
-from qgis_profiler.meters.recovery_measurer import RecoveryMeasurer
 from qgis_profiler.profiler import ProfilerWrapper
 from qgis_profiler.settings import (
     ProfilerSettings,
@@ -138,57 +137,6 @@ def profile_class(  # noqa: C901
         return cls
 
     return decorator
-
-
-def profile_recovery_time(
-    *,
-    name: Optional[str] = None,
-    group: Optional[str] = None,
-    event_args: Optional[list[str]] = None,
-) -> Callable:
-    """
-    Profiles the recovery time of a function execution and records it using a specified
-    profiler. The recovery time is measured after the function execution completes,
-    even if it raises an exception. The recovered time measurement data is grouped
-    under a specified group and tagged with an event name for categorization.
-
-    :param name: Optional event name for this profiling. If not provided, the
-        name of the function being wrapped will be used.
-    :param group: Optional group name under which this profiling record will
-        be categorized in the profiler.
-    :param event_args: Optional list of argument names to include in the event name.
-        If specified, the event name will include these argument values.
-    :return: A callable decorator function that wraps the given function to
-        measure and profile its recovery time.
-    """
-
-    def profile_recovery_time_wrapper(function: Callable) -> Callable:
-        @wraps(function)
-        def wrapper(*args: Any, **kwargs: Any) -> Any:
-            if not ProfilerSettings.profiler_enabled.get_with_cache():
-                LOGGER.debug("Profiling is disabled.")
-                return function(*args, **kwargs)
-
-            group_name = resolve_group_name_with_cache(group)
-            event_name = name if name is not None else function.__name__
-            if event_args:
-                event_name += _parse_arguments(function, event_args, args, kwargs)
-
-            try:
-                return function(*args, **kwargs)
-            finally:
-                meter = RecoveryMeasurer.get()
-                with meter.context(event_name, group_name) as context:
-                    duration = meter.measure()
-                # Meter might not be enabled
-                if duration is not None:
-                    ProfilerWrapper.get().add_record(context.name, group_name, duration)
-                else:
-                    LOGGER.debug("Recovery time measurement is disabled.")
-
-        return wrapper
-
-    return profile_recovery_time_wrapper
 
 
 def _parse_arguments(

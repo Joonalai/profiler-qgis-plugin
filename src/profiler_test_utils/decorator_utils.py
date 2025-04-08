@@ -17,7 +17,7 @@
 #  along with profiler-qgis-plugin. If not, see <https://www.gnu.org/licenses/>.
 
 from profiler_test_utils import utils
-from qgis_profiler.decorators import profile, profile_class, profile_recovery_time
+from qgis_profiler.decorators import profile, profile_class
 
 EXTRA_GROUP = "New group"
 EXPECTED_TIME = 0.01
@@ -27,15 +27,6 @@ class DecoratorTester:
     @profile()
     def add(self, a: int, b: int) -> int:
         return _add(a, b)
-
-    @profile()
-    @profile_recovery_time()
-    def add_and_profile_recovery(self, a: int, b: int) -> int:
-        return _add(a, b)
-
-    @profile_recovery_time()
-    def just_profile_recovery(self) -> None:
-        return
 
     @profile(name="Add numbers")
     def add_with_name_kwarg(self, a: int, b: int) -> int:

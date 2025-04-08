@@ -15,20 +15,10 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with profiler-qgis-plugin. If not, see <https://www.gnu.org/licenses/>.
-from typing import TYPE_CHECKING
 
 import pytest
 
-from profiler_test_utils.decorator_utils import DecoratorTester
 from qgis_profiler.meters.recovery_measurer import RecoveryMeasurer
-from qgis_profiler.settings import ProfilerSettings
-
-if TYPE_CHECKING:
-    from unittest.mock import MagicMock
-
-    from pytest_mock import MockerFixture
-
-    from qgis_profiler.profiler import ProfilerWrapper
 
 
 @pytest.fixture
@@ -47,34 +37,3 @@ def test_recovery_measurer_should_measure_recovery_if_disabled(
 ):
     recovery_measurer.enabled = False
     assert not recovery_measurer.measure()
-
-
-@pytest.mark.usefixtures("recovery_measurer")
-def test_profile_recovery_time_decorator_should_profile(
-    profiler: "ProfilerWrapper",
-    decorator_tester: DecoratorTester,
-    mock_profiler: "MagicMock",
-):
-    # Act
-    decorator_tester.just_profile_recovery()
-    # Assert
-    mock_profiler.add_record.assert_called_once_with(
-        "just_profile_recovery (recovery)", "Plugins", pytest.approx(0.1, abs=1e-1)
-    )
-
-
-def test_profile_recovery_time_decorator_should_not_profile_if_profiling_is_disabled(
-    profiler: "ProfilerWrapper",
-    decorator_tester: DecoratorTester,
-    mocker: "MockerFixture",
-    mock_profiler: "MagicMock",
-):
-    # Arrange
-    mock_settings = mocker.patch.object(
-        ProfilerSettings, "get_with_cache", return_value=False
-    )
-    # Act
-    decorator_tester.just_profile_recovery()
-    # Assert
-    mock_settings.assert_called_once()
-    mock_profiler.add_record.assert_not_called()
