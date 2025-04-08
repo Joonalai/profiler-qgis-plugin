@@ -28,7 +28,12 @@ from qgis_profiler.settings import (
 LOGGER = logging.getLogger(__name__)
 
 
-def profile(*, name: Optional[str] = None, group: Optional[str] = None) -> Callable:
+def profile(
+    *,
+    name: Optional[str] = None,
+    group: Optional[str] = None,
+    event_args: Optional[list[str]] = None,
+) -> Callable:
     """
     Creates a profiling decorator that measures the time taken by a function and groups
     the profiler data under a specified name. The decorator utilizes the
@@ -38,6 +43,8 @@ def profile(*, name: Optional[str] = None, group: Optional[str] = None) -> Calla
         name will be used as the name.
     :param group: Optional name for the profiler group. If not provided, the group name
     is read from settings.
+    :param event_args: Optional list of argument names to include in the event name.
+        If specified, the event name will include these argument values.
     :return: A decorator that wraps the specified function for profiling.
     """
 
@@ -52,6 +59,9 @@ def profile(*, name: Optional[str] = None, group: Optional[str] = None) -> Calla
 
             group_name = resolve_group_name_with_cache(group)
             event_name = name if name is not None else function.__name__
+            if event_args:
+                event_name += _parse_arguments(function, event_args, args, kwargs)
+
             ProfilerWrapper.get().start(event_name, group_name)
             try:
                 return function(*args, **kwargs)
@@ -116,7 +126,10 @@ def profile_class(
 
 
 def profile_recovery_time(
-    *, name: Optional[str] = None, group: Optional[str] = None
+    *,
+    name: Optional[str] = None,
+    group: Optional[str] = None,
+    event_args: Optional[list[str]] = None,
 ) -> Callable:
     """
     Profiles the recovery time of a function execution and records it using a specified
@@ -128,6 +141,8 @@ def profile_recovery_time(
         name of the function being wrapped will be used.
     :param group: Optional group name under which this profiling record will
         be categorized in the profiler.
+    :param event_args: Optional list of argument names to include in the event name.
+        If specified, the event name will include these argument values.
     :return: A callable decorator function that wraps the given function to
         measure and profile its recovery time.
     """
@@ -143,6 +158,9 @@ def profile_recovery_time(
 
             group_name = resolve_group_name_with_cache(group)
             event_name = name if name is not None else function.__name__
+            if event_args:
+                event_name += _parse_arguments(function, event_args, args, kwargs)
+
             try:
                 return function(*args, **kwargs)
             finally:
@@ -158,3 +176,19 @@ def profile_recovery_time(
         return wrapper
 
     return profile_recovery_time_wrapper
+
+
+def _parse_arguments(
+    function: Callable, event_args: list[str], args: Any, kwargs: Any
+) -> str:
+    """
+    Parse argument value from the function specified
+    """
+    arg_names = function.__code__.co_varnames[: function.__code__.co_argcount]
+    arg_dict = {**dict(zip(arg_names, args)), **kwargs}
+    arg_values = [
+        f"{event_arg}={arg_dict[event_arg]}"
+        for event_arg in event_args
+        if event_arg in arg_dict
+    ]
+    return f"({', '.join(arg_values)})"

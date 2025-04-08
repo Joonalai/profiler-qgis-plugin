@@ -196,12 +196,19 @@ def test_profiler_context_manager(
                 ),
             ],
         ),
+        (
+            "add_with_event_args",
+            3,
+            "add_with_event_args(a=1)",
+            [ProfilerResult("add_with_event_args(a=1)", "", EXPECTED_TIME)],
+        ),
     ],
     ids=[
         "profile method with name arg",
         "profile method without name arg",
         "profile static method",
         "profile complex method",
+        "profile method with event args",
     ],
 )
 @pytest.mark.usefixtures("log_profiler_data")

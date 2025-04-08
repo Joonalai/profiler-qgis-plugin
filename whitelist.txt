@@ -20,3 +20,5 @@ qtbot
 subtests
 metaclass
 func
+varnames
+argcount
