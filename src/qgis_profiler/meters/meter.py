@@ -18,12 +18,13 @@
 import abc
 from collections.abc import Generator
 from contextlib import contextmanager, suppress
-from typing import ClassVar, NamedTuple, Optional
+from typing import Any, Callable, ClassVar, NamedTuple, Optional
 
 from qgis.PyQt.QtCore import QObject, pyqtSignal, pyqtSlot
 
+from qgis_profiler import decorators
 from qgis_profiler.profiler import ProfilerWrapper
-from qgis_profiler.settings import ProfilerSettings
+from qgis_profiler.settings import ProfilerSettings, resolve_group_name_with_cache
 
 
 class MeterContext(NamedTuple):
@@ -65,6 +66,66 @@ class Meter(QObject):
         """
         Get a singleton instance of the meter.
         """
+
+    @classmethod
+    def monitor(
+        cls,
+        name: Optional[str] = None,
+        group: Optional[str] = None,
+        name_args: Optional[list[str]] = None,
+        connect_to_profiler: bool = True,  # noqa: FBT001, FBT002
+        measure_after_call: bool = False,  # noqa: FBT001, FBT002
+    ) -> Callable:
+        """
+        Decorator for monitoring the meter by setting the meter context
+        within a function call and by optionally measuring the meter
+        after the function call. If the meter is disabled, nothing is done.
+
+        If you want to profile the anomalies found during the function call,
+        connect to profiler using the `connect_to_profiler` argument.
+
+        :param name: Optional name for this context. If not provided, the
+        name of the function being wrapped will be used.
+        :param group: Optional group name for the context. If not provided,
+        the group name is read from settings.
+        :param name_args: Optional list of argument names to include in the context
+        name. If specified, the context name will include these argument values.
+        :param connect_to_profiler: Optional flag to connect to meter to a profiler
+        if not yet connected.
+        :param measure_after_call: Optional flag to measure the meter after the function
+        call.
+        :return: A callable decorator function that wraps the given function to
+        set the meter context during the function call.
+        """
+
+        def context_wrapper(function: Callable) -> Callable:
+            from functools import wraps
+
+            @wraps(function)
+            def wrapper(*args: Any, **kwargs: Any) -> Any:
+                group_name = resolve_group_name_with_cache(group)
+                context_name = name if name is not None else function.__name__
+                if name_args:
+                    context_name += decorators._parse_arguments(
+                        function, name_args, args, kwargs
+                    )
+
+                meter = cls.get()
+                if not meter.enabled:
+                    return function(*args, **kwargs)
+
+                if connect_to_profiler and not meter.is_connected_to_profiler:
+                    meter.connect_to_profiler()
+                with meter.context(context_name, group_name):
+                    try:
+                        return function(*args, **kwargs)
+                    finally:
+                        if measure_after_call:
+                            meter.measure()
+
+            return wrapper
+
+        return context_wrapper
 
     @property
     def current_context(self) -> MeterContext:
