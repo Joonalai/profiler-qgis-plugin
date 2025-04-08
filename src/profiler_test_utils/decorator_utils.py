@@ -41,6 +41,10 @@ class DecoratorTester:
     def add_with_name_kwarg(self, a: int, b: int) -> int:
         return _add(a, b)
 
+    @profile(event_args=["a"])
+    def add_with_event_args(self, a: int, b: int) -> int:
+        return _add(a, b)
+
     @profile(group=EXTRA_GROUP)
     def add_with_group_kwarg(self, a: int, b: int) -> int:
         return _add(a, b)
