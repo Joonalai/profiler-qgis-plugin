@@ -24,6 +24,7 @@ from qgis_profiler.settings import (
     ProfilerSettings,
     resolve_group_name_with_cache,
 )
+from qgis_profiler.utils import parse_arguments
 
 LOGGER = logging.getLogger(__name__)
 
@@ -58,7 +59,7 @@ def profile(
             group_name = resolve_group_name_with_cache(group)
             event_name = name if name is not None else function.__name__
             if event_args:
-                event_name += _parse_arguments(function, event_args, args, kwargs)
+                event_name += parse_arguments(function, event_args, args, kwargs)
 
             ProfilerWrapper.get().start(event_name, group_name)
             try:
@@ -137,19 +138,3 @@ def profile_class(  # noqa: C901
         return cls
 
     return decorator
-
-
-def _parse_arguments(
-    function: Callable, event_args: list[str], args: Any, kwargs: Any
-) -> str:
-    """
-    Parse argument value from the function specified
-    """
-    arg_names = function.__code__.co_varnames[: function.__code__.co_argcount]
-    arg_dict = {**dict(zip(arg_names, args)), **kwargs}
-    arg_values = [
-        f"{event_arg}={arg_dict[event_arg]}"
-        for event_arg in event_args
-        if event_arg in arg_dict
-    ]
-    return f"({', '.join(arg_values)})"

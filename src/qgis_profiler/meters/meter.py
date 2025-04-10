@@ -23,7 +23,7 @@ from typing import Any, Callable, ClassVar, NamedTuple, Optional
 from qgis.core import QgsApplication
 from qgis.PyQt.QtCore import QObject, pyqtSignal, pyqtSlot
 
-from qgis_profiler import decorators
+import qgis_profiler.utils
 from qgis_profiler.profiler import ProfilerWrapper
 from qgis_profiler.settings import ProfilerSettings, resolve_group_name_with_cache
 
@@ -122,7 +122,7 @@ class Meter(QObject):
                 group_name = resolve_group_name_with_cache(group)
                 context_name = name if name is not None else function.__name__
                 if name_args:
-                    context_name += decorators._parse_arguments(
+                    context_name += qgis_profiler.utils.parse_arguments(
                         function, name_args, args, kwargs
                     )
 

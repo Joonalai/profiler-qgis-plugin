@@ -16,7 +16,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with profiler-qgis-plugin. If not, see <https://www.gnu.org/licenses/>.
 import logging
-from typing import Any, Optional
+from typing import Any, Callable, Optional
 
 from qgis.PyQt.QtCore import QT_VERSION_STR, pyqtSignal
 from qgis.PyQt.QtGui import QCursor
@@ -45,3 +45,26 @@ def disconnect_signal(signal: pyqtSignal, connection: Any, name: str) -> None:
         signal.disconnect(connection)
     except TypeError:
         LOGGER.exception("Could not disconnect signal %s", name)
+
+
+def parse_arguments(
+    function: Callable, event_args: list[str], args: Any, kwargs: Any
+) -> str:
+    """
+    Parses and formats arguments for a given function based on event_args.
+
+    :param function: Function whose arguments are being processed.
+    :param event_args: List of argument names to include in the output.
+    :param args: Positional arguments passed to the function.
+    :param kwargs: Keyword arguments passed to the function.
+    :return: Formatted string of key-value pairs for the specified arguments.
+    """
+
+    arg_names = function.__code__.co_varnames[: function.__code__.co_argcount]
+    arg_dict = {**dict(zip(arg_names, args)), **kwargs}
+    arg_values = [
+        f"{event_arg}={arg_dict[event_arg]}"
+        for event_arg in event_args
+        if event_arg in arg_dict
+    ]
+    return f"({', '.join(arg_values)})"
