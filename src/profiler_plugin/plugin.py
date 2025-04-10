@@ -94,10 +94,9 @@ class ProfilerPlugin(QObject):
         self._teardown_loggers()
         self._teardown_loggers = lambda: None
 
-        if self._event_recorder:
-            self._event_recorder.cleanup()
         if self._profiler_panel_layout:
             self._profiler_panel_layout.removeWidget(self._profiler_extension)
         if self._profiler_extension:
+            self._profiler_extension.cleanup()
             self._profiler_extension.deleteLater()
         self._profiler_extension = None  # type:ignore[assignment]
