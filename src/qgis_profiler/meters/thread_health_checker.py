@@ -130,12 +130,14 @@ class MainThreadHealthChecker(Meter):
     @classmethod
     def monitor(  # noqa: PLR0913
         cls,
+        function: Optional[Callable] = None,
+        *,
         name: Optional[str] = None,
         group: Optional[str] = None,
         name_args: Optional[list[str]] = None,
-        connect_to_profiler: bool = True,  # noqa: FBT001, FBT002
-        start_continuous_measuring: bool = True,  # noqa: FBT001, FBT002
-        measure_after_call: bool = False,  # noqa: FBT001, FBT002
+        connect_to_profiler: bool = True,
+        start_continuous_measuring: bool = True,
+        measure_after_call: bool = False,
     ) -> Callable:
         if measure_after_call:
             warnings.warn(
@@ -143,12 +145,13 @@ class MainThreadHealthChecker(Meter):
                 stacklevel=1,
             )
         return super().monitor(
-            name,
-            group,
-            name_args,
-            connect_to_profiler,
-            start_continuous_measuring,
-            measure_after_call,
+            function,
+            name=name,
+            group=group,
+            name_args=name_args,
+            connect_to_profiler=connect_to_profiler,
+            start_continuous_measuring=start_continuous_measuring,
+            measure_after_call=measure_after_call,
         )
 
     def reset_parameters(self) -> None:

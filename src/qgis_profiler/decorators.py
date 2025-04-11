@@ -30,6 +30,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 def profile(
+    function: Optional[Callable] = None,
     *,
     name: Optional[str] = None,
     group: Optional[str] = None,
@@ -40,6 +41,7 @@ def profile(
     the profiler data under a specified name. The decorator utilizes the
     QgsApplication's profiling infrastructure for performance measurement.
 
+    :param function: Provided here to support both @monitor and @monitor() syntax.
     :param name: Optional name for the profiler item. If not provided, the function's
         name will be used as the name.
     :param group: Optional name for the profiler group. If not provided, the group name
@@ -49,29 +51,39 @@ def profile(
     :return: A decorator that wraps the specified function for profiling.
     """
 
-    def profiling_wrapper(function: Callable) -> Callable:
-        @wraps(function)
-        def wrapper(*args: Any, **kwargs: Any) -> Any:
-            if not ProfilerSettings.profiler_enabled.get_with_cache():
-                LOGGER.debug("Profiling is disabled.")
-                return function(*args, **kwargs)
+    if function is None:  # @profile() syntax
 
-            group_name = resolve_group_name_with_cache(group)
-            event_name = name if name is not None else function.__name__
-            if event_args:
-                event_name += parse_arguments(function, event_args, args, kwargs)
+        def decorator(function: Callable) -> Callable:
+            return profile(
+                function=function,
+                name=name,
+                group=group,
+                event_args=event_args,
+            )
 
-            ProfilerWrapper.get().start(event_name, group_name)
-            try:
-                return function(*args, **kwargs)
-            finally:
-                ProfilerWrapper.get().end(group_name)
+        return decorator
 
-        # Mark wrapper as profiled
-        wrapper._profiled = True  # type: ignore
-        return wrapper
+    # @profile syntax
+    @wraps(function)
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
+        if not ProfilerSettings.profiler_enabled.get_with_cache():
+            LOGGER.debug("Profiling is disabled.")
+            return function(*args, **kwargs)
 
-    return profiling_wrapper
+        group_name = resolve_group_name_with_cache(group)
+        event_name = name if name is not None else function.__name__
+        if event_args:
+            event_name += parse_arguments(function, event_args, args, kwargs)
+
+        ProfilerWrapper.get().start(event_name, group_name)
+        try:
+            return function(*args, **kwargs)
+        finally:
+            ProfilerWrapper.get().end(group_name)
+
+    # Mark wrapper as profiled
+    wrapper._profiled = True  # type: ignore
+    return wrapper
 
 
 def profile_class(  # noqa: C901

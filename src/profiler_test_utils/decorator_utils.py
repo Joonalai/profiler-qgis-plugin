@@ -29,12 +29,16 @@ EXPECTED_TIME = 0.01
 
 
 class DecoratorTester:
-    @profile()
+    @profile
     def add(self, a: int, b: int) -> int:
         return _add(a, b)
 
     @MainThreadHealthChecker.monitor()
     def monitor_thread_health(self) -> None:
+        time.sleep(0.1)
+
+    @MainThreadHealthChecker.monitor
+    def monitor_thread_health_without_parenthesis(self) -> None:
         time.sleep(0.1)
 
     @profile(name="Add numbers")
@@ -49,7 +53,7 @@ class DecoratorTester:
     def add_with_group_kwarg(self, a: int, b: int) -> int:
         return _add(a, b)
 
-    @profile()
+    @profile
     def add_complex(self, a: int, b: int) -> int:
         utils.wait(int(EXPECTED_TIME * 1000))
         return self.add(a, b) + self.add_with_name_kwarg(a, b)

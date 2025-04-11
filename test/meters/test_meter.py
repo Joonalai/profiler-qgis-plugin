@@ -47,7 +47,7 @@ class StubMeter(Meter):
 
 
 class StubClass:
-    @StubMeter.monitor("foo", "bar", measure_after_call=True)
+    @StubMeter.monitor(name="foo", group="bar", measure_after_call=True)
     def name_and_group_set(self, a: int, b: int) -> int:
         return a + b
 

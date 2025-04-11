@@ -100,20 +100,24 @@ def test_health_checker_measure_should_poll_blocking(
     assert duration == pytest.approx(0.1, abs=1e-1)
 
 
+@pytest.mark.parametrize(
+    "method", ["monitor_thread_health", "monitor_thread_health_without_parenthesis"]
+)
 def test_monitor_main_thread_health_decorator_should_profile(
     thread_health_checker: MainThreadHealthChecker,
     default_group: str,
     decorator_tester: "DecoratorTester",
     mock_profiler: "MagicMock",
     qtbot: "QtBot",
+    method: str,
 ):
     # Act
     with qtbot.waitSignal(thread_health_checker.anomaly_detected, timeout=200):
-        decorator_tester.monitor_thread_health()
+        getattr(decorator_tester, method)()
 
     # Assert
     mock_profiler.add_record.assert_called_once_with(
-        "monitor_thread_health (main_thread)",
+        f"{method} (main_thread)",
         default_group,
         pytest.approx(0.1, abs=1e-1),
     )

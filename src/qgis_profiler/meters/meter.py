@@ -18,7 +18,8 @@
 import abc
 from collections.abc import Generator
 from contextlib import contextmanager, suppress
-from typing import Any, Callable, ClassVar, NamedTuple, Optional
+from functools import wraps
+from typing import Any, Callable, ClassVar, NamedTuple, Optional, cast
 
 from qgis.core import QgsApplication
 from qgis.PyQt.QtCore import QObject, pyqtSignal, pyqtSlot
@@ -83,12 +84,14 @@ class Meter(QObject):
     @classmethod
     def monitor(  # noqa: PLR0913
         cls,
+        function: Optional[Callable] = None,
+        *,
         name: Optional[str] = None,
         group: Optional[str] = None,
         name_args: Optional[list[str]] = None,
-        connect_to_profiler: bool = True,  # noqa: FBT001, FBT002
-        start_continuous_measuring: bool = True,  # noqa: FBT001, FBT002
-        measure_after_call: bool = False,  # noqa: FBT001, FBT002
+        connect_to_profiler: bool = True,
+        start_continuous_measuring: bool = True,
+        measure_after_call: bool = False,
     ) -> Callable:
         """
         Decorator for monitoring the meter by setting the meter context
@@ -99,6 +102,7 @@ class Meter(QObject):
         If you want to profile the anomalies found during the function call,
         connect to profiler using the `connect_to_profiler` argument.
 
+        :param function: Provided here to support both @monitor and @monitor() syntax.
         :param name: Optional name for this context. If not provided, the
         name of the function being wrapped will be used.
         :param group: Optional group name for the context. If not provided,
@@ -114,42 +118,54 @@ class Meter(QObject):
         set the meter context during the function call.
         """
 
-        def context_wrapper(function: Callable) -> Callable:
-            from functools import wraps
+        if function is None:  # @monitor() syntax
 
-            @wraps(function)
-            def wrapper(*args: Any, **kwargs: Any) -> Any:
-                group_name = resolve_group_name_with_cache(group)
-                context_name = name if name is not None else function.__name__
-                if name_args:
-                    context_name += qgis_profiler.utils.parse_arguments(
-                        function, name_args, args, kwargs
-                    )
+            def decorator(func: Callable) -> Callable:
+                return cls.monitor(
+                    function=func,
+                    name=name,
+                    group=group,
+                    name_args=name_args,
+                    connect_to_profiler=connect_to_profiler,
+                    start_continuous_measuring=start_continuous_measuring,
+                    measure_after_call=measure_after_call,
+                )
 
-                meter = cls.get()
-                if not meter.enabled:
-                    return function(*args, **kwargs)
+            return decorator
 
-                if connect_to_profiler and not meter.is_connected_to_profiler:
-                    meter.connect_to_profiler()
+        # @monitor syntax
+        @wraps(function)
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
+            func = cast("Callable", function)
+            group_name = resolve_group_name_with_cache(group)
+            context_name = name if name is not None else func.__name__
+            if name_args:
+                context_name += qgis_profiler.utils.parse_arguments(
+                    func, name_args, args, kwargs
+                )
 
-                with meter.context(context_name, group_name):
-                    if (
-                        start_continuous_measuring
-                        and meter.supports_continuous_measuring
-                        and not meter.is_measuring
-                    ):
-                        meter.start_measuring()
-                    try:
-                        return function(*args, **kwargs)
-                    finally:
-                        QgsApplication.processEvents()
-                        if measure_after_call:
-                            meter.measure()
+            meter = cls.get()
+            if not meter.enabled:
+                return func(*args, **kwargs)
 
-            return wrapper
+            if connect_to_profiler and not meter.is_connected_to_profiler:
+                meter.connect_to_profiler()
 
-        return context_wrapper
+            with meter.context(context_name, group_name):
+                if (
+                    start_continuous_measuring
+                    and meter.supports_continuous_measuring
+                    and not meter.is_measuring
+                ):
+                    meter.start_measuring()
+                try:
+                    return func(*args, **kwargs)
+                finally:
+                    QgsApplication.processEvents()
+                    if measure_after_call:
+                        meter.measure()
+
+        return wrapper
 
     @property
     def current_context(self) -> MeterContext:
