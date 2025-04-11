@@ -15,6 +15,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with profiler-qgis-plugin. If not, see <https://www.gnu.org/licenses/>.
+import inspect
 import logging
 from typing import Any, Callable, Optional
 
@@ -48,10 +49,16 @@ def disconnect_signal(signal: pyqtSignal, connection: Any, name: str) -> None:
 
 
 def parse_arguments(
-    function: Callable, event_args: list[str], args: Any, kwargs: Any
+    function: Callable, event_args: list[str], args: Any = None, kwargs: Any = None
 ) -> str:
     """
     Parses and formats arguments for a given function based on event_args.
+
+
+    Also object and class attributes can be used in case of a method:
+
+    .. code-block:: python
+        parse_arguments(method, ["self.attribute"])
 
     :param function: Function whose arguments are being processed.
     :param event_args: List of argument names to include in the output.
@@ -59,9 +66,30 @@ def parse_arguments(
     :param kwargs: Keyword arguments passed to the function.
     :return: Formatted string of key-value pairs for the specified arguments.
     """
+    if args is None:
+        args = ()
+    if kwargs is None:
+        kwargs = {}
 
-    arg_names = function.__code__.co_varnames[: function.__code__.co_argcount]
-    arg_dict = {**dict(zip(arg_names, args)), **kwargs}
+    signature = inspect.signature(function)
+    parameters = signature.parameters
+    arg_names = parameters.keys()
+
+    defaults = {
+        k: v.default
+        for k, v in parameters.items()
+        if v.default is not inspect.Parameter.empty
+    }
+    arg_dict = {**defaults, **dict(zip(arg_names, args)), **kwargs}
+    if any(
+        object_vars := list(filter(lambda x: x.startswith("self."), event_args))
+    ) and inspect.ismethod(function):
+        self = function.__self__
+        for object_var in object_vars:
+            cleaned_var = object_var.replace("self.", "")
+            arg_dict[cleaned_var] = getattr(self, cleaned_var)
+
+    event_args = [arg.replace("self.", "") for arg in event_args]
     arg_values = [
         f"{event_arg}={arg_dict[event_arg]}"
         for event_arg in event_args
