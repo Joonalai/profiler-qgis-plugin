@@ -64,9 +64,9 @@ def meters_group() -> str:
 
 @pytest.fixture
 def log_profiler_data(profiler: ProfilerWrapper, default_group: str) -> Iterator[None]:
-    assert profiler._profiler
+    assert profiler._qgis_profiler
     yield
-    LOGGER.info("Profiler data:\n\n%s", profiler._profiler.asText(default_group))
+    LOGGER.info("Profiler data:\n\n%s", profiler._qgis_profiler.asText(default_group))
 
 
 @pytest.fixture

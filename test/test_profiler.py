@@ -15,6 +15,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with profiler-qgis-plugin. If not, see <https://www.gnu.org/licenses/>.
+from pathlib import Path
 from textwrap import dedent
 from typing import TYPE_CHECKING
 
@@ -27,6 +28,7 @@ from profiler_test_utils.decorator_utils import (
     ClassDecoratorTester,
     DecoratorTester,
 )
+from qgis_profiler.cprofiler import QCProfiler
 from qgis_profiler.profiler import (
     ProfilerResult,
     ProfilerWrapper,
@@ -355,3 +357,17 @@ def test_profile_decorator_should_not_profile_if_profiling_is_disabled(
     # Assert
     mock_settings.assert_called_once()
     assert not profiler._profiler_events
+
+
+def test_save_profiler_results_as_prof_file_with_valid_inputs(
+    profiler: "ProfilerWrapper",
+    mocker: "MockerFixture",
+    decorator_tester: DecoratorTester,
+) -> None:
+    m_dump_stats = mocker.patch.object(QCProfiler, "dump_stats")
+
+    assert decorator_tester.add_with_group_kwarg(1, 2) == 3
+
+    path = Path("file.prof")
+    profiler.save_profiler_results_as_prof_file("test_group", path)
+    m_dump_stats.assert_called_once_with(path)

@@ -22,6 +22,8 @@ from collections import defaultdict
 from collections.abc import Generator
 from contextlib import contextmanager
 from dataclasses import dataclass, field
+from pathlib import Path
+from profile import Profile as PythonProfile
 from typing import Optional
 
 from qgis.core import QgsApplication, QgsRuntimeProfiler
@@ -33,6 +35,12 @@ from qgis_profiler.settings import (
     resolve_group_name,
     resolve_group_name_with_cache,
 )
+
+try:
+    from qgis_profiler.cprofiler import QCProfiler
+except ModuleNotFoundError:
+    QCProfiler = None  # type: ignore
+
 
 LOGGER = logging.getLogger(__name__)
 
@@ -130,7 +138,11 @@ class ProfilerWrapper:
         profiler = QgsApplication.profiler()
         if profiler is None:
             raise ProfilerNotFoundError
-        self._profiler: QgsRuntimeProfiler = profiler
+        self._qgis_profiler: QgsRuntimeProfiler = profiler
+        self._cprofiler: Optional[QCProfiler] = (
+            QCProfiler() if QCProfiler is not None else None
+        )
+        self._pprofiler = PythonProfile()  # noqa: SC200
         self._profiler_events: dict[str, list[str]] = defaultdict(list)
 
     @staticmethod
@@ -142,7 +154,22 @@ class ProfilerWrapper:
     @property
     def groups(self) -> set[str]:
         """Set of all groups in the profiler."""
-        return self._profiler.groups()
+        return self._qgis_profiler.groups()
+
+    @property
+    def cprofiler(self) -> QCProfiler:
+        """QCProfiler instance. Only available if cProfile is installed."""
+        if self._cprofiler is None:
+            raise ProfilerNotFoundError("cProfile")
+        return self._cprofiler
+
+    @property
+    def cprofiler_available(self) -> bool:
+        """
+        Whether cProfile is installed and
+        available for use in ProfilerWrapper.
+        """
+        return QCProfiler is not None
 
     @contextmanager
     def profile(
@@ -170,7 +197,7 @@ class ProfilerWrapper:
         :return: Returns a unique identifier for the event.
         """
         event_id = str(uuid.uuid4())
-        self._profiler.start(name, group, event_id)
+        self._qgis_profiler.start(name, group, event_id)
         self._profiler_events[group].append(event_id)
         return event_id
 
@@ -180,7 +207,7 @@ class ProfilerWrapper:
 
         :return: Returns a unique identifier for the event.
         """
-        self._profiler.end(group)
+        self._qgis_profiler.end(group)
         return self._profiler_events.get(group, ["invalid"])[-1]
 
     def add_record(self, name: str, group: str, time: float) -> str:
@@ -193,7 +220,7 @@ class ProfilerWrapper:
         :return: Returns a unique identifier for the record.
         """
         event_id = str(uuid.uuid4())
-        self._profiler.record(name, time, group, event_id)
+        self._qgis_profiler.record(name, time, group, event_id)
         self._profiler_events[group].append(event_id)
         return event_id
 
@@ -202,7 +229,7 @@ class ProfilerWrapper:
         group = resolve_group_name_with_cache(group)
         if event_id not in self._profiler_events[group]:
             raise EventNotFoundError(event_id, group)
-        return self._profiler.profileTime(event_id, group)
+        return self._qgis_profiler.profileTime(event_id, group)
 
     def get_profiler_data(
         self, name: Optional[str] = None, group: Optional[str] = None
@@ -217,7 +244,9 @@ class ProfilerWrapper:
         # To get the complete tree, the text version has to be parsed
         # Since python bindings do not exist for all needed methods
         group = resolve_group_name_with_cache(group)
-        results = ProfilerResult.parse_from_text(self._profiler.asText(group), group)
+        results = ProfilerResult.parse_from_text(
+            self._qgis_profiler.asText(group), group
+        )
         if not name:
             return results
 
@@ -234,6 +263,15 @@ class ProfilerWrapper:
 
         return find_results_with_name(name, results)
 
+    def save_profiler_results_as_prof_file(self, group: str, file_path: Path) -> None:
+        """
+        Save profiler data as a cprofiler binary file for further analysis with tools
+        like https://github.com/jrfonseca/gprof2dot
+        or https://jiffyclub.github.io/snakeviz/#snakeviz
+        """
+        with self.cprofiler.qgis_profiler_data(self._qgis_profiler.asText(group)):
+            self.cprofiler.dump_stats(file_path)
+
     def clear(self, group: Optional[str] = None) -> None:
         """
         Clear all profiling data for a given group.
@@ -243,7 +281,7 @@ class ProfilerWrapper:
         self.end(group)
         self.end(group)
         self.end(group)
-        self._profiler.clear(group)
+        self._qgis_profiler.clear(group)
         self._profiler_events.pop(group, None)
 
     def clear_all(self) -> None:
@@ -253,4 +291,4 @@ class ProfilerWrapper:
         """
         for group in self.groups:
             self.clear(group)
-        self._profiler.clear()
+        self._qgis_profiler.clear()
