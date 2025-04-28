@@ -25,3 +25,15 @@ argcount
 poller
 stacklevel
 ismethod
+cprofiler
+cprofile
+checkable
+callcount
+subentry
+inlinetime
+reccallcount
+totaltime
+getstats
+pstats
+dirs
+subcalls
