@@ -21,8 +21,9 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Optional
 
 from qgis.core import QgsApplication
-from qgis.PyQt.QtWidgets import QComboBox, QToolButton, QWidget
+from qgis.PyQt.QtWidgets import QComboBox, QFileDialog, QToolButton, QWidget
 from qgis_plugin_tools.tools.i18n import tr
+from qgis_plugin_tools.tools.messages import MsgBar
 from qgis_plugin_tools.tools.resources import load_ui_from_file
 
 from profiler_plugin.ui.settings_dialog import SettingsDialog
@@ -112,7 +113,7 @@ class ProfilerExtension(QWidget, UI_CLASS):
                 "/mActionDeleteSelected.svg",
             ),
             self.button_save: (
-                None,
+                self._save_current_group_profile_data,
                 "/mActionFileSave.svg",
             ),  # Not implemented yet
             self.button_settings: (
@@ -124,8 +125,7 @@ class ProfilerExtension(QWidget, UI_CLASS):
         for button, (action, icon) in button_config.items():
             button.setAutoRaise(True)
             button.setIcon(QgsApplication.getThemeIcon(icon))
-            if action:
-                button.clicked.connect(action)
+            button.clicked.connect(action)
 
     def _reset_meters(self) -> None:
         self.cleanup()
@@ -181,6 +181,32 @@ class ProfilerExtension(QWidget, UI_CLASS):
 
         self._update_ui_state()
 
+    def _save_current_group_profile_data(self) -> None:
+        current_group = list(ProfilerWrapper.get().groups)[
+            self.combo_box_group.currentIndex()
+        ]
+        start_path = Path(ProfilerSettings.cprofiler_profile_path.get()).parent
+        start_path.mkdir(parents=True, exist_ok=True)
+
+        file_path, _ = QFileDialog.getSaveFileName(
+            self,
+            tr("Save Profiler Results"),
+            str(start_path),
+            tr("Profiler Files (*.prof);;All Files (*)"),
+        )
+        if file_path:
+            path = Path(file_path)
+            if not path.suffix:
+                path = path.with_name(path.name + ".prof")
+            ProfilerWrapper.get().save_profiler_results_as_prof_file(
+                current_group, path
+            )
+            MsgBar.info(
+                tr("Profiler results saved"),
+                tr("File saved to {}", str(file_path)),
+                success=True,
+            )
+
     def _start_recording(self) -> None:
         if not self._event_recorder:
             return
@@ -222,5 +248,3 @@ class ProfilerExtension(QWidget, UI_CLASS):
         self.button_clear.setEnabled(
             self.combo_box_group.currentText() not in self._initial_groups
         )
-        # TODO: add functionality for saving
-        self.button_save.setEnabled(False)

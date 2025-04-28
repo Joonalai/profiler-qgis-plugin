@@ -15,6 +15,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with profiler-qgis-plugin. If not, see <https://www.gnu.org/licenses/>.
+from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
 import pytest
@@ -23,6 +24,7 @@ from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtWidgets import (
     QComboBox,
     QDialog,
+    QFileDialog,
     QToolButton,
     QVBoxLayout,
     QWidget,
@@ -48,6 +50,7 @@ class StubProfilerPanel(QDialog):
         self.vbox_layout = QVBoxLayout(self)
         self.combo_box_group = QComboBox(self)
         self.combo_box_group.addItems(["Group 1", "Group 2"])
+        self.combo_box_group.setCurrentIndex(0)
         self.vbox_layout.addWidget(self.combo_box_group)
 
 
@@ -117,11 +120,11 @@ def test_profiler_extension_initialization(
     assert profiler_extension.combo_box_group.count() == 2
     assert profiler_extension.combo_box_group.itemText(0) == "Group 1"
     assert profiler_extension.button_record.isEnabled()
+    assert profiler_extension.button_save.isEnabled()
     assert not profiler_extension.button_record.isChecked()
     assert len(profiler_extension._meters) == 2
     # Not enabled for existing groups
     assert not profiler_extension.button_clear.isEnabled()
-    assert not profiler_extension.button_save.isEnabled()
     assert profiler_extension.button_settings.isEnabled()
 
     # All buttons should have icons and be auto-risen
@@ -160,6 +163,58 @@ def test_toggle_recording(
         assert not profiler_extension.button_record.isChecked()
 
     assert profiler_extension.button_clear.isEnabled()
+
+
+def test_save_results(
+    profiler_extension: ProfilerExtension,
+    mock_event_recorder: "MagicMock",
+    mock_profiler: "MagicMock",
+    mock_thread_health_checker_meter: "MagicMock",
+    stub_profiler_panel: StubProfilerPanel,
+    qtbot: "QtBot",
+    monkeypatch: "pytest.MonkeyPatch",
+    tmp_path: Path,
+) -> None:
+    # Arrange
+    file_path = tmp_path / "file.prof"
+    monkeypatch.setattr(
+        QFileDialog, "getSaveFileName", classmethod(lambda *args: (str(file_path), ""))
+    )
+    mock_profiler.groups = {TEST_GROUP}
+
+    # Act
+    qtbot.mouseClick(profiler_extension.button_save, Qt.LeftButton)
+
+    # Assert
+    mock_profiler.save_profiler_results_as_prof_file.assert_called_once_with(
+        TEST_GROUP, file_path
+    )
+
+
+def test_save_results_without_suffix(
+    profiler_extension: ProfilerExtension,
+    mock_event_recorder: "MagicMock",
+    mock_profiler: "MagicMock",
+    mock_thread_health_checker_meter: "MagicMock",
+    stub_profiler_panel: StubProfilerPanel,
+    qtbot: "QtBot",
+    monkeypatch: "pytest.MonkeyPatch",
+    tmp_path: Path,
+) -> None:
+    # Arrange
+    file_path = tmp_path / "file"
+    monkeypatch.setattr(
+        QFileDialog, "getSaveFileName", classmethod(lambda *args: (str(file_path), ""))
+    )
+    mock_profiler.groups = {TEST_GROUP}
+
+    # Act
+    qtbot.mouseClick(profiler_extension.button_save, Qt.LeftButton)
+
+    # Assert
+    mock_profiler.save_profiler_results_as_prof_file.assert_called_once_with(
+        TEST_GROUP, file_path.with_suffix(".prof")
+    )
 
 
 def test_clear_button_should_clear_current_group(

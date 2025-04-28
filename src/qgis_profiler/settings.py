@@ -23,6 +23,7 @@ from functools import lru_cache
 from typing import Any, Optional, Union
 
 from qgis_plugin_tools.tools.i18n import tr
+from qgis_plugin_tools.tools.resources import profile_path
 from qgis_plugin_tools.tools.settings import (
     get_setting,
     set_setting,
@@ -40,6 +41,7 @@ class WidgetType(enum.Enum):
 
 class SettingCategory(enum.Enum):
     PROFILING = tr("Profiling")
+    CPROFILER = tr("cProfiler")
     RECOVERY_METER = tr("Recovery time measuring meter")
     THREAD_HEALTH_CHECKER_METER = tr("Main thread health checker meter")
 
@@ -106,6 +108,19 @@ class ProfilerSettings(enum.Enum):
     meters_group = Setting(
         description=tr("A profiling group used with various meters"),
         default=tr("Meters"),
+    )
+    cprofiler_profile_path = Setting(
+        description=tr(
+            "Profiler path to save cprofile report to. "
+            "A suffix will be added if file exists."
+        ),
+        default=profile_path("profiler", "cprofiler_report.prof"),
+        category=SettingCategory.CPROFILER,
+    )
+    cprofiler_log_line_count = Setting(
+        description=tr("Maximum line count for cprofile report log."),
+        default=100,
+        category=SettingCategory.CPROFILER,
     )
 
     # Recovery measurement meter settings
