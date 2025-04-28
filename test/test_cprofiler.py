@@ -17,10 +17,15 @@
 #  along with profiler-qgis-plugin. If not, see <https://www.gnu.org/licenses/>.
 import logging
 import time
+from pathlib import Path
 from textwrap import dedent
 
 import pytest
 
+from profiler_test_utils.decorator_utils import (
+    call_cprofile_decorated_function,
+    get_cprofile_decorated_plugin_class,
+)
 from qgis_profiler.cprofiler import ProfilerEntry, QCProfiler
 
 LOGGER = logging.getLogger(__name__)
@@ -204,3 +209,31 @@ def test_cprofiler_should_profile_normally(cprofiler: QCProfiler, sample_text: s
     assert "sleep" in report
     assert "foo" in report
     assert "_import" in report
+
+
+def test_cprofile_decorator(tmp_path: Path):
+    # Arrange
+    result_file = tmp_path / "result.prof"
+    assert not result_file.exists()
+
+    # Act
+    call_cprofile_decorated_function(result_file)
+
+    # Assert
+    assert result_file.exists()
+    assert result_file.stat().st_size > 0
+
+
+def test_cprofile_plugin_decorator(tmp_path: Path):
+    # Arrange
+    result_file = tmp_path / "result.prof"
+    assert not result_file.exists()
+
+    # Act
+    plugin = get_cprofile_decorated_plugin_class(result_file)
+    plugin.initGui()
+    plugin.unload()
+
+    # Assert
+    assert result_file.exists()
+    assert result_file.stat().st_size > 0

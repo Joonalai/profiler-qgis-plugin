@@ -17,7 +17,8 @@
 #  along with profiler-qgis-plugin. If not, see <https://www.gnu.org/licenses/>.
 import inspect
 import logging
-from typing import Any, Callable, Optional
+from pathlib import Path
+from typing import Any, Callable, Optional, Protocol, runtime_checkable
 
 from qgis.PyQt.QtCore import QT_VERSION_STR, pyqtSignal
 from qgis.PyQt.QtGui import QCursor
@@ -96,3 +97,25 @@ def parse_arguments(
         if event_arg in arg_dict
     ]
     return f"({', '.join(arg_values)})"
+
+
+@runtime_checkable
+class QgisPluginType(Protocol):
+    """Protocol for QGIS plugins."""
+
+    def initGui(self) -> None: ...  # noqa: N802
+
+    def unload(self) -> None: ...
+
+
+def get_rotated_path(path: Path) -> Path:
+    """Get a rotated path version for the file."""
+    if path.exists():
+        suffix = 1
+        stem = path.stem
+        suffix_path = path.with_name(f"{stem}{suffix}{path.suffix}")
+        while suffix_path.exists():
+            suffix += 1
+            suffix_path = path.with_name(f"{stem}{suffix}{path.suffix}")
+        path = suffix_path
+    return path

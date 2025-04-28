@@ -17,6 +17,7 @@
 #  along with profiler-qgis-plugin. If not, see <https://www.gnu.org/licenses/>.
 import logging
 from functools import wraps
+from pathlib import Path
 from typing import Any, Callable, Optional
 
 from qgis_profiler.profiler import ProfilerWrapper
@@ -24,7 +25,7 @@ from qgis_profiler.settings import (
     ProfilerSettings,
     resolve_group_name_with_cache,
 )
-from qgis_profiler.utils import parse_arguments
+from qgis_profiler.utils import QgisPluginType, get_rotated_path, parse_arguments
 
 LOGGER = logging.getLogger(__name__)
 
@@ -147,6 +148,115 @@ def profile_class(  # noqa: C901
             elif is_method:
                 # Wrap the method with @profile
                 setattr(cls, attr_name, wrapper(original_func))
+        return cls
+
+    return decorator
+
+
+def cprofile(
+    function: Optional[Callable] = None,
+    *,
+    log_stats: bool = True,
+    trim_zeros: bool = True,
+    sort: tuple[str, ...] = ("cumtime",),
+    output_file_path: Optional[Path] = None,
+) -> Callable:
+    """
+    Profiles the execution of a specified function using cProfile. Can be used
+    as a decorator with or without arguments.
+
+    :param function: Function to be profiled. Defaults to None.
+    :param log_stats: Whether to log profiling statistics. Defaults to True.
+    :param trim_zeros: Trim lines with zero times from the report.
+    :param sort: Tuple of columns used for sorting profiling output.
+    :param output_file_path: File path to save profiling output, if provided.
+    :return: Callable decorator or wrapped function.
+    """
+    if function is None:  # @cprofile() syntax
+
+        def decorator(function: Callable) -> Callable:
+            return cprofile(
+                function=function,
+                log_stats=log_stats,
+                sort=sort,
+                output_file_path=output_file_path,
+            )
+
+        return decorator
+
+    # @cprofile syntax
+    @wraps(function)
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
+        if not ProfilerSettings.profiler_enabled.get():
+            LOGGER.debug("Profiling is disabled.")
+            return function(*args, **kwargs)
+
+        ProfilerWrapper.get().cprofiler.enable()
+        try:
+            return function(*args, **kwargs)
+        finally:
+            ProfilerWrapper.get().cprofiler.disable()
+            if log_stats:
+                report = ProfilerWrapper.get().cprofiler.get_stat_report(
+                    sort=sort, trim_zeros=trim_zeros
+                )
+                LOGGER.info(report)
+            if output_file_path:
+                ProfilerWrapper.get().cprofiler.dump_stats(output_file_path)
+
+    return wrapper
+
+
+def cprofile_plugin(
+    *,
+    output_file_path: Path,
+) -> Callable[[type], type]:
+    """
+    Apply a decorator to a QGIS plugin class to enable profiling.
+
+    This function decorates a class to integrate profiling functionality
+    via `cProfile`. Profiling is enabled during the plugin's execution
+    and additional profiling statistics are logged after the plugin
+    unloads.
+
+    The output file can then be further analysed for example with tools like
+
+    https://github.com/jrfonseca/gprof2dot
+    and
+    https://jiffyclub.github.io/snakeviz/#snakeviz
+
+    :param output_file_path: Path to save profiling results.
+    If the file exists, a suffix will be added to the filename.
+    :return: Decorated class.
+    """
+
+    def decorator(cls: type) -> type:
+        if not ProfilerSettings.profiler_enabled.get():
+            LOGGER.debug("Profiling is disabled.")
+            return cls
+
+        if not issubclass(cls, QgisPluginType):
+            raise TypeError(f"Class {cls.__name__} is not a QGIS plugin")  # noqa: TRY003
+
+        original_unload = cls.unload
+
+        @wraps(original_unload)
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
+            try:
+                return original_unload(*args, **kwargs)
+            finally:
+                output_file_path.parent.mkdir(parents=True, exist_ok=True)
+                path = get_rotated_path(output_file_path)
+                LOGGER.info(
+                    "Stopping cprofiler for the plugin %s and saving results to %s",
+                    cls.__name__,
+                    path,
+                )
+                ProfilerWrapper.get().cprofiler.dump_stats(path)
+
+        setattr(cls, "unload", wrapper)  # noqa: B010
+        LOGGER.info("Starting cprofiler for the plugin %s", cls.__name__)
+        ProfilerWrapper.get().cprofiler.enable()
         return cls
 
     return decorator

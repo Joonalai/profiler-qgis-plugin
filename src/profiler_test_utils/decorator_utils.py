@@ -16,13 +16,17 @@
 #  You should have received a copy of the GNU General Public License
 #  along with profiler-qgis-plugin. If not, see <https://www.gnu.org/licenses/>.
 import time
+from pathlib import Path
 
 from profiler_test_utils import utils
 from qgis_profiler.decorators import (
+    cprofile,
+    cprofile_plugin,
     profile,
     profile_class,
 )
 from qgis_profiler.meters.thread_health_checker import MainThreadHealthChecker
+from qgis_profiler.utils import QgisPluginType
 
 EXTRA_GROUP = "New group"
 EXPECTED_TIME = 0.01
@@ -97,6 +101,29 @@ class ClassDecoratorTester:
     @classmethod
     def classmethod_add_excluded(cls, a: int, b: int) -> int:
         return _add(a, b)
+
+
+def call_cprofile_decorated_function(output_file_path: Path) -> None:
+    @cprofile(output_file_path=output_file_path)
+    def decorated_function() -> None:
+        utils.wait(int(EXPECTED_TIME * 1000))
+        _add(1, 2)
+
+    decorated_function()
+
+
+def get_cprofile_decorated_plugin_class(output_file_path: Path) -> QgisPluginType:
+    @cprofile_plugin(output_file_path=output_file_path)
+    class PluginDecoratorTester:
+        def initGui(self) -> None:  # noqa: N802
+            utils.wait(int(EXPECTED_TIME * 1000))
+
+        def unload(self) -> None:
+            utils.wait(int(EXPECTED_TIME * 1000))
+            utils.wait(int(EXPECTED_TIME * 1000))
+
+    # Profiling is started right away
+    return PluginDecoratorTester()
 
 
 def _add(a: int, b: int = 2) -> int:
