@@ -191,12 +191,12 @@ def test_cprofiler_report_should_be_trimmed(cprofiler: QCProfiler, sample_text: 
 
 def test_cprofiler_should_profile_normally(cprofiler: QCProfiler, sample_text: str):
     cprofiler.enable(builtins=False)
-    assert cprofiler.is_profiling
+    assert cprofiler.is_profiling()
     f = Class()
     f.foo(1, 2)
     f.bar(2, 0)
     cprofiler.disable()
-    assert not cprofiler.is_profiling
+    assert not cprofiler.is_profiling()
     entries = ProfilerEntry.from_cprofiler(cprofiler)
 
     # It is rather challenging to compare the

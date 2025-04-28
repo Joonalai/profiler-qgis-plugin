@@ -32,6 +32,7 @@ from qgis.PyQt.QtWidgets import (
 
 from profiler_plugin.ui.profiler_extension import ProfilerExtension
 from profiler_plugin.ui.settings_dialog import SettingsDialog
+from qgis_profiler.settings import ProfilerSettings
 
 TEST_GROUP = "TestGroup"
 
@@ -120,6 +121,7 @@ def test_profiler_extension_initialization(
     assert profiler_extension.combo_box_group.count() == 2
     assert profiler_extension.combo_box_group.itemText(0) == "Group 1"
     assert profiler_extension.button_record.isEnabled()
+    assert profiler_extension.button_cprofiler_record.isEnabled()
     assert profiler_extension.button_save.isEnabled()
     assert not profiler_extension.button_record.isChecked()
     assert len(profiler_extension._meters) == 2
@@ -163,6 +165,42 @@ def test_toggle_recording(
         assert not profiler_extension.button_record.isChecked()
 
     assert profiler_extension.button_clear.isEnabled()
+
+
+def test_toggle_cprofile_recording(
+    profiler_extension: ProfilerExtension,
+    mock_event_recorder: "MagicMock",
+    mock_profiler: "MagicMock",
+    mock_thread_health_checker_meter: "MagicMock",
+    stub_profiler_panel: StubProfilerPanel,
+    qtbot: "QtBot",
+    subtests: "SubTests",
+    tmp_path: Path,
+) -> None:
+    file_path = tmp_path / "profile" / "file.prof"
+    ProfilerSettings.cprofiler_profile_path.value.default = str(file_path)
+    assert not file_path.exists()
+    assert not file_path.parent.exists()
+
+    with subtests.test("Start recording"):
+        # Act
+        qtbot.mouseClick(profiler_extension.button_cprofiler_record, Qt.LeftButton)
+
+        # Assert
+        mock_profiler.cprofiler.enable.assert_called_once()
+        assert profiler_extension.button_cprofiler_record.isChecked()
+
+    with subtests.test("Stop recording"):
+        # Act
+        qtbot.wait(19)
+        qtbot.mouseClick(profiler_extension.button_cprofiler_record, Qt.LeftButton)
+
+        # Assert
+        mock_profiler.cprofiler.disable.assert_called_once()
+        mock_profiler.cprofiler.get_stat_report.assert_called_once()
+        assert file_path.parent.exists()
+        mock_profiler.cprofiler.dump_stats.assert_called_once_with(file_path)
+        assert not profiler_extension.button_cprofiler_record.isChecked()
 
 
 def test_save_results(

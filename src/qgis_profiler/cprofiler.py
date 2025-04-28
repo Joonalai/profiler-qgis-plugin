@@ -165,10 +165,6 @@ class QCProfiler(cProfile.Profile):
         self._qgis_stats: list[ProfilerEntry] = []
         self._profiling: bool = False
 
-    @property
-    def is_profiling(self) -> bool:
-        return self._profiling
-
     @contextmanager
     def qgis_profiler_data(self, profiler_text: str) -> Generator[None, Any, None]:
         self._qgis_stats = ProfilerEntry.parse_from_qgis_profiler_text(profiler_text)
@@ -189,6 +185,9 @@ class QCProfiler(cProfile.Profile):
         if self._qgis_stats:
             return self._qgis_stats
         return super().getstats()
+
+    def is_profiling(self) -> bool:
+        return self._profiling
 
     def get_stat_report(
         self,

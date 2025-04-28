@@ -78,6 +78,11 @@ def mock_settings(mocker: "MockerFixture") -> MagicMock:
 def mock_profiler(mocker: "MockerFixture") -> MagicMock:
     mock_profiler = mocker.create_autospec(ProfilerWrapper, instance=True)
     mocker.patch.object(ProfilerWrapper, "get", return_value=mock_profiler)
+    mock_profiler.cprofiler.is_profiling = (
+        lambda: mock_profiler.cprofiler.enable.call_count
+        > mock_profiler.cprofiler.disable.call_count
+    )
+
     return mock_profiler
 
 

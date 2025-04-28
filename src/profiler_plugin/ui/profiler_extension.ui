@@ -57,6 +57,19 @@
       </widget>
      </item>
      <item>
+      <widget class="QToolButton" name="button_cprofiler_record">
+       <property name="toolTip">
+        <string>Record python code with cprofiler. The stats will be saved to the disk (check settings) and logged into the log panel.</string>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QToolButton" name="button_clear">
        <property name="toolTip">
         <string>Clear profiler data from the current (user created) category</string>
@@ -75,7 +88,7 @@
      <item>
       <widget class="QToolButton" name="button_save">
        <property name="toolTip">
-        <string>Save profiling results</string>
+        <string>Save the profile results of the current group.</string>
        </property>
        <property name="text">
         <string/>
