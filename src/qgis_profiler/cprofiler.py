@@ -25,6 +25,8 @@ from dataclasses import dataclass, field
 from types import CodeType
 from typing import TYPE_CHECKING, Any, Union
 
+from qgis_profiler.constants import EPSILON
+
 if TYPE_CHECKING:
     from _lsprof import profiler_entry  # noqa: SC200
 
@@ -76,6 +78,18 @@ class ProfilerEntry:
             self.reccallcount,
             self.totaltime + other.totaltime,
             self.calls,
+        )
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, ProfilerEntry):
+            return NotImplemented
+        return (
+            self.code == other.code
+            and self.callcount == other.callcount
+            and round(abs(self.inlinetime - other.inlinetime), 3) <= EPSILON
+            and self.reccallcount == other.reccallcount
+            and round(abs(self.totaltime - other.totaltime), 3) <= EPSILON
+            and self.calls == other.calls
         )
 
     def _extend_calls(self, calls: list["ProfilerEntry"]) -> None:
