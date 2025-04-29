@@ -16,6 +16,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with profiler-qgis-plugin. If not, see <https://www.gnu.org/licenses/>.
 import logging
+import sys
 import time
 from pathlib import Path
 from textwrap import dedent
@@ -202,13 +203,19 @@ def test_cprofiler_should_profile_normally(cprofiler: QCProfiler, sample_text: s
     # It is rather challenging to compare the
     # results directly since times might differ greatly
     names = {entry.code for entry in entries}
-    assert names == {"bar", "foo", "is_profiling", "disable", "_import", "sleep"}
+
+    expected_names = {"bar", "foo", "is_profiling", "disable", "sleep"}
+    python_gt_3_10 = sys.version_info >= (3, 10, 99)
+    if python_gt_3_10:
+        expected_names.add("_import")
+    assert names == expected_names
     report = cprofiler.get_stat_report("cumtime")
     LOGGER.info(report)
     assert "bar" in report
     assert "sleep" in report
     assert "foo" in report
-    assert "_import" in report
+    if python_gt_3_10:
+        assert "_import" in report
 
 
 def test_cprofile_decorator(tmp_path: Path):
