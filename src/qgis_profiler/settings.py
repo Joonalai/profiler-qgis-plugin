@@ -16,6 +16,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with profiler-qgis-plugin. If not, see <https://www.gnu.org/licenses/>.
 import enum
+import logging
 import os
 import time
 from dataclasses import dataclass
@@ -31,6 +32,8 @@ from qgis_plugin_tools.tools.settings import (
 
 from qgis_profiler.constants import CACHE_INTERVAL
 from qgis_profiler.exceptions import InvalidSettingValueError
+
+LOGGER = logging.getLogger(__name__)
 
 
 class WidgetType(enum.Enum):
@@ -91,6 +94,8 @@ class ProfilerSettings(enum.Enum):
     This class provides a structured way to access, and manage
     profiler-related settings.
     """
+
+    # TODO: boolean values cannot be changed via dialog
 
     # Profiler settings
     profiler_enabled = Setting(
@@ -180,7 +185,12 @@ class ProfilerSettings(enum.Enum):
     def get(self) -> Any:
         """Gets the setting value."""
         setting = self.value
-        value = type(setting.default)(get_setting(self.name, setting.default))
+        value = get_setting(self.name, setting.default)
+        if not isinstance(value, type(setting.default)):
+            if isinstance(self.value.default, bool) and isinstance(value, str):
+                value = value.lower() == "true"
+            else:
+                value = type(setting.default)(value)
         if self == ProfilerSettings.profiler_enabled:
             return os.environ.get("QGIS_PROFILER_ENABLED", value)
         return value

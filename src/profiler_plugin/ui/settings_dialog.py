@@ -193,7 +193,7 @@ class SettingsDialog(QDialog, UI_CLASS):  # type: ignore
             )
             times = list(filter(None, [meter.measure() for _ in range(10)]))
             safe_threshold_time = max(times) * CALIBRATION_COEFFICIENT
-            LOGGER.info(
+            LOGGER.debug(
                 "Calibrated recovery time threshold: %s seconds", safe_threshold_time
             )
             self._widgets[ProfilerSettings.recovery_threshold].setValue(
@@ -211,7 +211,7 @@ class SettingsDialog(QDialog, UI_CLASS):  # type: ignore
             )
             times = list(filter(None, [meter.measure() for _ in range(10)]))
             safe_threshold_time = max(times) * CALIBRATION_COEFFICIENT
-            LOGGER.info(
+            LOGGER.debug(
                 "Calibrated poll time threshold: %s seconds", safe_threshold_time
             )
             self._widgets[ProfilerSettings.thread_health_checker_threshold].setValue(
