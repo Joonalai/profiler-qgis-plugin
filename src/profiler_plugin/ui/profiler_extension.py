@@ -89,6 +89,9 @@ class ProfilerExtension(QWidget, UI_CLASS):
         self._configure_buttons()
         self._update_ui_state()
 
+    def start_recording(self) -> None:
+        self._toggle_recording()
+
     def cleanup(self) -> None:
         if self._event_recorder and self._event_recorder.is_recording():
             self._stop_recording()

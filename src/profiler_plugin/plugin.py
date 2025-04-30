@@ -89,6 +89,8 @@ class ProfilerPlugin(QObject):
             self._event_recorder, profiler_panel
         )
         self._profiler_panel_layout.insertWidget(0, self._profiler_extension)
+        if ProfilerSettings.start_recording_on_startup.get():
+            self._profiler_extension.start_recording()
 
     def unload(self) -> None:
         self._teardown_loggers()

@@ -114,6 +114,10 @@ class ProfilerSettings(enum.Enum):
         description=tr("A profiling group used with various meters"),
         default=tr("Meters"),
     )
+    start_recording_on_startup = Setting(
+        description=tr("Start recording on startup"),
+        default=False,
+    )
     cprofiler_profile_path = Setting(
         description=tr(
             "Profiler path to save cprofile report to. "
