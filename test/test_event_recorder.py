@@ -16,23 +16,52 @@
 #  You should have received a copy of the GNU General Public License
 #  along with profiler-qgis-plugin. If not, see <https://www.gnu.org/licenses/>.
 from collections.abc import Iterator
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 import pytest
+from qgis.gui import (
+    QgisInterface,
+    QgsMapCanvas,
+    QgsMapTool,
+    QgsMapToolIdentify,
+    QgsMapToolPan,
+)
 from qgis.PyQt.QtCore import Qt
 
+from qgis_profiler.config.event_config import CustomEventConfig, EventResponse
 from qgis_profiler.event_recorder import ProfilerEventRecorder
 
 if TYPE_CHECKING:
     from unittest.mock import MagicMock
 
+    from pytest_mock import MockerFixture
     from pytestqt.qtbot import QtBot
 
     from profiler_test_utils.utils import Dialog
 
 
 @pytest.fixture
-def event_recorder(default_group: str) -> Iterator[ProfilerEventRecorder]:
+def map_tool_identify(qgis_canvas: "QgsMapCanvas") -> "QgsMapTool":
+    return QgsMapToolIdentify(qgis_canvas)
+
+
+@pytest.fixture
+def map_tool_pan(qgis_canvas: "QgsMapCanvas") -> "QgsMapTool":
+    return QgsMapToolPan(qgis_canvas)
+
+
+@pytest.fixture
+def mock_event_config(mocker: "MockerFixture") -> "MagicMock":
+    mock_event_config = mocker.create_autospec(CustomEventConfig, instance=True)
+    mock_event_config.name = "mock config"
+    return mock_event_config
+
+
+@pytest.fixture
+def event_recorder(
+    default_group: str, map_tool_identify: "QgsMapTool", qgis_iface: "QgisInterface"
+) -> Iterator[ProfilerEventRecorder]:
+    qgis_iface.mapCanvas().setMapTool(map_tool_identify)
     recorder = ProfilerEventRecorder(group_name=default_group)
     yield recorder
     recorder.stop_recording()
@@ -93,6 +122,8 @@ def test_recorder_should_stop_gracefully_if_recording_is_in_progress(
 ) -> None:
     # Arrange
     event_recorder.start_recording()
+    mock_profiler.end_all.assert_called_once_with(default_group)
+    mock_profiler.reset_mock()
 
     # Act
     qtbot.mouseMove(dialog.button)
@@ -101,7 +132,7 @@ def test_recorder_should_stop_gracefully_if_recording_is_in_progress(
 
     # Assert
     mock_profiler.start.assert_any_call(dialog.button.text(), default_group)
-    mock_profiler.end.assert_called_once_with(default_group)
+    mock_profiler.end_all.assert_called_once_with(default_group)
 
 
 def test_recorder_should_handle_stop_without_start(
@@ -109,3 +140,57 @@ def test_recorder_should_handle_stop_without_start(
 ) -> None:
     # Should not throw any error.
     event_recorder.stop_recording()
+
+
+def test_recorder_should_handle_map_tool_change(
+    event_recorder: ProfilerEventRecorder,
+    map_tool_pan: "QgsMapTool",
+    map_tool_identify: "QgsMapTool",
+    qgis_canvas: "QgsMapCanvas",
+):
+    # Arrange
+    event_recorder.start_recording()
+    assert event_recorder._current_map_tool_config
+    assert event_recorder._current_map_tool_config.name == "QgsMapToolIdentify"
+
+    # Act
+    qgis_canvas.setMapTool(map_tool_pan)
+
+    # Assert
+    assert event_recorder._current_map_tool_config.name == "QgsMapToolPan"
+
+
+@pytest.mark.parametrize(
+    ("response", "expected_methods_to_call"),
+    [
+        (None, []),
+        (EventResponse.START_PROFILING, ["_start_profiling"]),
+        (EventResponse.STOP_PROFILING, ["_stop_profiling"]),
+        (EventResponse.STOP_PROFILING_DELAYED, ["_post_stop_profiling_event"]),
+        (
+            EventResponse.START_AND_STOP_DELAYED,
+            ["_start_profiling", "_post_stop_profiling_event"],
+        ),
+    ],
+)
+def test_recorder_should_record_map_tool_events(
+    event_recorder: ProfilerEventRecorder,
+    mock_event_config: "MagicMock",
+    dialog: "Dialog",
+    qtbot: "QtBot",
+    mocker: "MockerFixture",
+    response: Optional[EventResponse],
+    expected_methods_to_call: list[str],
+):
+    # Arrange
+    mock_event_config.matches.return_value = response
+    event_recorder.start_recording()
+    event_recorder._current_map_tool_config = mock_event_config
+    spies = [mocker.spy(event_recorder, method) for method in expected_methods_to_call]
+
+    # Act
+    qtbot.wait(1)
+
+    # Assert
+    for spy in spies:
+        spy.assert_called()
