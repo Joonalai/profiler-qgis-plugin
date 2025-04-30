@@ -77,10 +77,6 @@ class ProfilerExtension(QWidget, UI_CLASS):
             raise ProfilerNotFoundError(item=tr("Profiler panel combo box"))
         self.combo_box_group: QComboBox = combo_box
         self.combo_box_group.currentIndexChanged.connect(self._update_ui_state)
-        self._initial_groups = {
-            self.combo_box_group.itemText(i)
-            for i in range(self.combo_box_group.count())
-        }
 
         # Configure meters
         self._reset_meters()
@@ -196,9 +192,9 @@ class ProfilerExtension(QWidget, UI_CLASS):
         self._update_ui_state()
 
     def _save_current_group_profile_data(self) -> None:
-        current_group = list(ProfilerWrapper.get().groups)[
-            self.combo_box_group.currentIndex()
-        ]
+        qgis_groups = ProfilerWrapper.get().qgis_groups()
+        text = self.combo_box_group.currentText()
+        current_group = qgis_groups.get(text, text)
         start_path = Path(ProfilerSettings.cprofiler_profile_path.get()).parent
         start_path.mkdir(parents=True, exist_ok=True)
 
@@ -296,5 +292,6 @@ class ProfilerExtension(QWidget, UI_CLASS):
                 ProfilerWrapper.get().cprofiler.is_profiling()
             )
         self.button_clear.setEnabled(
-            self.combo_box_group.currentText() not in self._initial_groups
+            self.combo_box_group.currentText()
+            not in ProfilerWrapper.get().qgis_groups()
         )

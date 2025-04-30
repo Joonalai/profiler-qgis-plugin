@@ -125,8 +125,7 @@ def test_profiler_extension_initialization(
     assert profiler_extension.button_save.isEnabled()
     assert not profiler_extension.button_record.isChecked()
     assert len(profiler_extension._meters) == 2
-    # Not enabled for existing groups
-    assert not profiler_extension.button_clear.isEnabled()
+    assert profiler_extension.button_clear.isEnabled()
     assert profiler_extension.button_settings.isEnabled()
 
     # All buttons should have icons and be auto-risen
@@ -218,14 +217,14 @@ def test_save_results(
     monkeypatch.setattr(
         QFileDialog, "getSaveFileName", classmethod(lambda *args: (str(file_path), ""))
     )
-    mock_profiler.groups = {TEST_GROUP}
+    mock_profiler.qgis_groups.return_value = {"Group 1": "group-actual-name"}
 
     # Act
     qtbot.mouseClick(profiler_extension.button_save, Qt.LeftButton)
 
     # Assert
     mock_profiler.save_profiler_results_as_prof_file.assert_called_once_with(
-        TEST_GROUP, file_path
+        "group-actual-name", file_path
     )
 
 
@@ -244,14 +243,14 @@ def test_save_results_without_suffix(
     monkeypatch.setattr(
         QFileDialog, "getSaveFileName", classmethod(lambda *args: (str(file_path), ""))
     )
-    mock_profiler.groups = {TEST_GROUP}
+    mock_profiler.qgis_groups.return_value = {TEST_GROUP: TEST_GROUP}
 
     # Act
     qtbot.mouseClick(profiler_extension.button_save, Qt.LeftButton)
 
     # Assert
     mock_profiler.save_profiler_results_as_prof_file.assert_called_once_with(
-        TEST_GROUP, file_path.with_suffix(".prof")
+        "Group 1", file_path.with_suffix(".prof")
     )
 
 

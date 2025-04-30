@@ -156,6 +156,17 @@ class ProfilerWrapper:
         """Set of all groups in the profiler."""
         return self._qgis_profiler.groups()
 
+    def qgis_groups(self) -> dict[str, str]:
+        """
+        Dictionary of all QGIS groups in the profiler.
+        Key is the translated/descriptive name, value is the actual name.
+        """
+        return {
+            translation: group
+            for group in self.groups
+            if (translation := self._qgis_profiler.translateGroupName(group))
+        }
+
     @property
     def cprofiler(self) -> QCProfiler:
         """QCProfiler instance. Only available if cProfile is installed."""

@@ -72,7 +72,7 @@
      <item>
       <widget class="QToolButton" name="button_clear">
        <property name="toolTip">
-        <string>Clear profiler data from the current (user created) category</string>
+        <string>Clear profiler data from the current (user created) group</string>
        </property>
        <property name="text">
         <string/>
