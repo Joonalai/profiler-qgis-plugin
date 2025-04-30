@@ -43,7 +43,8 @@ class WidgetType(enum.Enum):
 
 
 class SettingCategory(enum.Enum):
-    PROFILING = tr("Profiling")
+    PROFILING = tr("Profiler")
+    RECORDED = tr("Recording")
     CPROFILER = tr("cProfiler")
     RECOVERY_METER = tr("Recovery time measuring meter")
     THREAD_HEALTH_CHECKER_METER = tr("Main thread health checker meter")
@@ -95,28 +96,29 @@ class ProfilerSettings(enum.Enum):
     profiler-related settings.
     """
 
-    # TODO: boolean values cannot be changed via dialog
-
     # Profiler settings
     profiler_enabled = Setting(
-        description=tr("Is profiling enabled"),
+        description=tr("Is profiler enabled"),
         default=True,
     )
     active_group = Setting(
-        description=tr("A profiling group used with plugin profiling"),
+        description=tr("A profiler group used with plugin profiling"),
         default=tr("Plugins"),
     )
     recorded_group = Setting(
-        description=tr("A profiling group used with recorded event profiling"),
+        description=tr("A profiler group used with recorded event profiling"),
         default=tr("Recorded Events"),
+        category=SettingCategory.RECORDED,
     )
     meters_group = Setting(
-        description=tr("A profiling group used with various meters"),
+        description=tr("A profiler group used with various meters"),
         default=tr("Meters"),
+        category=SettingCategory.RECORDED,
     )
     start_recording_on_startup = Setting(
         description=tr("Start recording on startup"),
         default=False,
+        category=SettingCategory.RECORDED,
     )
     cprofiler_profile_path = Setting(
         description=tr(
@@ -216,7 +218,7 @@ class ProfilerSettings(enum.Enum):
     @lru_cache
     def _get_cached(self, time_hash: int) -> Any:
         """
-        This method uses time sensitive hash to ensure
+        This method uses a time-sensitive hash to ensure
         that cache stays valid maximum of CACHE_INTERVAL seconds.
         """
         return self.get()
