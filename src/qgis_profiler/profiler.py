@@ -210,6 +210,13 @@ class ProfilerWrapper:
         self._qgis_profiler.end(group)
         return self._profiler_events.get(group, ["invalid"])[-1]
 
+    def end_all(self, group: str) -> None:
+        """
+        End all profiling events for a group.
+        """
+        while self.is_profiling(group):
+            self.end(group)
+
     def add_record(self, name: str, group: str, time: float) -> str:
         """
         Adds a performance profiling record.
@@ -271,6 +278,13 @@ class ProfilerWrapper:
         """
         with self.cprofiler.qgis_profiler_data(self._qgis_profiler.asText(group)):
             self.cprofiler.dump_stats(file_path)
+
+    def is_profiling(self, group: Optional[str] = None) -> bool:
+        """
+        Check if profiling is active for a given group.
+        i.e. it has a entry which has started and not yet stopped.
+        """
+        return self._qgis_profiler.groupIsActive(resolve_group_name(group))
 
     def clear(self, group: Optional[str] = None) -> None:
         """
