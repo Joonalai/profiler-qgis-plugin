@@ -41,12 +41,18 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_3">
      <property name="spacing">
-      <number>6</number>
+      <number>2</number>
+     </property>
+     <property name="leftMargin">
+      <number>4</number>
+     </property>
+     <property name="topMargin">
+      <number>4</number>
      </property>
      <item>
       <widget class="QToolButton" name="button_record">
        <property name="toolTip">
-        <string>Record profiling events</string>
+        <string>Record profiler events</string>
        </property>
        <property name="text">
         <string/>
@@ -88,7 +94,7 @@
      <item>
       <widget class="QToolButton" name="button_save">
        <property name="toolTip">
-        <string>Save the profile results of the current group.</string>
+        <string>Save the profile results of the current group to the disk...</string>
        </property>
        <property name="text">
         <string/>

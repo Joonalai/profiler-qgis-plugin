@@ -21,11 +21,10 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Optional, Union
 
 from qgis.core import QgsApplication
-from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QComboBox, QFileDialog, QToolButton, QWidget
 from qgis_plugin_tools.tools.i18n import tr
 from qgis_plugin_tools.tools.messages import MsgBar
-from qgis_plugin_tools.tools.resources import load_ui_from_file, resources_path
+from qgis_plugin_tools.tools.resources import load_ui_from_file
 
 from profiler_plugin.ui.settings_dialog import SettingsDialog
 from qgis_profiler.event_recorder import ProfilerEventRecorder
@@ -37,6 +36,8 @@ from qgis_profiler.settings import ProfilerSettings
 from qgis_profiler.utils import get_rotated_path
 
 if TYPE_CHECKING:
+    from qgis.PyQt.QtGui import QIcon
+
     from qgis_profiler.meters.meter import Meter
 
 LOGGER = logging.getLogger(__name__)
@@ -112,7 +113,7 @@ class ProfilerExtension(QWidget, UI_CLASS):
             ),
             self.button_cprofiler_record: (
                 self._toggle_cprofile_recording,
-                QIcon(resources_path("icons/icon.svg")),
+                "/mIconPythonFile.svg",
             ),
             self.button_clear: (
                 self._clear_current_group,
