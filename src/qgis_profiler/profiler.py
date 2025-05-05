@@ -24,10 +24,10 @@ from contextlib import contextmanager
 from dataclasses import dataclass, field
 from pathlib import Path
 from profile import Profile as PythonProfile
-from typing import Optional
+from typing import Optional, cast
 
 from qgis.core import QgsApplication, QgsRuntimeProfiler
-from qgis.PyQt.QtCore import QCoreApplication
+from qgis.PyQt.QtCore import QAbstractItemModel, QCoreApplication
 
 from qgis_profiler.constants import EPSILON
 from qgis_profiler.exceptions import EventNotFoundError, ProfilerNotFoundError
@@ -296,6 +296,12 @@ class ProfilerWrapper:
         i.e. it has a entry which has started and not yet stopped.
         """
         return self._qgis_profiler.groupIsActive(resolve_group_name(group))
+
+    def item_model(self) -> QAbstractItemModel:
+        """
+        :return the underlying QAbstractItemModel for the profiler.
+        """
+        return cast("QAbstractItemModel", self._qgis_profiler)
 
     def clear(self, group: Optional[str] = None) -> None:
         """

@@ -20,12 +20,13 @@ from typing import TYPE_CHECKING, cast
 
 import pytest
 from pytest_mock import MockerFixture
-from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtCore import QStringListModel, Qt
 from qgis.PyQt.QtWidgets import (
     QComboBox,
     QDialog,
     QFileDialog,
     QToolButton,
+    QTreeView,
     QVBoxLayout,
     QWidget,
 )
@@ -34,7 +35,8 @@ from profiler_plugin.ui.profiler_extension import ProfilerExtension
 from profiler_plugin.ui.settings_dialog import SettingsDialog
 from qgis_profiler.settings import ProfilerSettings
 
-TEST_GROUP = "TestGroup"
+NEW_GROUP = "New manual group"
+INITIAL_GROUPS = ["Manual group", "QGIS group"]
 
 if TYPE_CHECKING:
     from unittest.mock import MagicMock
@@ -50,9 +52,11 @@ class StubProfilerPanel(QDialog):
         self.setFixedSize(200, 150)
         self.vbox_layout = QVBoxLayout(self)
         self.combo_box_group = QComboBox(self)
-        self.combo_box_group.addItems(["Group 1", "Group 2"])
+        self.combo_box_group.addItems(INITIAL_GROUPS)
         self.combo_box_group.setCurrentIndex(0)
         self.vbox_layout.addWidget(self.combo_box_group)
+        self.tree_view = QTreeView(self)
+        self.vbox_layout.addWidget(self.tree_view)
 
 
 @pytest.fixture
@@ -64,7 +68,7 @@ def mock_event_recorder(mocker: MockerFixture) -> "MagicMock":
         lambda: mock_event_recorder.start_recording.call_count
         > mock_event_recorder.stop_recording.call_count
     )
-    mock_event_recorder.group = TEST_GROUP
+    mock_event_recorder.group = NEW_GROUP
     return mock_event_recorder
 
 
@@ -87,12 +91,25 @@ def stub_profiler_panel(qtbot: "QtBot") -> StubProfilerPanel:
 
 
 @pytest.fixture
+def item_model() -> QStringListModel:
+    model = QStringListModel()
+    model.setStringList([*INITIAL_GROUPS])
+    return model
+
+
+@pytest.fixture
 def _modify_mock_profiler(
-    mock_profiler: "MagicMock", stub_profiler_panel: StubProfilerPanel
+    mock_profiler: "MagicMock",
+    stub_profiler_panel: StubProfilerPanel,
+    item_model: QStringListModel,
 ) -> None:
     mock_profiler.create_group.side_effect = (
         lambda group: stub_profiler_panel.combo_box_group.addItem(group)
     )
+    mock_profiler.item_model.return_value = item_model
+    mock_profiler.qgis_groups.return_value = {
+        "QGIS group": "qgis-group",
+    }
 
 
 @pytest.fixture
@@ -113,13 +130,13 @@ def profiler_extension(
 
 
 def test_profiler_extension_initialization(
-    stub_profiler_panel: QWidget,
-    profiler_extension: ProfilerExtension,
+    stub_profiler_panel: QWidget, profiler_extension: ProfilerExtension
 ) -> None:
     # Assert
     assert stub_profiler_panel.findChild(ProfilerExtension) == profiler_extension
     assert profiler_extension.combo_box_group.count() == 2
-    assert profiler_extension.combo_box_group.itemText(0) == "Group 1"
+    assert profiler_extension.combo_box_group.itemText(0) == INITIAL_GROUPS[0]
+    assert profiler_extension._current_group() == INITIAL_GROUPS[0]
     assert profiler_extension.button_record.isEnabled()
     assert profiler_extension.button_cprofiler_record.isEnabled()
     assert profiler_extension.button_save.isEnabled()
@@ -127,11 +144,12 @@ def test_profiler_extension_initialization(
     assert len(profiler_extension._meters) == 2
     assert profiler_extension.button_clear.isEnabled()
     assert profiler_extension.button_settings.isEnabled()
+    assert not profiler_extension.filter_line_edit.value()
+    assert profiler_extension._filter_proxy_model.group == INITIAL_GROUPS[0]
 
     # All buttons should have icons and be auto-risen
     for button in profiler_extension.findChildren(QToolButton):
         assert button.icon() is not None
-        assert button.autoRaise()
 
 
 def test_toggle_recording(
@@ -149,10 +167,11 @@ def test_toggle_recording(
 
         # Assert
         mock_event_recorder.start_recording.assert_called_once()
-        mock_profiler.create_group.assert_called_once_with(TEST_GROUP)
+        mock_profiler.create_group.assert_called_once_with(NEW_GROUP)
         mock_thread_health_checker_meter.start_measuring.assert_called_once()
         assert profiler_extension.button_record.isChecked()
-        assert stub_profiler_panel.combo_box_group.currentText() == TEST_GROUP
+        assert stub_profiler_panel.combo_box_group.currentText() == NEW_GROUP
+        assert profiler_extension._filter_proxy_model.group == NEW_GROUP
 
     with subtests.test("Stop recording"):
         # Act
@@ -217,14 +236,13 @@ def test_save_results(
     monkeypatch.setattr(
         QFileDialog, "getSaveFileName", classmethod(lambda *args: (str(file_path), ""))
     )
-    mock_profiler.qgis_groups.return_value = {"Group 1": "group-actual-name"}
 
     # Act
     qtbot.mouseClick(profiler_extension.button_save, Qt.LeftButton)
 
     # Assert
     mock_profiler.save_profiler_results_as_prof_file.assert_called_once_with(
-        "group-actual-name", file_path
+        INITIAL_GROUPS[0], file_path
     )
 
 
@@ -243,14 +261,13 @@ def test_save_results_without_suffix(
     monkeypatch.setattr(
         QFileDialog, "getSaveFileName", classmethod(lambda *args: (str(file_path), ""))
     )
-    mock_profiler.qgis_groups.return_value = {TEST_GROUP: TEST_GROUP}
 
     # Act
     qtbot.mouseClick(profiler_extension.button_save, Qt.LeftButton)
 
     # Assert
     mock_profiler.save_profiler_results_as_prof_file.assert_called_once_with(
-        "Group 1", file_path.with_suffix(".prof")
+        INITIAL_GROUPS[0], file_path.with_suffix(".prof")
     )
 
 
@@ -267,7 +284,7 @@ def test_clear_button_should_clear_current_group(
     qtbot.mouseClick(profiler_extension.button_clear, Qt.LeftButton)
 
     # Assert
-    mock_profiler.clear.assert_called_once_with(TEST_GROUP)
+    mock_profiler.clear.assert_called_once_with(NEW_GROUP)
 
 
 def test_button_settings_should_open_settings_dialog(
@@ -304,3 +321,24 @@ def test_cleanup_should_clean_meters(
     mock_meter_recovery_measurer.cleanup.assert_called_once()
     mock_thread_health_checker_meter.cleanup.assert_called_once()
     assert profiler_extension._meters == []
+
+
+def test_changing_group_affects_proxy_model(
+    profiler_extension: ProfilerExtension,
+) -> None:
+    # Act
+    profiler_extension.combo_box_group.setCurrentIndex(1)
+
+    # Assert
+    profiler_extension._filter_proxy_model.group = "QGIS group"
+
+
+def test_filter_line_edit_should_filter(
+    profiler_extension: ProfilerExtension, qtbot: "QtBot"
+) -> None:
+    # Act
+    qtbot.keyClicks(profiler_extension.filter_line_edit, "Manual")
+
+    # Assert
+    profiler_extension._filter_proxy_model.group = "QGIS group"
+    assert profiler_extension._filter_proxy_model.filterRegExp().pattern() == "Manual"

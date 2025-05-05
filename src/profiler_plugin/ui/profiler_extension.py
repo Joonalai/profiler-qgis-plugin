@@ -21,11 +21,14 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Optional, Union
 
 from qgis.core import QgsApplication
-from qgis.PyQt.QtWidgets import QComboBox, QFileDialog, QToolButton, QWidget
+from qgis.gui import QgsFilterLineEdit
+from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtWidgets import QComboBox, QFileDialog, QToolButton, QTreeView, QWidget
 from qgis_plugin_tools.tools.i18n import tr
 from qgis_plugin_tools.tools.messages import MsgBar
 from qgis_plugin_tools.tools.resources import load_ui_from_file
 
+from profiler_plugin.ui.profiler_proxy_model import ProfilerProxyModel
 from profiler_plugin.ui.settings_dialog import SettingsDialog
 from qgis_profiler.event_recorder import ProfilerEventRecorder
 from qgis_profiler.exceptions import ProfilerNotFoundError
@@ -59,6 +62,7 @@ class ProfilerExtension(QWidget, UI_CLASS):
     button_clear: QToolButton
     button_save: QToolButton
     button_settings: QToolButton
+    filter_line_edit: QgsFilterLineEdit
 
     def __init__(
         self, event_recorder: Optional[ProfilerEventRecorder], profiler_panel: QWidget
@@ -74,10 +78,32 @@ class ProfilerExtension(QWidget, UI_CLASS):
         self._meters_group = ProfilerSettings.meters_group.get()
 
         combo_box = profiler_panel.findChild(QComboBox)
+        tree_view = profiler_panel.findChild(QTreeView)
         if combo_box is None:
             raise ProfilerNotFoundError(item=tr("Profiler panel combo box"))
+        if tree_view is None:
+            raise ProfilerNotFoundError(item=tr("Profiler panel tree view"))
         self.combo_box_group: QComboBox = combo_box
         self.combo_box_group.currentIndexChanged.connect(self._update_ui_state)
+        self.tree_view = tree_view
+
+        self._filter_proxy_model = ProfilerProxyModel(
+            ProfilerWrapper.get().item_model(), self
+        )
+        self._filter_proxy_model.set_group(self._current_group())
+        self._filter_proxy_model.setFilterCaseSensitivity(Qt.CaseInsensitive)
+
+        self._filter_proxy_model.setRecursiveFilteringEnabled(True)
+        self.tree_view.setModel(self._filter_proxy_model)
+
+        self.combo_box_group.currentTextChanged.connect(self._reset_proxy_model_group)
+
+        self.filter_line_edit.setShowClearButton(True)
+        self.filter_line_edit.setShowSearchIcon(True)
+        self.filter_line_edit.setPlaceholderText(tr("Filter profiles"))
+        self.filter_line_edit.valueChanged.connect(
+            self._filter_proxy_model.setFilterRegExp
+        )
 
         # Configure meters
         self._reset_meters()
@@ -122,7 +148,7 @@ class ProfilerExtension(QWidget, UI_CLASS):
             self.button_save: (
                 self._save_current_group_profile_data,
                 "/mActionFileSave.svg",
-            ),  # Not implemented yet
+            ),
             self.button_settings: (
                 self._open_settings,
                 "/console/iconSettingsConsole.svg",
@@ -137,6 +163,14 @@ class ProfilerExtension(QWidget, UI_CLASS):
             else:
                 button.setIcon(icon)
             button.clicked.connect(action)
+
+    def _current_group(self) -> str:
+        qgis_groups = ProfilerWrapper.get().qgis_groups()
+        text = self.combo_box_group.currentText()
+        return qgis_groups.get(text, text)
+
+    def _reset_proxy_model_group(self, _: str) -> None:
+        self._filter_proxy_model.set_group(self._current_group())
 
     def _reset_meters(self) -> None:
         self.cleanup()
@@ -193,9 +227,6 @@ class ProfilerExtension(QWidget, UI_CLASS):
         self._update_ui_state()
 
     def _save_current_group_profile_data(self) -> None:
-        qgis_groups = ProfilerWrapper.get().qgis_groups()
-        text = self.combo_box_group.currentText()
-        current_group = qgis_groups.get(text, text)
         start_path = Path(ProfilerSettings.cprofiler_profile_path.get()).parent
         start_path.mkdir(parents=True, exist_ok=True)
 
@@ -210,7 +241,7 @@ class ProfilerExtension(QWidget, UI_CLASS):
             if not path.suffix:
                 path = path.with_name(path.name + ".prof")
             ProfilerWrapper.get().save_profiler_results_as_prof_file(
-                current_group, path
+                self._current_group(), path
             )
             MsgBar.info(
                 tr("Profiler results saved"),
