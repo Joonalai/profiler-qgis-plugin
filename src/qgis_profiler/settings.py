@@ -23,6 +23,7 @@ from dataclasses import dataclass
 from functools import lru_cache
 from typing import Any, Optional, Union
 
+from qgis.PyQt.QtCore import QObject, pyqtSignal
 from qgis_plugin_tools.tools.i18n import tr
 from qgis_plugin_tools.tools.resources import profile_path
 from qgis_plugin_tools.tools.settings import (
@@ -61,15 +62,17 @@ class WidgetConfig:
 
 
 @dataclass
-class Setting:
+class Setting(QObject):
     description: str
     default: Any
     category: SettingCategory = SettingCategory.PROFILING
     widget_config: Optional[WidgetConfig] = None
     widget_type: Optional[WidgetType] = None
+    changed = pyqtSignal()
 
     def __post_init__(self) -> None:
         """Deduces the widget type based on the default value's type."""
+        super().__init__()
         if isinstance(self.default, bool):
             self.widget_type = WidgetType.CHECKBOX
         elif isinstance(self.default, (int, float)):
@@ -105,6 +108,10 @@ class ProfilerSettings(enum.Enum):
     active_group = Setting(
         description=tr("A profiler group used with plugin profiling"),
         default=tr("Plugins"),
+    )
+    show_events_threshold = Setting(
+        description=tr("Threshold to control which events to show in the panel"),
+        default=0.01,
     )
     recorded_group = Setting(
         description=tr("A profiler group used with recorded event profiling"),
@@ -221,14 +228,15 @@ class ProfilerSettings(enum.Enum):
         time_hash = int(time.time() / CACHE_INTERVAL)
         return self._get_cached(time_hash)
 
-    def set(self, value: Any) -> bool:
+    def set(self, value: Any) -> None:
         """Sets the setting value."""
         if not isinstance(value, type(self.value.default)):
             if isinstance(self.value.default, bool):
                 value = bool(value)
             else:
                 raise InvalidSettingValueError(self.name, value)
-        return set_setting(self.name, value)
+        set_setting(self.name, value)
+        self.value.changed.emit()
 
     @lru_cache
     def _get_cached(self, time_hash: int) -> Any:

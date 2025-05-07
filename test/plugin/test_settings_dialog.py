@@ -134,8 +134,9 @@ def test_settings_dialog_widget_configuration(
     assert getattr(widget, get_value_function)() == setting.value.default
     assert setting.get() == setting.value.default
 
-    set_value_function(widget, test_value)
-    qtbot.wait(1)
+    with qtbot.waitSignal(setting.value.changed, timeout=100):
+        set_value_function(widget, test_value)
+        qtbot.wait(1)
 
     assert setting.get() == test_value
 

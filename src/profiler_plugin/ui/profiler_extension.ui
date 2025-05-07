@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>291</width>
+    <width>359</width>
     <height>76</height>
    </rect>
   </property>
@@ -108,6 +108,22 @@
       </widget>
      </item>
      <item>
+      <widget class="Line" name="line">
+       <property name="frameShadow">
+        <enum>QFrame::Sunken</enum>
+       </property>
+       <property name="lineWidth">
+        <number>1</number>
+       </property>
+       <property name="midLineWidth">
+        <number>0</number>
+       </property>
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QToolButton" name="button_settings">
        <property name="toolTip">
         <string>Open profiler settings...</string>
@@ -121,17 +137,21 @@
       </widget>
      </item>
      <item>
-      <spacer name="horizontalSpacer">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>Time threshold </string>
        </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
+      </widget>
+     </item>
+     <item>
+      <widget class="QDoubleSpinBox" name="double_spin_box_threshold">
+       <property name="decimals">
+        <number>3</number>
        </property>
-      </spacer>
+       <property name="singleStep">
+        <double>0.100000000000000</double>
+       </property>
+      </widget>
      </item>
      <item>
       <spacer name="horizontalSpacer_3">

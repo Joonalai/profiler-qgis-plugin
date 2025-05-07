@@ -27,6 +27,8 @@ from qgis.PyQt.QtCore import (
     Qt,
 )
 
+from qgis_profiler.settings import ProfilerSettings
+
 LOGGER = logging.getLogger(__name__)
 
 _user_role = int(Qt.UserRole)
@@ -51,12 +53,21 @@ class ProfilerProxyModel(QSortFilterProxyModel):
     def __init__(
         self, source_model: QAbstractItemModel, parent: Optional[QObject] = None
     ) -> None:
-        super().__init__(parent)
         self.group = ""
+        super().__init__(parent)
         self.setSourceModel(source_model)
+        self.threshold = ProfilerSettings.show_events_threshold.get()
+        ProfilerSettings.show_events_threshold.value.changed.connect(
+            self._threshold_changed
+        )
 
     def set_group(self, group: str) -> None:
         self.group = group
+        self.invalidateFilter()
+
+    def set_threshold(self, threshold: float) -> None:
+        LOGGER.debug("Threshold set to %s", threshold)
+        self.threshold = threshold
         self.invalidateFilter()
 
     def filterAcceptsRow(self, source_row: int, source_parent: QModelIndex) -> bool:  # noqa: N802
@@ -65,4 +76,14 @@ class ProfilerProxyModel(QSortFilterProxyModel):
             return False
 
         index = self.sourceModel().index(source_row, 0, source_parent)
-        return self.sourceModel().data(index, Role.Group.value) == self.group
+        if self.sourceModel().data(index, Role.Group.value) != self.group:
+            return False
+
+        return self.sourceModel().data(index, Role.Elapsed.value) >= self.threshold or (
+            source_parent.isValid()
+            and self.sourceModel().data(index, Role.ParentElapsed.value)
+            >= self.threshold
+        )
+
+    def _threshold_changed(self) -> None:
+        self.set_threshold(ProfilerSettings.show_events_threshold.get())

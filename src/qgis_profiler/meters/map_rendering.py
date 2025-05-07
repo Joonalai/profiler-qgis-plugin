@@ -17,6 +17,7 @@
 #  along with profiler-qgis-plugin. If not, see <https://www.gnu.org/licenses/>.
 import logging
 import time
+from contextlib import suppress
 from typing import TYPE_CHECKING, Optional, cast
 
 from qgis.core import QgsApplication
@@ -25,7 +26,6 @@ from qgis.utils import iface as iface_
 
 from qgis_profiler.meters.meter import Meter
 from qgis_profiler.settings import ProfilerSettings
-from qgis_profiler.utils import disconnect_signal
 
 if TYPE_CHECKING:
     from qgis.gui import QgisInterface
@@ -77,16 +77,10 @@ class MapRenderingMeter(Meter):
         return True
 
     def _stop_measuring(self) -> None:
-        disconnect_signal(
-            iface.mapCanvas().renderStarting,
-            self._rendering_started,
-            "Rendering started",
-        )
-        disconnect_signal(
-            iface.mapCanvas().mapCanvasRefreshed,
-            self._rendering_finished,
-            "Rendering finished",
-        )
+        with suppress(TypeError):
+            iface.mapCanvas().renderStarting.disconnect(self._rendering_started)
+        with suppress(TypeError):
+            iface.mapCanvas().renderStarting.disconnect(self._rendering_started)
 
     def _rendering_started(self) -> None:
         self._elapsed_timer.restart()

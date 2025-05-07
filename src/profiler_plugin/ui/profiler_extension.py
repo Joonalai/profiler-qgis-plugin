@@ -23,7 +23,14 @@ from typing import TYPE_CHECKING, Any, Optional, Union
 from qgis.core import QgsApplication
 from qgis.gui import QgsFilterLineEdit
 from qgis.PyQt.QtCore import Qt
-from qgis.PyQt.QtWidgets import QComboBox, QFileDialog, QToolButton, QTreeView, QWidget
+from qgis.PyQt.QtWidgets import (
+    QComboBox,
+    QDoubleSpinBox,
+    QFileDialog,
+    QToolButton,
+    QTreeView,
+    QWidget,
+)
 from qgis_plugin_tools.tools.i18n import tr
 from qgis_plugin_tools.tools.messages import MsgBar
 from qgis_plugin_tools.tools.resources import load_ui_from_file
@@ -64,6 +71,7 @@ class ProfilerExtension(QWidget, UI_CLASS):
     button_save: QToolButton
     button_settings: QToolButton
     filter_line_edit: QgsFilterLineEdit
+    double_spin_box_threshold: QDoubleSpinBox
 
     def __init__(
         self, event_recorder: Optional[ProfilerEventRecorder], profiler_panel: QWidget
@@ -104,6 +112,16 @@ class ProfilerExtension(QWidget, UI_CLASS):
         self.filter_line_edit.setPlaceholderText(tr("Filter profiles"))
         self.filter_line_edit.valueChanged.connect(
             self._filter_proxy_model.setFilterRegExp
+        )
+
+        # Threshold spinbox
+        self.double_spin_box_threshold.setValue(
+            ProfilerSettings.show_events_threshold.get()
+        )
+        self.double_spin_box_threshold.valueChanged.connect(
+            lambda: ProfilerSettings.show_events_threshold.set(
+                self.double_spin_box_threshold.value()
+            )
         )
 
         # Configure meters

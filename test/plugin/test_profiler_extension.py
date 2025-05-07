@@ -146,6 +146,10 @@ def test_profiler_extension_initialization(
     assert profiler_extension.button_settings.isEnabled()
     assert not profiler_extension.filter_line_edit.value()
     assert profiler_extension._filter_proxy_model.group == INITIAL_GROUPS[0]
+    assert (
+        profiler_extension.double_spin_box_threshold.value()
+        == ProfilerSettings.show_events_threshold.get()
+    )
 
     # All buttons should have icons and be auto-risen
     for button in profiler_extension.findChildren(QToolButton):
