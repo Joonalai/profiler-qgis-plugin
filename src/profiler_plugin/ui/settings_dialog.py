@@ -17,7 +17,7 @@
 #  along with profiler-qgis-plugin. If not, see <https://www.gnu.org/licenses/>.
 import logging
 from pathlib import Path
-from typing import Optional
+from typing import Optional, cast
 
 from qgis.core import QgsApplication
 from qgis.gui import QgsCollapsibleGroupBox
@@ -44,6 +44,8 @@ from qgis_plugin_tools.tools.i18n import tr
 from qgis_plugin_tools.tools.resources import load_ui_from_file
 from qgis_plugin_tools.tools.settings import set_setting
 
+from qgis_profiler.meters.map_rendering import MapRenderingMeter
+from qgis_profiler.meters.meter import Meter
 from qgis_profiler.meters.recovery_measurer import RecoveryMeasurer
 from qgis_profiler.meters.thread_health_checker import MainThreadHealthChecker
 from qgis_profiler.settings import ProfilerSettings, SettingCategory, WidgetType
@@ -80,6 +82,9 @@ class SettingsDialog(QDialog, UI_CLASS):  # type: ignore
         self._button_calibrate_thread_health_checker = QPushButton(
             tr("Calibrate threshold")
         )
+        self._button_calibrate_map_rendering_meter = QPushButton(
+            tr("Calibrate threshold")
+        )
 
         self._setup_plugin_settings()
         self._setup_logging_settings()
@@ -94,6 +99,9 @@ class SettingsDialog(QDialog, UI_CLASS):  # type: ignore
         self._button_calibrate_thread_health_checker.clicked.connect(
             self._calibrate_thread_health_checker
         )
+        self._button_calibrate_map_rendering_meter.clicked.connect(
+            self._calibrate_map_rendering_meter
+        )
 
     def _setup_plugin_settings(self) -> None:
         for setting in ProfilerSettings:
@@ -102,6 +110,8 @@ class SettingsDialog(QDialog, UI_CLASS):  # type: ignore
             group_box.layout().addWidget(self._button_calibrate_recovery_meter)
         if group_box := self._groups.get(SettingCategory.THREAD_HEALTH_CHECKER_METER):
             group_box.layout().addWidget(self._button_calibrate_thread_health_checker)
+        if group_box := self._groups.get(SettingCategory.MAP_RENDERING_METER):
+            group_box.layout().addWidget(self._button_calibrate_map_rendering_meter)
 
     def _reset_settings(self) -> None:
         # Clear all items from the settings layout
@@ -182,40 +192,62 @@ class SettingsDialog(QDialog, UI_CLASS):  # type: ignore
         )
 
     def _calibrate_recovery_meter(self) -> None:
-        self._button_calibrate_recovery_meter.setEnabled(False)
-        try:
-            meter = RecoveryMeasurer(
+        _calibrate_threshold(
+            self._button_calibrate_recovery_meter,
+            RecoveryMeasurer(
                 process_event_count=self._widgets[
                     ProfilerSettings.recovery_process_event_count
                 ].value(),
-                threshold_s=100,  # large number in order to calibrate the threshold
-                timeout_s=100,  # large number in order to calibrate the threshold
-            )
-            times = list(filter(None, [meter.measure() for _ in range(10)]))
-            safe_threshold_time = max(times) * CALIBRATION_COEFFICIENT
-            LOGGER.debug(
-                "Calibrated recovery time threshold: %s seconds", safe_threshold_time
-            )
-            self._widgets[ProfilerSettings.recovery_threshold].setValue(
-                round(safe_threshold_time, 3)
-            )
-        finally:
-            self._button_calibrate_recovery_meter.setEnabled(True)
+                threshold_s=100,  # large number so no anomaly is detected
+                timeout_s=100,  # large number so no timeout will occur
+            ),
+            cast(
+                "QDoubleSpinBox",
+                self._widgets[ProfilerSettings.recovery_threshold],
+            ),
+            name="recovery time",
+        )
 
     def _calibrate_thread_health_checker(self) -> None:
-        self._button_calibrate_thread_health_checker.setEnabled(False)
-        try:
-            meter = MainThreadHealthChecker(
+        _calibrate_threshold(
+            self._button_calibrate_thread_health_checker,
+            MainThreadHealthChecker(
                 poll_interval_s=0.1,  # Don't want the calibration to take too long
                 threshold_s=100,  # Large number so no anomaly is detected
-            )
-            times = list(filter(None, [meter.measure() for _ in range(10)]))
-            safe_threshold_time = max(times) * CALIBRATION_COEFFICIENT
-            LOGGER.debug(
-                "Calibrated poll time threshold: %s seconds", safe_threshold_time
-            )
-            self._widgets[ProfilerSettings.thread_health_checker_threshold].setValue(
-                round(safe_threshold_time, 3)
-            )
-        finally:
-            self._button_calibrate_thread_health_checker.setEnabled(True)
+            ),
+            cast(
+                "QDoubleSpinBox",
+                self._widgets[ProfilerSettings.thread_health_checker_threshold],
+            ),
+            name="main thread poll time",
+        )
+
+    def _calibrate_map_rendering_meter(self) -> None:
+        _calibrate_threshold(
+            self._button_calibrate_map_rendering_meter,
+            # Large number so no anomaly is detected
+            MapRenderingMeter(threshold_s=1000),
+            cast(
+                "QDoubleSpinBox",
+                self._widgets[ProfilerSettings.map_rendering_meter_threshold],
+            ),
+            name="map rendering",
+        )
+
+
+def _calibrate_threshold(
+    button: QPushButton,
+    meter: Meter,
+    widget_to_update: QDoubleSpinBox,
+    name: Optional[str] = None,
+) -> None:
+    button.setEnabled(False)
+    try:
+        times = list(filter(None, [meter.measure() for _ in range(10)]))
+        safe_threshold_time = max(times) * CALIBRATION_COEFFICIENT
+        value = round(safe_threshold_time, 3)
+        widget_to_update.setValue(value)
+        if name:
+            LOGGER.debug("Calibrated %s threshold: %s seconds", name, value)
+    finally:
+        button.setEnabled(True)

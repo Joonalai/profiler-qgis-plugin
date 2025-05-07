@@ -32,6 +32,7 @@ from profiler_plugin.ui.profiler_proxy_model import ProfilerProxyModel
 from profiler_plugin.ui.settings_dialog import SettingsDialog
 from qgis_profiler.event_recorder import ProfilerEventRecorder
 from qgis_profiler.exceptions import ProfilerNotFoundError
+from qgis_profiler.meters.map_rendering import MapRenderingMeter
 from qgis_profiler.meters.recovery_measurer import RecoveryMeasurer
 from qgis_profiler.meters.thread_health_checker import MainThreadHealthChecker
 from qgis_profiler.profiler import ProfilerWrapper
@@ -185,6 +186,11 @@ class ProfilerExtension(QWidget, UI_CLASS):
             self._meters.append(MainThreadHealthChecker.get())
         else:
             MainThreadHealthChecker.get().enabled = False
+
+        if ProfilerSettings.map_rendering_meter_enabled.get():
+            self._meters.append(MapRenderingMeter.get())
+        else:
+            MapRenderingMeter.get().enabled = False
 
         for meter in self._meters:
             meter.reset_parameters()

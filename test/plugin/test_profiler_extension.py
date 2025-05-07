@@ -141,7 +141,7 @@ def test_profiler_extension_initialization(
     assert profiler_extension.button_cprofiler_record.isEnabled()
     assert profiler_extension.button_save.isEnabled()
     assert not profiler_extension.button_record.isChecked()
-    assert len(profiler_extension._meters) == 2
+    assert len(profiler_extension._meters) == 3
     assert profiler_extension.button_clear.isEnabled()
     assert profiler_extension.button_settings.isEnabled()
     assert not profiler_extension.filter_line_edit.value()

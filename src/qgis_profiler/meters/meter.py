@@ -245,7 +245,7 @@ class Meter(QObject):
         Measure once with the meter. Signal anomaly_detected will be emitted
         if applicable.
 
-        :return: duration in seconds or None if meter is disabled.
+        :return: Duration in seconds or None if meter is disabled.
         """
         if self.enabled:
             duration, anomaly_detected = self._measure()

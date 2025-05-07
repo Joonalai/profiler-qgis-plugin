@@ -157,3 +157,4 @@ def test_monitor_decorator_should_not_do_anything_if_disabled(
     assert tester.name_args_set(1, 2) == 3
     assert not meter.is_connected_to_profiler
     mock_profiler.add_record.assert_not_called()
+    assert not meter.measure()

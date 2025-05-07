@@ -48,6 +48,7 @@ class SettingCategory(enum.Enum):
     CPROFILER = tr("cProfiler")
     RECOVERY_METER = tr("Recovery time measuring meter")
     THREAD_HEALTH_CHECKER_METER = tr("Main thread health checker meter")
+    MAP_RENDERING_METER = tr("Map rendering meter")
 
 
 @dataclass
@@ -177,6 +178,20 @@ class ProfilerSettings(enum.Enum):
         default=0.1,
         category=SettingCategory.THREAD_HEALTH_CHECKER_METER,
         widget_config=WidgetConfig(minimum=0.001, maximum=100.0, step=0.001),
+    )
+
+    # Map rendering meter
+    map_rendering_meter_enabled = Setting(
+        description=tr("Enable measure map rendering meter"),
+        default=True,
+        category=SettingCategory.MAP_RENDERING_METER,
+    )
+    map_rendering_meter_threshold = Setting(
+        description=tr(
+            "A threshold in seconds of how fast the whole map should normally render"
+        ),
+        default=1.0,
+        category=SettingCategory.MAP_RENDERING_METER,
     )
 
     @staticmethod
