@@ -38,16 +38,24 @@ if TYPE_CHECKING:
 
 iface = cast("QgisInterface", iface_)
 
+LOGGER = logging.getLogger(__name__)
+
+
 _mouse_left_button_release = QMouseEvent(
     QEvent.MouseButtonRelease, QPoint(), Qt.LeftButton, Qt.NoButton, Qt.NoModifier
 )
 
+_mouse_middle_button_release = QMouseEvent(
+    QEvent.MouseButtonRelease, QPoint(), Qt.MiddleButton, Qt.NoButton, Qt.NoModifier
+)
 
 _mouse_right_button_release = QMouseEvent(
     QEvent.MouseButtonRelease, QPoint(), Qt.RightButton, Qt.NoButton, Qt.NoModifier
 )
 
-LOGGER = logging.getLogger(__name__)
+
+def is_object_map_canvas(obj: QObject) -> bool:
+    return obj == iface.mapCanvas().viewport()
 
 
 class EventResponse(enum.Enum):
@@ -167,7 +175,7 @@ class SimpleMapToolClickConfig(MapToolConfig):
         super().__init__(class_name, profile_name)
         self.event = event or CustomEventFilter(
             event=_mouse_left_button_release,
-            object_filter=lambda obj: obj == iface.mapCanvas().viewport(),
+            object_filter=is_object_map_canvas,
         )
 
     def activate(self) -> None:
@@ -242,3 +250,21 @@ DEFAULT_MAP_TOOLS_CONFIG: dict[str, CustomEventConfig] = {
         ),
     ]
 }
+
+# These functionalities are always active with every map tool
+GENERAL_MAP_TOOL_FUNCTIONALITIES = [
+    SimpleMapToolClickConfig(
+        class_name="QgsMapToolPan",
+        event=CustomEventFilter(
+            event=_mouse_middle_button_release,
+            object_filter=is_object_map_canvas,
+        ),
+    ),
+    SimpleMapToolClickConfig(
+        class_name="QgsMapToolZoom",
+        event=CustomEventFilter(
+            event=QEvent.Wheel,
+            object_filter=is_object_map_canvas,
+        ),
+    ),
+]

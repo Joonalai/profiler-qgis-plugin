@@ -161,6 +161,9 @@ def test_recorder_should_handle_map_tool_change(
 
 
 @pytest.mark.parametrize(
+    "attribute_to_mock", ["_current_map_tool_config", "_general_map_tools_config"]
+)
+@pytest.mark.parametrize(
     ("response", "expected_methods_to_call"),
     [
         (None, []),
@@ -179,13 +182,16 @@ def test_recorder_should_record_map_tool_events(
     dialog: "Dialog",
     qtbot: "QtBot",
     mocker: "MockerFixture",
+    attribute_to_mock: str,
     response: Optional[EventResponse],
     expected_methods_to_call: list[str],
 ):
     # Arrange
     mock_event_config.matches.return_value = response
     event_recorder.start_recording()
-    event_recorder._current_map_tool_config = mock_event_config
+    if attribute_to_mock == "_general_map_tools_config":
+        mock_event_config = [mock_event_config]  # type: ignore
+    setattr(event_recorder, attribute_to_mock, mock_event_config)
     spies = [mocker.spy(event_recorder, method) for method in expected_methods_to_call]
 
     # Act

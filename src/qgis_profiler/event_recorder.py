@@ -29,6 +29,7 @@ from qgis.utils import iface as iface_
 from qgis_profiler import utils
 from qgis_profiler.config.event_config import (
     DEFAULT_MAP_TOOLS_CONFIG,
+    GENERAL_MAP_TOOL_FUNCTIONALITIES,
     CustomEventConfig,
     EventResponse,
 )
@@ -66,6 +67,8 @@ class ProfilerEventRecorder(QObject):
     Note: requires at least Qt version 3.13.1
     """
 
+    # TODO: menu buttons...
+
     event_started = pyqtSignal(str)
     event_finished = pyqtSignal(str)
 
@@ -73,10 +76,14 @@ class ProfilerEventRecorder(QObject):
         self,
         group_name: str,
         map_tools_config: Optional[dict[str, CustomEventConfig]] = None,
+        general_map_tools_config: Optional[list[CustomEventConfig]] = None,
     ) -> None:
         super().__init__()
         self.group = group_name
         self._map_tools_config = map_tools_config or DEFAULT_MAP_TOOLS_CONFIG
+        self._general_map_tools_config = (
+            general_map_tools_config or GENERAL_MAP_TOOL_FUNCTIONALITIES
+        )
         self._recording = False
         self._connections: dict[str, tuple[pyqtSignal, Any]] = {}
         self._current_map_tool_config: Optional[CustomEventConfig] = None
@@ -146,10 +153,17 @@ class ProfilerEventRecorder(QObject):
                 self._start_profiling(name)
 
     def _catch_map_tool_events(self, obj: QObject, event: QEvent) -> None:
+        response = None
         if (config := self._current_map_tool_config) is None or not (
             response := config.matches(event, obj)
         ):
-            return
+            # If no suitable event found, try general map tool configs
+            # (e.g., zoom with wheel, pan with middle button)
+            for config in self._general_map_tools_config:
+                if (response := config.matches(event, obj)) is not None:
+                    break
+            if response is None:
+                return
 
         if response == EventResponse.START_PROFILING:
             self._start_profiling(config.name)
