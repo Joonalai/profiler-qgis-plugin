@@ -48,10 +48,10 @@ LOGGER = logging.getLogger(__name__)
 class StopProfilingEvent(QEvent):
     """Custom event to stop the profiling for a specific action."""
 
-    TYPE = 313  # a unique number (hopefully)
+    EVENT_TYPE = QEvent.Type(QEvent.registerEventType())
 
     def __init__(self, name: str, group: str) -> None:
-        super().__init__(QEvent(StopProfilingEvent.TYPE))  # type: ignore
+        super().__init__(self.EVENT_TYPE)  # type: ignore
         self.name = name
         self.group = group
 
@@ -126,7 +126,7 @@ class ProfilerEventRecorder(QObject):
         self._catch_button_events(event)
         self._catch_map_tool_events(obj, event)
 
-        if event.type() == StopProfilingEvent.TYPE:
+        if event.type() == StopProfilingEvent.EVENT_TYPE:
             stop_event = cast("StopProfilingEvent", event)
             self._stop_profiling(stop_event.name, stop_event.group)
 
