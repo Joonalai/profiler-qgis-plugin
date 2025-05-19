@@ -33,7 +33,7 @@ from qgis_profiler.profiler import (
     ProfilerResult,
     ProfilerWrapper,
 )
-from qgis_profiler.settings import ProfilerSettings
+from qgis_profiler.settings import Settings
 
 if TYPE_CHECKING:
     from pytest_mock import MockerFixture
@@ -111,7 +111,7 @@ def test_profiler_start_and_end(
     assert event_id == event_id2
 
     data = profiler.get_profiler_data("test")
-    assert data == [ProfilerResult("test", ProfilerSettings.active_group.get(), 0.01)]
+    assert data == [ProfilerResult("test", Settings.active_group.get(), 0.01)]
     assert profiler.get_event_time(event_id) == pytest.approx(0.0, abs=1e-1)
 
 
@@ -127,9 +127,7 @@ def test_profiler_add_record(
     assert event_id
 
     data = profiler.get_profiler_data("added_record")
-    assert data == [
-        ProfilerResult("added_record", ProfilerSettings.active_group.get(), 0.01)
-    ]
+    assert data == [ProfilerResult("added_record", Settings.active_group.get(), 0.01)]
     assert profiler.get_event_time(event_id) == pytest.approx(0.0, abs=1e-1)
 
 
@@ -148,9 +146,7 @@ def test_profiler_context_manager(
     # Assert
     assert event_id
     data = profiler.get_profiler_data("some_function")
-    assert data == [
-        ProfilerResult("some_function", ProfilerSettings.active_group.get(), 0.01)
-    ]
+    assert data == [ProfilerResult("some_function", Settings.active_group.get(), 0.01)]
     assert profiler.get_event_time(event_id) == pytest.approx(0.01, abs=1e-1)
 
 
@@ -349,9 +345,7 @@ def test_profile_decorator_should_not_profile_if_profiling_is_disabled(
     mocker: "MockerFixture",
 ):
     # Arrange
-    mock_settings = mocker.patch.object(
-        ProfilerSettings, "get_with_cache", return_value=False
-    )
+    mock_settings = mocker.patch.object(Settings, "get_with_cache", return_value=False)
     # Act
     assert decorator_tester.add(1, 2) == 3
     # Assert

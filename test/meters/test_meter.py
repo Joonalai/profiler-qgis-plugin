@@ -21,7 +21,7 @@ from typing import TYPE_CHECKING, Optional
 import pytest
 
 from qgis_profiler.meters.meter import Meter, MeterAnomaly, MeterContext
-from qgis_profiler.settings import ProfilerSettings
+from qgis_profiler.settings import Settings
 
 if TYPE_CHECKING:
     from unittest.mock import MagicMock
@@ -113,9 +113,7 @@ def test_meter_context_stack_with_context_manager(meter: Meter, initial_context:
         ("name_and_group_set", MeterContext("foo (stub)", "bar")),
         (
             "name_args_set",
-            MeterContext(
-                "name_args_set(a=1, b=2) (stub)", ProfilerSettings.active_group.get()
-            ),
+            MeterContext("name_args_set(a=1, b=2) (stub)", Settings.active_group.get()),
         ),
     ],
     ids=[

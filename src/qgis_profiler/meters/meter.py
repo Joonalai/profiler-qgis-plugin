@@ -26,7 +26,7 @@ from qgis.PyQt.QtCore import QObject, pyqtSignal, pyqtSlot
 
 import qgis_profiler.utils
 from qgis_profiler.profiler import ProfilerWrapper
-from qgis_profiler.settings import ProfilerSettings, resolve_group_name_with_cache
+from qgis_profiler.settings import Settings, resolve_group_name_with_cache
 
 
 class MeterContext(NamedTuple):
@@ -60,7 +60,7 @@ class Meter(QObject):
     def __init__(self, supports_continuous_measurement: bool = False) -> None:  # noqa: FBT001, FBT002
         super().__init__(None)
         self._default_context = MeterContext(
-            self.__class__.__name__, ProfilerSettings.meters_group.get()
+            self.__class__.__name__, Settings.meters_group.get()
         )
         self._context_stack: list[MeterContext] = []
         self._enabled = True

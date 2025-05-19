@@ -33,7 +33,7 @@ from qgis.PyQt.QtWidgets import (
 from profiler_plugin.ui.settings_dialog import SettingsDialog
 from qgis_profiler.meters.recovery_measurer import RecoveryMeasurer
 from qgis_profiler.meters.thread_health_checker import MainThreadHealthChecker
-from qgis_profiler.settings import ProfilerSettings, SettingCategory
+from qgis_profiler.settings import SettingCategory, Settings
 
 if TYPE_CHECKING:
     from unittest.mock import MagicMock
@@ -70,8 +70,8 @@ def test_settings_dialog_initialization(settings_dialog: "SettingsDialog") -> No
         "CRITICAL",
     ]
 
-    assert len(settings_dialog._widgets) == len(ProfilerSettings)
-    assert set(settings_dialog._widgets.keys()) == set(ProfilerSettings)
+    assert len(settings_dialog._widgets) == len(Settings)
+    assert set(settings_dialog._widgets.keys()) == set(Settings)
     assert set(settings_dialog._groups.keys()) == set(SettingCategory)
     assert settings_dialog._button_calibrate_recovery_meter.isEnabled()
     # utils.wait(10000)
@@ -125,7 +125,7 @@ def test_settings_dialog_widget_configuration(
     set_value_function: Callable[[QWidget, Any], None],
     qtbot: "QtBot",
 ) -> None:
-    setting = ProfilerSettings[setting_key]
+    setting = Settings[setting_key]
 
     widget = settings_dialog._widgets.get(setting)
     assert widget is not None
@@ -144,22 +144,22 @@ def test_settings_dialog_widget_configuration(
 def test_reset_settings_dialog(
     settings_dialog: "SettingsDialog", qtbot: "QtBot"
 ) -> None:
-    widget = settings_dialog._widgets.get(ProfilerSettings.profiler_enabled)
+    widget = settings_dialog._widgets.get(Settings.profiler_enabled)
     assert isinstance(widget, QCheckBox)
     assert widget.isChecked()
-    assert ProfilerSettings.profiler_enabled.get() is True
+    assert Settings.profiler_enabled.get() is True
 
     widget.setChecked(False)
     qtbot.wait(1)
 
-    assert ProfilerSettings.profiler_enabled.get() is False
+    assert Settings.profiler_enabled.get() is False
 
     qtbot.mouseClick(
         settings_dialog.button_box.button(QDialogButtonBox.Reset), Qt.LeftButton
     )
     qtbot.wait(1)
 
-    widget = settings_dialog._widgets.get(ProfilerSettings.profiler_enabled)
+    widget = settings_dialog._widgets.get(Settings.profiler_enabled)
     assert isinstance(widget, QCheckBox)
     assert widget.isChecked()
 
@@ -179,7 +179,7 @@ def test_calibrate_recovery_threshold(
 
     # Assert
     assert mock_measure.call_count == 10
-    assert settings_dialog._widgets[ProfilerSettings.recovery_threshold].value() == 9.45
+    assert settings_dialog._widgets[Settings.recovery_threshold].value() == 9.45
     assert settings_dialog._button_calibrate_recovery_meter.isEnabled()
 
 
@@ -201,9 +201,7 @@ def test_calibrate_health_checker_threshold(
     # Assert
     assert mock_measure.call_count == 10
     assert (
-        settings_dialog._widgets[
-            ProfilerSettings.thread_health_checker_threshold
-        ].value()
+        settings_dialog._widgets[Settings.thread_health_checker_threshold].value()
         == 9.45
     )
     assert settings_dialog._button_calibrate_thread_health_checker.isEnabled()

@@ -90,7 +90,7 @@ class Setting(QObject):
             raise NotImplementedError
 
 
-class ProfilerSettings(enum.Enum):
+class Settings(enum.Enum):
     """
     Represents the Profiler Settings, designed for managing configuration
     of the profiler plugin via QgsSettings. Use get and set methods to
@@ -207,7 +207,7 @@ class ProfilerSettings(enum.Enum):
         Resets the state of the application or relevant subsystem to its initial default
         state.
         """
-        for setting in ProfilerSettings:
+        for setting in Settings:
             setting.set(setting.value.default)
 
     def get(self) -> Any:
@@ -219,7 +219,7 @@ class ProfilerSettings(enum.Enum):
                 value = value.lower() == "true"
             else:
                 value = type(setting.default)(value)
-        if self == ProfilerSettings.profiler_enabled:
+        if self == Settings.profiler_enabled:
             return os.environ.get("QGIS_PROFILER_ENABLED", value)
         return value
 
@@ -251,11 +251,11 @@ def resolve_group_name(group: Optional[str] = None) -> str:
     """Helper method to resolve the group name, falling back to settings."""
     if group is not None:
         return group
-    return ProfilerSettings.active_group.get()
+    return Settings.active_group.get()
 
 
 def resolve_group_name_with_cache(group: Optional[str] = None) -> str:
     """Helper method to resolve the group name with cache, falling back to settings."""
     if group is not None:
         return group
-    return ProfilerSettings.active_group.get_with_cache()
+    return Settings.active_group.get_with_cache()

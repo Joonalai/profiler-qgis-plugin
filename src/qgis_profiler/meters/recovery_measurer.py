@@ -21,7 +21,7 @@ from typing import Optional
 from qgis.PyQt.QtCore import QCoreApplication, QElapsedTimer
 
 from qgis_profiler.meters.meter import Meter
-from qgis_profiler.settings import ProfilerSettings
+from qgis_profiler.settings import Settings
 
 LOGGER = logging.getLogger(__name__)
 
@@ -62,18 +62,18 @@ class RecoveryMeasurer(Meter):
     def get(cls) -> "RecoveryMeasurer":
         if cls._instance is None:
             cls._instance = RecoveryMeasurer(
-                process_event_count=ProfilerSettings.recovery_process_event_count.get(),
-                threshold_s=ProfilerSettings.recovery_threshold.get(),
-                timeout_s=ProfilerSettings.recovery_timeout.get(),
+                process_event_count=Settings.recovery_process_event_count.get(),
+                threshold_s=Settings.recovery_threshold.get(),
+                timeout_s=Settings.recovery_timeout.get(),
             )
-            cls._instance.enabled = ProfilerSettings.recovery_meter_enabled.get()
+            cls._instance.enabled = Settings.recovery_meter_enabled.get()
         return cls._instance
 
     def reset_parameters(self) -> None:
-        self._process_event_count = ProfilerSettings.recovery_process_event_count.get()
-        self._threshold_ms = ProfilerSettings.recovery_threshold.get() * 1000
-        self._timeout_ms = ProfilerSettings.recovery_timeout.get() * 1000
-        self.enabled = ProfilerSettings.recovery_meter_enabled.get()
+        self._process_event_count = Settings.recovery_process_event_count.get()
+        self._threshold_ms = Settings.recovery_threshold.get() * 1000
+        self._timeout_ms = Settings.recovery_timeout.get() * 1000
+        self.enabled = Settings.recovery_meter_enabled.get()
         LOGGER.debug("Recovery parameters reset: %s", self)
 
     def _measure(self) -> tuple[float, bool]:

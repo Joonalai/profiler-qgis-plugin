@@ -27,7 +27,7 @@ from profiler_test_utils.utils import Dialog
 from qgis_profiler.meters.recovery_measurer import RecoveryMeasurer
 from qgis_profiler.meters.thread_health_checker import MainThreadHealthChecker
 from qgis_profiler.profiler import ProfilerWrapper
-from qgis_profiler.settings import ProfilerSettings
+from qgis_profiler.settings import Settings
 
 if TYPE_CHECKING:
     from pytest_mock import MockerFixture
@@ -48,18 +48,18 @@ def profiler() -> ProfilerWrapper:
 
 @pytest.fixture(autouse=True)
 def _clear_profiling_data_and_reset_settings(profiler: "ProfilerWrapper"):
-    ProfilerSettings.reset()
+    Settings.reset()
     profiler.clear_all()
 
 
 @pytest.fixture
 def default_group() -> str:
-    return ProfilerSettings.active_group.get()
+    return Settings.active_group.get()
 
 
 @pytest.fixture
 def meters_group() -> str:
-    return ProfilerSettings.meters_group.get()
+    return Settings.meters_group.get()
 
 
 @pytest.fixture
@@ -71,7 +71,7 @@ def log_profiler_data(profiler: ProfilerWrapper, default_group: str) -> Iterator
 
 @pytest.fixture
 def mock_settings(mocker: "MockerFixture") -> MagicMock:
-    return mocker.patch.object(ProfilerSettings, "get_with_cache")
+    return mocker.patch.object(Settings, "get_with_cache")
 
 
 @pytest.fixture

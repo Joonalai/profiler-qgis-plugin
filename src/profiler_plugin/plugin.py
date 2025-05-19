@@ -34,7 +34,7 @@ from profiler_plugin.ui.profiler_extension import ProfilerExtension
 from qgis_profiler import utils
 from qgis_profiler.constants import QT_VERSION_MIN
 from qgis_profiler.event_recorder import ProfilerEventRecorder
-from qgis_profiler.settings import ProfilerSettings
+from qgis_profiler.settings import Settings
 
 if TYPE_CHECKING:
     from qgis.gui import QgisInterface
@@ -62,7 +62,7 @@ class ProfilerPlugin(QObject):
 
         if utils.has_suitable_qt_version(QT_VERSION_MIN):
             self._event_recorder = ProfilerEventRecorder(
-                group_name=ProfilerSettings.recorded_group.get(),
+                group_name=Settings.recorded_group.get(),
             )
         else:
             MsgBar.error(
@@ -89,7 +89,7 @@ class ProfilerPlugin(QObject):
             self._event_recorder, profiler_panel
         )
         self._profiler_panel_layout.insertWidget(0, self._profiler_extension)
-        if ProfilerSettings.start_recording_on_startup.get():
+        if Settings.start_recording_on_startup.get():
             self._profiler_extension.start_recording()
 
     def unload(self) -> None:

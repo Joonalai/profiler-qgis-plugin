@@ -48,7 +48,7 @@ from qgis_profiler.meters.map_rendering import MapRenderingMeter
 from qgis_profiler.meters.meter import Meter
 from qgis_profiler.meters.recovery_measurer import RecoveryMeasurer
 from qgis_profiler.meters.thread_health_checker import MainThreadHealthChecker
-from qgis_profiler.settings import ProfilerSettings, SettingCategory, WidgetType
+from qgis_profiler.settings import SettingCategory, Settings, WidgetType
 
 UI_CLASS: QWidget = load_ui_from_file(
     str(Path(__file__).parent.joinpath("settings_dialog.ui"))
@@ -75,7 +75,7 @@ class SettingsDialog(QDialog, UI_CLASS):  # type: ignore
         super().__init__(parent)
         self.setupUi(self)
         self.setWindowIcon(QgsApplication.getThemeIcon("/propertyicons/settings.svg"))
-        self._widgets: dict[ProfilerSettings, QWidget] = {}
+        self._widgets: dict[Settings, QWidget] = {}
         self._groups: dict[SettingCategory, QgsCollapsibleGroupBox] = {}
 
         self._button_calibrate_recovery_meter = QPushButton(tr("Calibrate threshold"))
@@ -104,7 +104,7 @@ class SettingsDialog(QDialog, UI_CLASS):  # type: ignore
         )
 
     def _setup_plugin_settings(self) -> None:
-        for setting in ProfilerSettings:
+        for setting in Settings:
             self._add_setting(setting)
         if group_box := self._groups.get(SettingCategory.RECOVERY_METER):
             group_box.layout().addWidget(self._button_calibrate_recovery_meter)
@@ -125,11 +125,11 @@ class SettingsDialog(QDialog, UI_CLASS):  # type: ignore
         self._groups.clear()
 
         # Reset settings and re-add them
-        ProfilerSettings.reset()
-        for setting in ProfilerSettings:
+        Settings.reset()
+        for setting in Settings:
             self._add_setting(setting)
 
-    def _add_setting(self, setting: ProfilerSettings) -> None:
+    def _add_setting(self, setting: Settings) -> None:
         """Adds a widget to the appropriate group box based on the category."""
         setting_meta = setting.value
         widget_type = setting_meta.widget_type
@@ -196,14 +196,14 @@ class SettingsDialog(QDialog, UI_CLASS):  # type: ignore
             self._button_calibrate_recovery_meter,
             RecoveryMeasurer(
                 process_event_count=self._widgets[
-                    ProfilerSettings.recovery_process_event_count
+                    Settings.recovery_process_event_count
                 ].value(),
                 threshold_s=100,  # large number so no anomaly is detected
                 timeout_s=100,  # large number so no timeout will occur
             ),
             cast(
                 "QDoubleSpinBox",
-                self._widgets[ProfilerSettings.recovery_threshold],
+                self._widgets[Settings.recovery_threshold],
             ),
             name="recovery time",
         )
@@ -217,7 +217,7 @@ class SettingsDialog(QDialog, UI_CLASS):  # type: ignore
             ),
             cast(
                 "QDoubleSpinBox",
-                self._widgets[ProfilerSettings.thread_health_checker_threshold],
+                self._widgets[Settings.thread_health_checker_threshold],
             ),
             name="main thread poll time",
         )
@@ -229,7 +229,7 @@ class SettingsDialog(QDialog, UI_CLASS):  # type: ignore
             MapRenderingMeter(threshold_s=1000),
             cast(
                 "QDoubleSpinBox",
-                self._widgets[ProfilerSettings.map_rendering_meter_threshold],
+                self._widgets[Settings.map_rendering_meter_threshold],
             ),
             name="map rendering",
         )

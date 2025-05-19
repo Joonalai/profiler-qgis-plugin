@@ -43,7 +43,7 @@ from qgis_profiler.meters.map_rendering import MapRenderingMeter
 from qgis_profiler.meters.recovery_measurer import RecoveryMeasurer
 from qgis_profiler.meters.thread_health_checker import MainThreadHealthChecker
 from qgis_profiler.profiler import ProfilerWrapper
-from qgis_profiler.settings import ProfilerSettings
+from qgis_profiler.settings import Settings
 from qgis_profiler.utils import get_rotated_path
 
 if TYPE_CHECKING:
@@ -84,7 +84,7 @@ class ProfilerExtension(QWidget, UI_CLASS):
         self.setupUi(self)
         self._event_recorder: Optional[ProfilerEventRecorder] = event_recorder
         self._meters: list[Meter] = []
-        self._meters_group = ProfilerSettings.meters_group.get()
+        self._meters_group = Settings.meters_group.get()
 
         combo_box = profiler_panel.findChild(QComboBox)
         tree_view = profiler_panel.findChild(QTreeView)
@@ -115,11 +115,9 @@ class ProfilerExtension(QWidget, UI_CLASS):
         )
 
         # Threshold spinbox
-        self.double_spin_box_threshold.setValue(
-            ProfilerSettings.show_events_threshold.get()
-        )
+        self.double_spin_box_threshold.setValue(Settings.show_events_threshold.get())
         self.double_spin_box_threshold.valueChanged.connect(
-            lambda: ProfilerSettings.show_events_threshold.set(
+            lambda: Settings.show_events_threshold.set(
                 self.double_spin_box_threshold.value()
             )
         )
@@ -193,19 +191,19 @@ class ProfilerExtension(QWidget, UI_CLASS):
 
     def _reset_meters(self) -> None:
         self.cleanup()
-        self._meters_group = ProfilerSettings.meters_group.get()
+        self._meters_group = Settings.meters_group.get()
 
-        if ProfilerSettings.recovery_meter_enabled.get():
+        if Settings.recovery_meter_enabled.get():
             self._meters.append(RecoveryMeasurer.get())
         else:
             RecoveryMeasurer.get().enabled = False
 
-        if ProfilerSettings.thread_health_checker_enabled.get():
+        if Settings.thread_health_checker_enabled.get():
             self._meters.append(MainThreadHealthChecker.get())
         else:
             MainThreadHealthChecker.get().enabled = False
 
-        if ProfilerSettings.map_rendering_meter_enabled.get():
+        if Settings.map_rendering_meter_enabled.get():
             self._meters.append(MapRenderingMeter.get())
         else:
             MapRenderingMeter.get().enabled = False
@@ -251,7 +249,7 @@ class ProfilerExtension(QWidget, UI_CLASS):
         self._update_ui_state()
 
     def _save_current_group_profile_data(self) -> None:
-        start_path = Path(ProfilerSettings.cprofiler_profile_path.get()).parent
+        start_path = Path(Settings.cprofiler_profile_path.get()).parent
         start_path.mkdir(parents=True, exist_ok=True)
 
         file_path, _ = QFileDialog.getSaveFileName(
@@ -281,7 +279,7 @@ class ProfilerExtension(QWidget, UI_CLASS):
             ProfilerWrapper.get().cprofiler.enable()
         else:
             ProfilerWrapper.get().cprofiler.disable()
-            max_line_count = ProfilerSettings.cprofiler_log_line_count.get()
+            max_line_count = Settings.cprofiler_log_line_count.get()
             report = ProfilerWrapper.get().cprofiler.get_stat_report(
                 "cumtime", max_line_count=max_line_count, trim_zeros=True
             )
@@ -289,7 +287,7 @@ class ProfilerExtension(QWidget, UI_CLASS):
             LOGGER.info(
                 "CProfiler report (rows with 0.00 times are trimmed):\n%s", report
             )
-            output_file_path = Path(ProfilerSettings.cprofiler_profile_path.get())
+            output_file_path = Path(Settings.cprofiler_profile_path.get())
             output_file_path.parent.mkdir(parents=True, exist_ok=True)
             output_file_path = get_rotated_path(output_file_path)
             ProfilerWrapper.get().cprofiler.dump_stats(output_file_path)

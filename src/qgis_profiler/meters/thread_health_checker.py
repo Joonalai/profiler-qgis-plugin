@@ -33,7 +33,7 @@ from qgis.PyQt.QtCore import (
 )
 
 from qgis_profiler.meters.meter import Meter
-from qgis_profiler.settings import ProfilerSettings
+from qgis_profiler.settings import Settings
 
 LOGGER = logging.getLogger(__name__)
 
@@ -121,10 +121,10 @@ class MainThreadHealthChecker(Meter):
     def get(cls) -> "MainThreadHealthChecker":
         if cls._instance is None:
             cls._instance = MainThreadHealthChecker(
-                poll_interval_s=ProfilerSettings.thread_health_checker_poll_interval.get(),
-                threshold_s=ProfilerSettings.thread_health_checker_threshold.get(),
+                poll_interval_s=Settings.thread_health_checker_poll_interval.get(),
+                threshold_s=Settings.thread_health_checker_threshold.get(),
             )
-            cls._instance.enabled = ProfilerSettings.thread_health_checker_enabled.get()
+            cls._instance.enabled = Settings.thread_health_checker_enabled.get()
         return cls._instance
 
     @classmethod
@@ -156,12 +156,10 @@ class MainThreadHealthChecker(Meter):
 
     def reset_parameters(self) -> None:
         self._poll_interval_ms = (
-            ProfilerSettings.thread_health_checker_poll_interval.get() * 1000
+            Settings.thread_health_checker_poll_interval.get() * 1000
         )
-        self._threshold_ms = (
-            ProfilerSettings.thread_health_checker_threshold.get() * 1000
-        )
-        self.enabled = ProfilerSettings.thread_health_checker_enabled.get()
+        self._threshold_ms = Settings.thread_health_checker_threshold.get() * 1000
+        self.enabled = Settings.thread_health_checker_enabled.get()
         LOGGER.debug("Health checker parameters reset: %s", self)
 
     def _start_measuring(self) -> bool:
@@ -204,8 +202,7 @@ class MainThreadHealthChecker(Meter):
         t = time.time()
         while (
             self._last_delay_ms == 0
-            and time.time() - t
-            < ProfilerSettings.thread_health_checker_poll_interval.get() * 2
+            and time.time() - t < Settings.thread_health_checker_poll_interval.get() * 2
         ):
             QgsApplication.processEvents()
         self.cleanup()

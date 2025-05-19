@@ -25,7 +25,7 @@ from qgis.PyQt.QtCore import QElapsedTimer
 from qgis.utils import iface as iface_
 
 from qgis_profiler.meters.meter import Meter
-from qgis_profiler.settings import ProfilerSettings
+from qgis_profiler.settings import Settings
 
 if TYPE_CHECKING:
     from qgis.gui import QgisInterface
@@ -60,14 +60,14 @@ class MapRenderingMeter(Meter):
     def get(cls) -> "MapRenderingMeter":
         if cls._instance is None:
             cls._instance = MapRenderingMeter(
-                threshold_s=ProfilerSettings.map_rendering_meter_threshold.get(),
+                threshold_s=Settings.map_rendering_meter_threshold.get(),
             )
-            cls._instance.enabled = ProfilerSettings.map_rendering_meter_enabled.get()
+            cls._instance.enabled = Settings.map_rendering_meter_enabled.get()
         return cls._instance
 
     def reset_parameters(self) -> None:
-        self._threshold_ms = ProfilerSettings.map_rendering_meter_threshold.get() * 1000
-        self.enabled = ProfilerSettings.map_rendering_meter_enabled.get()
+        self._threshold_ms = Settings.map_rendering_meter_threshold.get() * 1000
+        self.enabled = Settings.map_rendering_meter_enabled.get()
         LOGGER.debug("MapRenderingMeasurer parameters reset: %s", self)
 
     def _start_measuring(self) -> bool:

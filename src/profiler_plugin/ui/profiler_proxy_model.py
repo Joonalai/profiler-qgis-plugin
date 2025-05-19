@@ -27,7 +27,7 @@ from qgis.PyQt.QtCore import (
     Qt,
 )
 
-from qgis_profiler.settings import ProfilerSettings
+from qgis_profiler.settings import Settings
 
 LOGGER = logging.getLogger(__name__)
 
@@ -56,10 +56,8 @@ class ProfilerProxyModel(QSortFilterProxyModel):
         self.group = ""
         super().__init__(parent)
         self.setSourceModel(source_model)
-        self.threshold = ProfilerSettings.show_events_threshold.get()
-        ProfilerSettings.show_events_threshold.value.changed.connect(
-            self._threshold_changed
-        )
+        self.threshold = Settings.show_events_threshold.get()
+        Settings.show_events_threshold.value.changed.connect(self._threshold_changed)
 
     def set_group(self, group: str) -> None:
         self.group = group
@@ -86,4 +84,4 @@ class ProfilerProxyModel(QSortFilterProxyModel):
         )
 
     def _threshold_changed(self) -> None:
-        self.set_threshold(ProfilerSettings.show_events_threshold.get())
+        self.set_threshold(Settings.show_events_threshold.get())

@@ -33,7 +33,7 @@ from qgis.PyQt.QtWidgets import (
 
 from profiler_plugin.ui.profiler_extension import ProfilerExtension
 from profiler_plugin.ui.settings_dialog import SettingsDialog
-from qgis_profiler.settings import ProfilerSettings
+from qgis_profiler.settings import Settings
 
 NEW_GROUP = "New manual group"
 INITIAL_GROUPS = ["Manual group", "QGIS group"]
@@ -148,7 +148,7 @@ def test_profiler_extension_initialization(
     assert profiler_extension._filter_proxy_model.group == INITIAL_GROUPS[0]
     assert (
         profiler_extension.double_spin_box_threshold.value()
-        == ProfilerSettings.show_events_threshold.get()
+        == Settings.show_events_threshold.get()
     )
 
     # All buttons should have icons and be auto-risen
@@ -200,7 +200,7 @@ def test_toggle_cprofile_recording(
     tmp_path: Path,
 ) -> None:
     file_path = tmp_path / "profile" / "file.prof"
-    ProfilerSettings.cprofiler_profile_path.value.default = str(file_path)
+    Settings.cprofiler_profile_path.value.default = str(file_path)
     assert not file_path.exists()
     assert not file_path.parent.exists()
 

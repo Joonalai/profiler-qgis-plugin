@@ -22,7 +22,7 @@ from typing import Any, Callable, Optional
 
 from qgis_profiler.profiler import ProfilerWrapper
 from qgis_profiler.settings import (
-    ProfilerSettings,
+    Settings,
     resolve_group_name_with_cache,
 )
 from qgis_profiler.utils import QgisPluginType, get_rotated_path, parse_arguments
@@ -67,7 +67,7 @@ def profile(
     # @profile syntax
     @wraps(function)
     def wrapper(*args: Any, **kwargs: Any) -> Any:
-        if not ProfilerSettings.profiler_enabled.get_with_cache():
+        if not Settings.profiler_enabled.get_with_cache():
             LOGGER.debug("Profiling is disabled.")
             return function(*args, **kwargs)
 
@@ -187,7 +187,7 @@ def cprofile(
     # @cprofile syntax
     @wraps(function)
     def wrapper(*args: Any, **kwargs: Any) -> Any:
-        if not ProfilerSettings.profiler_enabled.get():
+        if not Settings.profiler_enabled.get():
             LOGGER.debug("Profiling is disabled.")
             return function(*args, **kwargs)
 
@@ -231,7 +231,7 @@ def cprofile_plugin(
     """
 
     def decorator(cls: type) -> type:
-        if not ProfilerSettings.profiler_enabled.get():
+        if not Settings.profiler_enabled.get():
             LOGGER.debug("Profiling is disabled.")
             return cls
 
