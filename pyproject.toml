@@ -1,3 +1,50 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "profiler-qgis-plugin"
+dynamic = ["version"]
+readme = "README.md"
+license = "GPL-3.0-only"
+license-files = ["LICENSE"]
+requires-python = ">=3.9"
+authors = [
+    { name = "Cofactor Oy", email = "dev@cofactor.fi" },
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+
+dependencies = [
+    "qgis_plugin_tools>=0.5.0,<1",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+qgis_profiler = ["py.typed"]
+profiler_plugin = [
+    "py.typed",
+    "metadata.txt",
+    "**/*.svg",
+    "**/*.ts",
+    "**/*.ui",
+]
+
+[tool.setuptools.dynamic]
+version = {attr = "qgis_profiler.__version__"}
+
+
 [tool.ruff]
 src = ["src"]
 
@@ -117,10 +164,6 @@ exclude_also = [
     "raise NotImplementedError",
 ]
 
-[build-system]
-requires = ["setuptools"]
-build-backend = "setuptools.build_meta"
-
 [tool.qgis_plugin_dev_tools]
 plugin_package_name = "profiler_plugin"
 version_number_source = "distribution"
@@ -128,3 +171,6 @@ runtime_requires = [
     "qgis_plugin_tools",
     "profiler-qgis-plugin"
 ]
+
+[project.entry-points.qgis_plugin_dev_tools]
+profiler_plugin = "profiler_plugin"
