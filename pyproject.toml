@@ -59,8 +59,6 @@ lint.unfixable = [
     "F841", # Unused variables
 ]
 
-line-length = 88
-
 # List of all rules https://docs.astral.sh/ruff/rules/
 lint.select = [
     "ANN", # flake8-annotations
@@ -100,6 +98,8 @@ lint.select = [
 # Avoiding flagging (and removing) `SC200` from any `# noqa`
 # directives, despite Ruff's lack of support for `flake8-spellcheck`.
 lint.external = ["SC200"]
+
+line-length = 88
 
 target-version = "py39"
 
@@ -174,3 +174,34 @@ runtime_requires = [
 
 [project.entry-points.qgis_plugin_dev_tools]
 profiler_plugin = "profiler_plugin"
+
+[tool.uv.sources]
+profiler-qgis-plugin = { workspace = true }
+
+[tool.uv]
+default-groups = ["dev", "lint"]
+
+[dependency-groups]
+dev = [
+    "exceptiongroup>=1.2.2",
+    "pre-commit>=4.2.0",
+    "profiler-qgis-plugin",
+    "pyqt5-stubs>=5.15.6.0",
+    "pytest>=8.3.5",
+    "pytest-cov>=6.1.0",
+    "pytest-dotenv>=0.5.2",
+    "pytest-lazy-fixtures>=1.1.2",
+    "pytest-mock>=3.14.0",
+    "pytest-qgis>=2.1.0",
+    "pytest-qt>=4.4.0",
+    "pytest-subtests>=0.14.1",
+    "pytest-timeout>=2.3.1",
+    "qgis-plugin-dev-tools>=0.9.1",
+]
+lint = [
+    "flake8>=6.0.0",
+    "flake8-pyproject>=1.2.3",
+    "flake8-qgis>=1.0.0",
+    "flake8-spellcheck>=0.28.0",
+    "mypy>=1.13.0",
+]

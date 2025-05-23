@@ -3,6 +3,7 @@
 ![tests](https://github.com/Joonalai/profiler-qgis-plugin/workflows/Tests/badge.svg)
 [![codecov](https://codecov.io/gh/Joonalai/profiler-qgis-plugin/branch/main/graph/badge.svg?token=D1RUB69MUM)](https://codecov.io/gh/Joonalai/profiler-qgis-plugin)
 [![GPLv3 license](https://img.shields.io/badge/License-GPLv3-blue.svg)](http://perso.crans.org/besson/LICENSE.html)
+[![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
 
@@ -21,11 +22,10 @@ to be able to profile plugins and QGIS itself easily.
 ## Installation
 
 1. Clone the repository from GitHub.
-2. Install requirements (in a venv): `pip install -r requirements.txt`
-3. Install the repo (not editable): `pip install .`
-4. Build a package: `qpdt b`
-5. Open QGIS and navigate to `Plugins > Manage and Install Plugins`.
-6. Click the `Install from ZIP` option and install the packaged plugin zip.
+2. Install requirements (in a venv created with --system-site-packages): `[uv] sync`
+3. Build a package: `qpdt b`
+4. Open QGIS and navigate to `Plugins > Manage and Install Plugins`.
+5. Click the `Install from ZIP` option and install the packaged plugin zip.
 
 ## Usage
 
@@ -55,3 +55,6 @@ These awesome plugins are used as an inspiration for the plugin structure:
 Licensed under GNU GPL v3.0.
 
 Copyright (C) 2025 profiler-qgis-plugin contributors.
+
+[uv](https://docs.astral.sh/uv/getting-started/installation/)
+[cProfile](https://docs.python.org/3/library/profile.html#module-cProfile)

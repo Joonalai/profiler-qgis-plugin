@@ -1,13 +1,13 @@
-default_stages: [commit]
+default_stages: [pre-commit]
 default_install_hook_types: [pre-commit, commit-msg, pre-push]
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
     hooks:
       - id: trailing-whitespace
-        stages: ["commit"]
+        stages: ["pre-commit"]
       - id: end-of-file-fixer
-        stages: ["commit"]
+        stages: ["pre-commit"]
       - id: mixed-line-ending
         name: LF for all files
         args: [--fix=lf]
@@ -15,19 +15,19 @@ repos:
       - id: check-added-large-files
         exclude: '.*\.gif'
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.11.2
+    rev: v0.11.11
     hooks:
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix, --extend-fixable=F401, --unsafe-fixes]
       - id: ruff-format
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.13.0
+    rev: v1.15.0
     hooks:
       - id: mypy
         additional_dependencies:
           - PyQt5-stubs==5.15.6.0
   - repo: https://github.com/PyCQA/flake8
-    rev: 6.0.0
+    rev: 7.2.0
     hooks:
       - id: flake8
         additional_dependencies:
@@ -35,13 +35,13 @@ repos:
           - flake8-qgis==1.0.0
           - flake8-spellcheck==0.28.0
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.32.2
+    rev: v0.45.0
     hooks:
       - id: markdownlint
         args: ["--fix"]
   # commit-msg hooks
   - repo: https://github.com/jorisroovers/gitlint
-    rev: v0.18.0
+    rev: v0.19.1
     hooks:
       - id: gitlint
         stages: [commit-msg]

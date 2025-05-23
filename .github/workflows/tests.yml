@@ -24,9 +24,8 @@ jobs:
       - run: |
           python3 -m venv --system-site-packages .venv
       - run: |
-          .venv/bin/pip3 install -q -U pip
-          .venv/bin/pip3 install -q -r requirements.txt --no-deps --only-binary=:all:
-          .venv/bin/pip3 install . --no-deps
+          .venv/bin/pip3 install -q -U uv
+          .venv/bin/uv sync
       - run: |
           .venv/bin/pytest --qgis_disable_gui --cov --cov-branch --cov-report=xml --junitxml=junit.xml -o junit_family=legacy
 
