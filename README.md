@@ -7,8 +7,6 @@
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
 
-**UNDER ACTIVE DEVELOPMENT!**
-
 The QGIS Profiler Plugin aims to extend QGIS Profiler development tool
 to be able to profile plugins and QGIS itself easily.
 
@@ -16,20 +14,28 @@ to be able to profile plugins and QGIS itself easily.
 
 ## Features
 
-* A simpler python api for profiling
-* Record profiling events (more info coming soon)
+* Broader python api for profiling
+  * Proper API documentation is coming soon
+* Ability to filter and search profile events
+* A feature to record profiler events and various meters
+* A feature to record any python code with [cProfile](https://docs.python.org/3/library/profile.html#module-cProfile)
+  (if installed in the system)
+  * To get started, hit the python button inside
+   the panel or use `cprofile_plugin` [decorator](src/qgis_profiler/decorators.py)
+   with your plugin
+* Ability to save the profile results into a stats file, that can then be further
+  analysed for example with tools like [gprof2dot](https://github.com/jrfonseca/gprof2dot)
+  and [snakeviz](https://jiffyclub.github.io/snakeviz/#snakeviz)
+* Settings to control the behavior
 
 ## Installation
 
-1. Clone the repository from GitHub.
-2. Install requirements (in a venv created with --system-site-packages): `[uv] sync`
-3. Build a package: `qpdt b`
-4. Open QGIS and navigate to `Plugins > Manage and Install Plugins`.
-5. Click the `Install from ZIP` option and install the packaged plugin zip.
+Install the plugin from the QGIS plugin repository
+or download the zip from the repository releases.
 
 ## Usage
 
-Open QGIS development tools and interact with profiling panel.
+Open QGIS development tools and interact with the profiling panel.
 
 ## Requirements
 
@@ -44,7 +50,7 @@ See [development readme](docs/DEVELOPMENT.md) for details.
 
 ## Inspirations
 
-These awesome plugins are used as an inspiration for the plugin structure:
+These awesome plugins are used as inspiration for the plugin structure:
 
 * <https://github.com/nlsfi/pickLayer>
 * <https://github.com/nlsfi/segment-reshape-qgis-plugin>
@@ -55,6 +61,3 @@ These awesome plugins are used as an inspiration for the plugin structure:
 Licensed under GNU GPL v3.0.
 
 Copyright (C) 2025 profiler-qgis-plugin contributors.
-
-[uv](https://docs.astral.sh/uv/getting-started/installation/)
-[cProfile](https://docs.python.org/3/library/profile.html#module-cProfile)

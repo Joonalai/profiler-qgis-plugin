@@ -7,12 +7,12 @@ Qt with Qt Editor and Qt Linquist installed by following this
 
 ## Setting up development environment
 
-This project uses [uv] to manage python packages.
-Make sure to have it installed first.
+This project uses [uv](https://docs.astral.sh/uv/getting-started/installation/)
+to manage python packages. Make sure to have it installed first.
 
 - Create a venv that is aware of system QGIS libraries: `uv venv --system-site-packages`
   - On Windows OSGeo4W v2 installs use `<osgeo>/apps/PythonXX/python.exe`
-      with [necessary patches](./osgeo-python-patch.md)
+      with [necessary patches](https://trac.osgeo.org/osgeo4w/ticket/692)
 - Activate the venv
 - Install the dependencies:
 - `uv sync`
@@ -28,23 +28,6 @@ To update requirements, do `uv lock --upgrade-package <package>`.
 ## Commit message style
 
 Commit messages should follow [Conventional Commits notation](https://www.conventionalcommits.org/en/v1.0.0/#summary).
-
-## Adding or editing source files
-
-If you create or edit source files make sure that:
-
-- they contain absolute imports:
-
-    ```python
-
-    from plugin.utils.exceptions import TestException # Good
-
-    from ..utils.exceptions import TestException # Bad
-
-
-    ```
-
-- you consider adding test files for the new functionality
 
 ## Testing
 
@@ -77,6 +60,3 @@ rebased commit on the main branch, instead of the now obsolete
 commit on the original branch. If the GUI dropdown selection
 won't show the new main branch commits, the release may need to
 be re-created manually to allow selecting the rebased commit hash.
-
-[uv](https://docs.astral.sh/uv/getting-started/installation/)
-[OSGeo4W issue](https://trac.osgeo.org/osgeo4w/ticket/692)
