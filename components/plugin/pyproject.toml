@@ -1,10 +1,14 @@
 [project]
 name = "profiler-qgis-plugin"
 version = "0.0.1"
-description = "Add your description here"
+description = "The QGIS Profiler Plugin aims to extend QGIS Profiler development tool to be able to profile plugins and QGIS itself easily."
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = ["qgis_plugin_tools>=0.5.0", "qgis-profiler-lib"]
+
+[project.urls]
+homepage = "https://github.com/Joonalai/profiler-qgis-plugin"
+repository = "https://github.com/Joonalai/profiler-qgis-plugin"
 
 [build-system]
 requires = ["uv_build>=0.10.9,<0.11.0"]
@@ -31,7 +35,7 @@ dev = [
   "pytest-qt>=4.4.0",
   "pytest-subtests>=0.14.1",
   "pytest-timeout>=2.3.1",
-  "qgis-plugin-dev-tools>=0.9.1",
+  "qgis-plugin-dev-tools>=0.10.0",
 ]
 lint = [
   "flake8>=6.0.0",
@@ -47,6 +51,8 @@ qgis-profiler-lib = { workspace = true }
 [tool.qgis_plugin_dev_tools]
 plugin_package_name = "profiler_plugin"
 version_number_source = "distribution"
+changelog_file_path = "../../CHANGELOG.md"
+env_file_path = "../../.env"
 runtime_requires = [
   "qgis_plugin_tools",
   "profiler-qgis-plugin",

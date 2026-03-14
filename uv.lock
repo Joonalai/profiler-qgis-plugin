@@ -435,6 +435,7 @@ name = "profiler-qgis-plugin"
 version = "0.0.1"
 source = { editable = "components/plugin" }
 dependencies = [
+    { name = "qgis-plugin-dev-tools" },
     { name = "qgis-plugin-tools" },
     { name = "qgis-profiler-lib" },
 ]
@@ -465,6 +466,7 @@ lint = [
 
 [package.metadata]
 requires-dist = [
+    { name = "qgis-plugin-dev-tools" },
     { name = "qgis-plugin-tools", specifier = ">=0.5.0" },
     { name = "qgis-profiler-lib", editable = "components/lib" },
 ]
@@ -483,7 +485,7 @@ dev = [
     { name = "pytest-qt", specifier = ">=4.4.0" },
     { name = "pytest-subtests", specifier = ">=0.14.1" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
-    { name = "qgis-plugin-dev-tools", specifier = ">=0.9.1" },
+    { name = "qgis-plugin-dev-tools", specifier = ">=0.10.0" },
 ]
 lint = [
     { name = "flake8", specifier = ">=6.0.0" },
@@ -669,7 +671,7 @@ wheels = [
 
 [[package]]
 name = "qgis-plugin-dev-tools"
-version = "0.9.2"
+version = "0.10.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "importlib-metadata" },
@@ -678,9 +680,9 @@ dependencies = [
     { name = "requests" },
     { name = "tomli" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/03/d5/5594c3e7fdf2cdec171f5529c2848dd65c3b4dc133b886e60563d231a4de/qgis_plugin_dev_tools-0.9.2.tar.gz", hash = "sha256:553d0aba4ab6cd047ac1d46379db4f723aee83c4ed1b5336717f256e9106c3b8", size = 41440, upload-time = "2026-02-04T08:24:53.623Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/11/bc/2fde5b2da0dd0061922d15a359e7b86510c46fd0ed471f13bfcd4e2b30c1/qgis_plugin_dev_tools-0.10.0.tar.gz", hash = "sha256:025ff018cc1327b511476d286abbd9dbb4ebe43a798fd66e2f35267f5b6a48a2", size = 41858, upload-time = "2026-03-14T21:06:41.998Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/53/05/fd39cd9ded8f6afe27a0fca021399c98c2d161fc796a501f13234f7b6419/qgis_plugin_dev_tools-0.9.2-py3-none-any.whl", hash = "sha256:1753a1bc04b7b44cf0b01df92e9faf6be4f4cd2e7bca693dcdcb7d31fec12234", size = 46435, upload-time = "2026-02-04T08:24:52.132Z" },
+    { url = "https://files.pythonhosted.org/packages/52/96/4c42b0601b27978512d1fee26c7a436e413183de8f6401805988ac8d1fcc/qgis_plugin_dev_tools-0.10.0-py3-none-any.whl", hash = "sha256:ebdfad804f225ff1f34fe2e17ffdd054ac4303c8797393a697e5825f74250c43", size = 46623, upload-time = "2026-03-14T21:06:40.672Z" },
 ]
 
 [[package]]

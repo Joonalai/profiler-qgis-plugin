@@ -19,7 +19,9 @@ to manage python packages. Make sure to have it installed first.
 - Install pre-commit: `prek install`
 - Create a `.env` from `.env.example`, and configure
    at least the QGIS executable path
-- Launch development QGIS: `uv run --directory components/plugin qpdt s --env-file=../../.env`
+- Launch development QGIS: `uv run --directory components/plugin qpdt s`
+  - If you are in the components/plugin directory, you can also run
+  `uv run qpdt s` or `qpdt s`
 
 ## Requirements changes
 
