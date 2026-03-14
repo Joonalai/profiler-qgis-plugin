@@ -1,7 +1,7 @@
 [project]
-name = "qgis-profiler-lib"
+name = "profiler-qgis-core"
 version = "0.0.1"
-description = "Profiler library for profiling QGIS."
+description = "A library for profiling QGIS and QGIS plugins."
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = ["qgis_plugin_tools>=0.5.0"]
