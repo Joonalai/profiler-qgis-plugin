@@ -1,6 +1,6 @@
 [project]
 name = "profiler-qgis-core"
-version = "0.0.1"
+version = "0.0.1b1"
 description = "A library for profiling QGIS and QGIS plugins."
 readme = "README.md"
 requires-python = ">=3.12"
@@ -13,6 +13,13 @@ repository = "https://github.com/Joonalai/profiler-qgis-plugin"
 [build-system]
 requires = ["uv_build>=0.10.9,<0.11.0"]
 build-backend = "uv_build"
+
+
+[[tool.uv.index]]
+name = "testpypi"
+url = "https://test.pypi.org/simple/"
+publish-url = "https://test.pypi.org/legacy/"
+explicit = true
 
 [tool.uv.build-backend]
 module-name = "qgis_profiler"
