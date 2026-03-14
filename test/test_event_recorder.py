@@ -16,7 +16,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with profiler-qgis-plugin. If not, see <https://www.gnu.org/licenses/>.
 from collections.abc import Iterator
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 import pytest
 from qgis.gui import (
@@ -183,7 +183,7 @@ def test_recorder_should_record_map_tool_events(
     qtbot: "QtBot",
     mocker: "MockerFixture",
     attribute_to_mock: str,
-    response: Optional[EventResponse],
+    response: EventResponse | None,
     expected_methods_to_call: list[str],
 ):
     # Arrange

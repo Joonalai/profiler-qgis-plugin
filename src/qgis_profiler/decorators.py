@@ -16,9 +16,10 @@
 #  You should have received a copy of the GNU General Public License
 #  along with profiler-qgis-plugin. If not, see <https://www.gnu.org/licenses/>.
 import logging
+from collections.abc import Callable
 from functools import wraps
 from pathlib import Path
-from typing import Any, Callable, Optional
+from typing import Any
 
 from qgis_profiler.profiler import ProfilerWrapper
 from qgis_profiler.settings import (
@@ -31,11 +32,11 @@ LOGGER = logging.getLogger(__name__)
 
 
 def profile(
-    function: Optional[Callable] = None,
+    function: Callable | None = None,
     *,
-    name: Optional[str] = None,
-    group: Optional[str] = None,
-    event_args: Optional[list[str]] = None,
+    name: str | None = None,
+    group: str | None = None,
+    event_args: list[str] | None = None,
 ) -> Callable:
     """
     Creates a profiling decorator that measures the time taken by a function and groups
@@ -89,9 +90,9 @@ def profile(
 
 def profile_class(  # noqa: C901
     *,
-    group: Optional[str] = None,
-    include: Optional[list[str]] = None,
-    exclude: Optional[list[str]] = None,
+    group: str | None = None,
+    include: list[str] | None = None,
+    exclude: list[str] | None = None,
 ) -> Callable[[type], type]:
     """
     A class decorator to automatically wrap methods with the 'profile' decorator.
@@ -154,12 +155,12 @@ def profile_class(  # noqa: C901
 
 
 def cprofile(
-    function: Optional[Callable] = None,
+    function: Callable | None = None,
     *,
     log_stats: bool = True,
     trim_zeros: bool = True,
     sort: tuple[str, ...] = ("cumtime",),
-    output_file_path: Optional[Path] = None,
+    output_file_path: Path | None = None,
 ) -> Callable:
     """
     Profiles the execution of a specified function using cProfile. Can be used

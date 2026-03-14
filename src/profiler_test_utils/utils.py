@@ -18,7 +18,6 @@
 
 import time
 from functools import partial
-from typing import Optional
 
 from qgis.core import QgsApplication
 from qgis.PyQt.QtWidgets import (
@@ -37,7 +36,7 @@ from qgis_profiler.profiler import ProfilerResult
 
 
 class Dialog(QDialog):
-    def __init__(self, parent: Optional[QWidget] = None) -> None:
+    def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         layout = QVBoxLayout()
 

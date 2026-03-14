@@ -15,7 +15,8 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with profiler-qgis-plugin. If not, see <https://www.gnu.org/licenses/>.
-from typing import TYPE_CHECKING, Callable, Optional, Union
+from collections.abc import Callable
+from typing import TYPE_CHECKING
 
 import pytest
 from pytest_lazy_fixtures import lf
@@ -111,8 +112,8 @@ def mock_event_filter(mocker: "MockerFixture") -> "MagicMock":
     ],
 )
 def test_custom_event_filter(
-    filter_event: Union[QEvent, QEvent.Type],
-    object_filter: Optional[Callable[[QObject], bool]],
+    filter_event: QEvent | QEvent.Type,
+    object_filter: Callable[[QObject], bool] | None,
     event: QMouseEvent,
     qobject: QObject,
     expected_result: bool,
@@ -177,7 +178,7 @@ def test_simple_map_tool_click_config_should_match_event(
     mock_event_filter: "MagicMock",
     sample_event: QMouseEvent,
     qobject: Callable[[], QObject],
-    expected_result: Optional[EventResponse],
+    expected_result: EventResponse | None,
 ):
     config = SimpleMapToolClickConfig("test")
     assert config.matches(sample_event, qobject()) == expected_result

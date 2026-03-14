@@ -16,7 +16,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with profiler-qgis-plugin. If not, see <https://www.gnu.org/licenses/>.
 
-from typing import TYPE_CHECKING, Optional, cast
+from typing import TYPE_CHECKING, cast
 
 import qgis_plugin_tools
 from qgis.PyQt.QtCore import QObject
@@ -48,9 +48,9 @@ class ProfilerPlugin(QObject):
     def __init__(self) -> None:
         super().__init__(parent=None)
         self._teardown_loggers = lambda: None
-        self._profiler_panel_layout: Optional[QVBoxLayout] = None
-        self._event_recorder: Optional[ProfilerEventRecorder] = None
-        self._profiler_extension: Optional[ProfilerExtension] = None
+        self._profiler_panel_layout: QVBoxLayout | None = None
+        self._event_recorder: ProfilerEventRecorder | None = None
+        self._profiler_extension: ProfilerExtension | None = None
 
     def initGui(self) -> None:  # noqa: N802
         self._teardown_loggers = setup_loggers(

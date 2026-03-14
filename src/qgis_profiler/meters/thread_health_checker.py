@@ -19,7 +19,8 @@
 import logging
 import time
 import warnings
-from typing import Callable, Optional
+from collections.abc import Callable
+from typing import Optional
 
 from qgis.core import QgsApplication
 from qgis.PyQt.QtCore import (
@@ -46,7 +47,7 @@ class ThreadPoller(QObject):
         self._polling_active: bool = False
         self._elapsed_timer = QElapsedTimer()
         self._poll_interval = poll_interval_ms
-        self._timer: Optional[QTimer] = None
+        self._timer: QTimer | None = None
         self._event_loop = QEventLoop(self)
 
     @pyqtSlot()
@@ -105,8 +106,8 @@ class MainThreadHealthChecker(Meter):
         self._poll_interval_ms = poll_interval_s * 1000
         self._threshold_ms = threshold_s * 1000
 
-        self._poller: Optional[ThreadPoller] = None
-        self._polling_thread: Optional[QThread] = None
+        self._poller: ThreadPoller | None = None
+        self._polling_thread: QThread | None = None
         self._last_delay_ms: int = 0
         LOGGER.debug("Health checker parameters initialized: %s", self)
 
@@ -130,11 +131,11 @@ class MainThreadHealthChecker(Meter):
     @classmethod
     def monitor(  # noqa: PLR0913
         cls,
-        function: Optional[Callable] = None,
+        function: Callable | None = None,
         *,
-        name: Optional[str] = None,
-        group: Optional[str] = None,
-        name_args: Optional[list[str]] = None,
+        name: str | None = None,
+        group: str | None = None,
+        name_args: list[str] | None = None,
         connect_to_profiler: bool = True,
         start_continuous_measuring: bool = True,
         measure_after_call: bool = False,

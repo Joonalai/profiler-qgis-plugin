@@ -21,7 +21,7 @@ import os
 import time
 from dataclasses import dataclass
 from functools import lru_cache
-from typing import Any, Optional, Union
+from typing import Any
 
 from qgis.PyQt.QtCore import QObject, pyqtSignal
 from qgis_plugin_tools.tools.i18n import tr
@@ -56,9 +56,9 @@ class SettingCategory(enum.Enum):
 class WidgetConfig:
     """Configuration options for different widget types."""
 
-    minimum: Optional[Union[int, float]] = None
-    maximum: Optional[Union[int, float]] = None
-    step: Optional[Union[int, float]] = None
+    minimum: int | float | None = None
+    maximum: int | float | None = None
+    step: int | float | None = None
 
 
 @dataclass
@@ -66,8 +66,8 @@ class Setting(QObject):
     description: str
     default: Any
     category: SettingCategory = SettingCategory.PROFILING
-    widget_config: Optional[WidgetConfig] = None
-    widget_type: Optional[WidgetType] = None
+    widget_config: WidgetConfig | None = None
+    widget_type: WidgetType | None = None
     changed = pyqtSignal()
 
     def __post_init__(self) -> None:
@@ -247,14 +247,14 @@ class Settings(enum.Enum):
         return self.get()
 
 
-def resolve_group_name(group: Optional[str] = None) -> str:
+def resolve_group_name(group: str | None = None) -> str:
     """Helper method to resolve the group name, falling back to settings."""
     if group is not None:
         return group
     return Settings.active_group.get()
 
 
-def resolve_group_name_with_cache(group: Optional[str] = None) -> str:
+def resolve_group_name_with_cache(group: str | None = None) -> str:
     """Helper method to resolve the group name with cache, falling back to settings."""
     if group is not None:
         return group

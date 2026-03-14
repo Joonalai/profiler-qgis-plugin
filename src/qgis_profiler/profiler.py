@@ -46,7 +46,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 @dataclass
-class ProfilerResult:
+class ProfilerResult:  # noqa: PLW1641
     """
     Represents the result of a profiling operation with hierarchical structure.
 
@@ -139,7 +139,7 @@ class ProfilerWrapper:
         if profiler is None:
             raise ProfilerNotFoundError
         self._qgis_profiler: QgsRuntimeProfiler = profiler
-        self._cprofiler: Optional[QCProfiler] = (
+        self._cprofiler: QCProfiler | None = (
             QCProfiler() if QCProfiler is not None else None
         )
         self._pprofiler = PythonProfile()  # noqa: SC200
@@ -186,7 +186,7 @@ class ProfilerWrapper:
     def profile(
         self,
         name: str,
-        group: Optional[str] = None,
+        group: str | None = None,
     ) -> Generator[str, None, None]:
         """Profile a block of code."""
         group = resolve_group_name_with_cache(group)
@@ -242,7 +242,7 @@ class ProfilerWrapper:
         self._profiler_events[group].append(event_id)
         return event_id
 
-    def get_event_time(self, event_id: str, group: Optional[str] = None) -> float:
+    def get_event_time(self, event_id: str, group: str | None = None) -> float:
         """Get the duration of a profiling event in seconds."""
         group = resolve_group_name_with_cache(group)
         if event_id not in self._profiler_events[group]:
@@ -250,7 +250,7 @@ class ProfilerWrapper:
         return self._qgis_profiler.profileTime(event_id, group)
 
     def get_profiler_data(
-        self, name: Optional[str] = None, group: Optional[str] = None
+        self, name: str | None = None, group: str | None = None
     ) -> list[ProfilerResult]:
         """
         Retrieve profiler data filtered by name and/or group.
@@ -290,7 +290,7 @@ class ProfilerWrapper:
         with self.cprofiler.qgis_profiler_data(self._qgis_profiler.asText(group)):
             self.cprofiler.dump_stats(file_path)
 
-    def is_profiling(self, group: Optional[str] = None) -> bool:
+    def is_profiling(self, group: str | None = None) -> bool:
         """
         Check if profiling is active for a given group.
         i.e. it has a entry which has started and not yet stopped.
@@ -303,7 +303,7 @@ class ProfilerWrapper:
         """
         return cast("QAbstractItemModel", self._qgis_profiler)
 
-    def clear(self, group: Optional[str] = None) -> None:
+    def clear(self, group: str | None = None) -> None:
         """
         Clear all profiling data for a given group.
         This does not remove the group.

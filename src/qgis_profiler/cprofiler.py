@@ -32,7 +32,7 @@ if TYPE_CHECKING:
 
 
 @dataclass
-class ProfilerEntry:
+class ProfilerEntry:  # noqa: PLW1641
     """
     Class representing a single profiling entry.
 
@@ -205,7 +205,7 @@ class QCProfiler(cProfile.Profile):
 
     def get_stat_report(
         self,
-        sort: Union[str, tuple[str, ...], int] = -1,
+        sort: str | tuple[str, ...] | int = -1,
         max_line_count: int = 1000,
         trim_zeros: bool = False,  # noqa: FBT001 FBT002
     ) -> str:

@@ -18,7 +18,7 @@
 
 import logging
 from functools import partial
-from typing import TYPE_CHECKING, Any, Optional, cast
+from typing import TYPE_CHECKING, Any, cast
 
 from qgis.gui import QgsMapTool
 from qgis.PyQt import QtWidgets
@@ -75,8 +75,8 @@ class ProfilerEventRecorder(QObject):
     def __init__(
         self,
         group_name: str,
-        map_tools_config: Optional[dict[str, CustomEventConfig]] = None,
-        general_map_tools_config: Optional[list[CustomEventConfig]] = None,
+        map_tools_config: dict[str, CustomEventConfig] | None = None,
+        general_map_tools_config: list[CustomEventConfig] | None = None,
     ) -> None:
         super().__init__()
         self.group = group_name
@@ -86,7 +86,7 @@ class ProfilerEventRecorder(QObject):
         )
         self._recording = False
         self._connections: dict[str, tuple[pyqtSignal, Any]] = {}
-        self._current_map_tool_config: Optional[CustomEventConfig] = None
+        self._current_map_tool_config: CustomEventConfig | None = None
 
         if not utils.has_suitable_qt_version(QT_VERSION_MIN):
             raise ValueError(  # noqa: TRY003
@@ -165,6 +165,9 @@ class ProfilerEventRecorder(QObject):
             if response is None:
                 return
 
+        if config is None:
+            return
+
         if response == EventResponse.START_PROFILING:
             self._start_profiling(config.name)
         elif response == EventResponse.STOP_PROFILING:
@@ -175,7 +178,7 @@ class ProfilerEventRecorder(QObject):
             self._start_profiling(config.name)
             self._post_stop_profiling_event(config.name)
 
-    def _map_tool_changed(self, current: QgsMapTool, _: Optional[QgsMapTool]) -> None:
+    def _map_tool_changed(self, current: QgsMapTool, _: QgsMapTool | None) -> None:
         ProfilerWrapper.get().end_all(self.group)
         if config := self._map_tools_config.get(current.__class__.__name__):
             LOGGER.debug("Map tool changed to %s", config.class_name)

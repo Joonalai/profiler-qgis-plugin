@@ -18,7 +18,7 @@
 import logging
 from contextlib import suppress
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Optional, Union
+from typing import TYPE_CHECKING, Any
 
 from qgis.core import QgsApplication
 from qgis.gui import QgsFilterLineEdit
@@ -74,7 +74,7 @@ class ProfilerExtension(QWidget, UI_CLASS):
     double_spin_box_threshold: QDoubleSpinBox
 
     def __init__(
-        self, event_recorder: Optional[ProfilerEventRecorder], profiler_panel: QWidget
+        self, event_recorder: ProfilerEventRecorder | None, profiler_panel: QWidget
     ) -> None:
         """
         :param event_recorder: Event recording utility for profiling.
@@ -82,7 +82,7 @@ class ProfilerExtension(QWidget, UI_CLASS):
         """
         super().__init__(profiler_panel)
         self.setupUi(self)
-        self._event_recorder: Optional[ProfilerEventRecorder] = event_recorder
+        self._event_recorder: ProfilerEventRecorder | None = event_recorder
         self._meters: list[Meter] = []
         self._meters_group = Settings.meters_group.get()
 
@@ -172,7 +172,7 @@ class ProfilerExtension(QWidget, UI_CLASS):
             ),
         }
 
-        icon: Union[QIcon, str]
+        icon: QIcon | str
         for button, (action, icon) in button_config.items():
             button.setAutoRaise(True)
             if isinstance(icon, str):

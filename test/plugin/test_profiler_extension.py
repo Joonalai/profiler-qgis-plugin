@@ -64,8 +64,8 @@ def mock_event_recorder(mocker: MockerFixture) -> "MagicMock":
     mock_event_recorder = mocker.MagicMock()
     # Recording is in progress if start_recording
     # has been called more than stop_recording
-    mock_event_recorder.is_recording = (
-        lambda: mock_event_recorder.start_recording.call_count
+    mock_event_recorder.is_recording = lambda: (
+        mock_event_recorder.start_recording.call_count
         > mock_event_recorder.stop_recording.call_count
     )
     mock_event_recorder.group = NEW_GROUP
@@ -103,9 +103,7 @@ def _modify_mock_profiler(
     stub_profiler_panel: StubProfilerPanel,
     item_model: QStringListModel,
 ) -> None:
-    mock_profiler.create_group.side_effect = (
-        lambda group: stub_profiler_panel.combo_box_group.addItem(group)
-    )
+    mock_profiler.create_group.side_effect = stub_profiler_panel.combo_box_group.addItem
     mock_profiler.item_model.return_value = item_model
     mock_profiler.qgis_groups.return_value = {
         "QGIS group": "qgis-group",

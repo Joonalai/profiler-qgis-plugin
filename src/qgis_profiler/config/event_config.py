@@ -18,13 +18,11 @@
 import enum
 import logging
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from typing import (
     TYPE_CHECKING,
-    Callable,
     NamedTuple,
-    Optional,
     Protocol,
-    Union,
     cast,
 )
 
@@ -66,8 +64,8 @@ class EventResponse(enum.Enum):
 
 
 class CustomEventFilter(NamedTuple):
-    event: Union[QEvent, QEvent.Type]
-    object_filter: Optional[Callable[[QObject], bool]] = None
+    event: QEvent | QEvent.Type
+    object_filter: Callable[[QObject], bool] | None = None
     stop_after_responsive: bool = False
 
     def matches(self, event: QEvent, obj: QObject) -> bool:
@@ -100,7 +98,7 @@ class CustomEventConfig(Protocol):
         """Activate the custom config when starting recording."""
         ...
 
-    def matches(self, event: QEvent, obj: QObject) -> Optional[EventResponse]:
+    def matches(self, event: QEvent, obj: QObject) -> EventResponse | None:
         """Check what to do with the event"""
         ...
 
@@ -111,7 +109,7 @@ class MapToolConfig(ABC):
     Implements the protocol CustomEventConfig.
     """
 
-    def __init__(self, class_name: str, profile_name: Optional[str] = None) -> None:
+    def __init__(self, class_name: str, profile_name: str | None = None) -> None:
         self.class_name = class_name
         self.profile_name = profile_name or class_name
 
@@ -124,7 +122,7 @@ class MapToolConfig(ABC):
         pass
 
     @abstractmethod
-    def matches(self, event: QEvent, obj: QObject) -> Optional[EventResponse]:
+    def matches(self, event: QEvent, obj: QObject) -> EventResponse | None:
         pass
 
 
@@ -138,7 +136,7 @@ class SimpleMapToolConfig(MapToolConfig):
         class_name: str,
         start_event_filter: CustomEventFilter,
         stop_event_filter: CustomEventFilter,
-        profile_name: Optional[str] = None,
+        profile_name: str | None = None,
     ) -> None:
         super().__init__(class_name, profile_name)
         self.start_event_filter = start_event_filter
@@ -148,7 +146,7 @@ class SimpleMapToolConfig(MapToolConfig):
     def activate(self) -> None:
         self._profiling_started = False
 
-    def matches(self, event: QEvent, obj: QObject) -> Optional[EventResponse]:
+    def matches(self, event: QEvent, obj: QObject) -> EventResponse | None:
         if not self._profiling_started and self.start_event_filter.matches(event, obj):
             self._profiling_started = True
             return EventResponse.START_PROFILING
@@ -169,8 +167,8 @@ class SimpleMapToolClickConfig(MapToolConfig):
     def __init__(
         self,
         class_name: str,
-        event: Optional[CustomEventFilter] = None,
-        profile_name: Optional[str] = None,
+        event: CustomEventFilter | None = None,
+        profile_name: str | None = None,
     ) -> None:
         super().__init__(class_name, profile_name)
         self.event = event or CustomEventFilter(
@@ -181,7 +179,7 @@ class SimpleMapToolClickConfig(MapToolConfig):
     def activate(self) -> None:
         pass
 
-    def matches(self, event: QEvent, obj: QObject) -> Optional[EventResponse]:
+    def matches(self, event: QEvent, obj: QObject) -> EventResponse | None:
         if self.event.matches(event, obj):
             return EventResponse.START_AND_STOP_DELAYED
         return None
@@ -191,8 +189,8 @@ class AdvancedDigitizingMapToolClickConfig(SimpleMapToolClickConfig):
     def __init__(
         self,
         class_name: str,
-        event: Optional[CustomEventFilter] = None,
-        profile_name: Optional[str] = None,
+        event: CustomEventFilter | None = None,
+        profile_name: str | None = None,
     ) -> None:
         super().__init__(class_name, event, profile_name)
         self.initial_canvas_scene_item_count = 0
@@ -208,7 +206,7 @@ class AdvancedDigitizingMapToolClickConfig(SimpleMapToolClickConfig):
         # is not yet fully initialized when this function is called.
         QTimer.singleShot(100, _set_initial_count)
 
-    def matches(self, event: QEvent, obj: QObject) -> Optional[EventResponse]:
+    def matches(self, event: QEvent, obj: QObject) -> EventResponse | None:
         if (
             self.event.matches(event, obj)
             and len(iface.mapCanvas().scene().items())

@@ -16,10 +16,10 @@
 #  You should have received a copy of the GNU General Public License
 #  along with profiler-qgis-plugin. If not, see <https://www.gnu.org/licenses/>.
 import abc
-from collections.abc import Generator
+from collections.abc import Callable, Generator
 from contextlib import contextmanager, suppress
 from functools import wraps
-from typing import Any, Callable, ClassVar, NamedTuple, Optional, cast
+from typing import Any, ClassVar, NamedTuple, cast
 
 from qgis.core import QgsApplication
 from qgis.PyQt.QtCore import QObject, pyqtSignal, pyqtSlot
@@ -84,11 +84,11 @@ class Meter(QObject):
     @classmethod
     def monitor(  # noqa: PLR0913
         cls,
-        function: Optional[Callable] = None,
+        function: Callable | None = None,
         *,
-        name: Optional[str] = None,
-        group: Optional[str] = None,
-        name_args: Optional[list[str]] = None,
+        name: str | None = None,
+        group: str | None = None,
+        name_args: list[str] | None = None,
         connect_to_profiler: bool = True,
         start_continuous_measuring: bool = True,
         measure_after_call: bool = False,
@@ -217,7 +217,7 @@ class Meter(QObject):
         """
         self._context_stack.append(MeterContext(name, group))
 
-    def pop_context(self) -> Optional[MeterContext]:
+    def pop_context(self) -> MeterContext | None:
         """
         Remove the last context from the context stack if it exists.
 
@@ -240,7 +240,7 @@ class Meter(QObject):
         self.anomaly_detected.connect(self._profile_anomaly)
         self._connected_to_profiler = True
 
-    def measure(self) -> Optional[float]:
+    def measure(self) -> float | None:
         """
         Measure once with the meter. Signal anomaly_detected will be emitted
         if applicable.

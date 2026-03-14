@@ -17,7 +17,6 @@
 #  along with profiler-qgis-plugin. If not, see <https://www.gnu.org/licenses/>.
 import enum
 import logging
-from typing import Optional
 
 from qgis.PyQt.QtCore import (
     QAbstractItemModel,
@@ -51,7 +50,7 @@ class ProfilerProxyModel(QSortFilterProxyModel):
     """
 
     def __init__(
-        self, source_model: QAbstractItemModel, parent: Optional[QObject] = None
+        self, source_model: QAbstractItemModel, parent: QObject | None = None
     ) -> None:
         self.group = ""
         super().__init__(parent)
