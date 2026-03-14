@@ -15,11 +15,11 @@ to manage python packages. Make sure to have it installed first.
       with [necessary patches](https://trac.osgeo.org/osgeo4w/ticket/692)
 - Activate the venv
 - Install the dependencies:
-- `uv sync`
+- `uv sync --all-packages --all-groups`
 - Install pre-commit: `prek install`
 - Create a `.env` from `.env.example`, and configure
    at least the QGIS executable path
-- Launch development QGIS: `qpdt s`
+- Launch development QGIS: `uv run --directory components/plugin qpdt s --env-file=../../.env`
 
 ## Requirements changes
 
