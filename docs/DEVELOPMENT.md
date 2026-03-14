@@ -16,7 +16,7 @@ to manage python packages. Make sure to have it installed first.
 - Activate the venv
 - Install the dependencies:
 - `uv sync`
-- Install pre-commit: `pre-commit install`
+- Install pre-commit: `prek install`
 - Create a `.env` from `.env.example`, and configure
    at least the QGIS executable path
 - Launch development QGIS: `qpdt s`
