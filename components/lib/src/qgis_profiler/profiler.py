@@ -1,4 +1,4 @@
-#  Copyright (c) 2025 profiler-qgis-plugin contributors.
+#  Copyright (c) 2025-2026 profiler-qgis-plugin contributors.
 #
 #
 #  This file is part of profiler-qgis-plugin.
