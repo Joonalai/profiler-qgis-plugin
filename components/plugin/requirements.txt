@@ -1,4 +1,4 @@
 # This file is only for building the plugin with qpdt b
 .
-../lib
+../core
 qgis-plugin-dev-tools

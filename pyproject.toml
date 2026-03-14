@@ -103,7 +103,7 @@ select = ["SC", "QGS"]
 
 per-file-ignores = [
   "*/test/*:INP001,SC200,QGS105",
-  "components/lib/src/profiler_test_utils/*:INP001,SC200,QGS105",
+  "components/core/src/profiler_test_utils/*:INP001,SC200,QGS105",
 ]
 
 [tool.mypy]
