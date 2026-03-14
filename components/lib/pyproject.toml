@@ -1,0 +1,41 @@
+[project]
+name = "qgis-profiler-lib"
+version = "0.0.1"
+description = "Profiler library for profiling QGIS."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = ["qgis_plugin_tools>=0.5.0"]
+
+[build-system]
+requires = ["uv_build>=0.10.9,<0.11.0"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "qgis_profiler"
+
+[tool.uv]
+default-groups = ["dev", "lint"]
+
+[dependency-groups]
+dev = [
+  "exceptiongroup>=1.2.2",
+  "prek>=0.3.5",
+  "profiler-qgis-plugin",
+  "pyqt5-stubs>=5.15.6.0",
+  "pytest>=8.3.5",
+  "pytest-cov>=6.1.0",
+  "pytest-dotenv>=0.5.2",
+  "pytest-lazy-fixtures>=1.1.2",
+  "pytest-mock>=3.14.0",
+  "pytest-qgis>=2.1.0",
+  "pytest-qt>=4.4.0",
+  "pytest-subtests>=0.14.1",
+  "pytest-timeout>=2.3.1",
+]
+lint = [
+  "flake8>=6.0.0",
+  "flake8-pyproject>=1.2.3",
+  "flake8-qgis>=1.0.0",
+  "flake8-spellcheck>=0.28.0",
+  "mypy>=1.13.0",
+]
