@@ -22,6 +22,13 @@ members = ["components/*"]
 [tool.uv]
 package = false
 
+[[tool.uv.index]]
+name = "testpypi"
+url = "https://test.pypi.org/simple/"
+publish-url = "https://test.pypi.org/legacy/"
+explicit = true
+
+
 [tool.ruff]
 
 lint.ignore = [
