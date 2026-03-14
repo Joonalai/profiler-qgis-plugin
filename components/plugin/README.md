@@ -1,3 +1,3 @@
 # QGIS profiler plugin
 
-QGIS plugin part of the repository.
+Check the repository for usage information: <https://github.com/Joonalai/profiler-qgis-plugin>.
