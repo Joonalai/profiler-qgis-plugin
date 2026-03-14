@@ -5,8 +5,8 @@ requires-python = ">=3.12"
 [manifest]
 members = [
     "profiler-qgis-plugin",
+    "profiler-qgis-plugin-root",
     "qgis-profiler-lib",
-    "qgis-profiler-plugin",
 ]
 
 [[package]]
@@ -433,6 +433,69 @@ wheels = [
 [[package]]
 name = "profiler-qgis-plugin"
 version = "0.0.1"
+source = { editable = "components/plugin" }
+dependencies = [
+    { name = "qgis-plugin-tools" },
+    { name = "qgis-profiler-lib" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "exceptiongroup" },
+    { name = "prek" },
+    { name = "pyqt5-stubs" },
+    { name = "pytest" },
+    { name = "pytest-cov" },
+    { name = "pytest-dotenv" },
+    { name = "pytest-lazy-fixtures" },
+    { name = "pytest-mock" },
+    { name = "pytest-qgis" },
+    { name = "pytest-qt" },
+    { name = "pytest-subtests" },
+    { name = "pytest-timeout" },
+    { name = "qgis-plugin-dev-tools" },
+]
+lint = [
+    { name = "flake8" },
+    { name = "flake8-pyproject" },
+    { name = "flake8-qgis" },
+    { name = "flake8-spellcheck" },
+    { name = "mypy" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "qgis-plugin-tools", specifier = ">=0.5.0" },
+    { name = "qgis-profiler-lib", editable = "components/lib" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "exceptiongroup", specifier = ">=1.2.2" },
+    { name = "prek", specifier = ">=0.3.5" },
+    { name = "pyqt5-stubs", specifier = ">=5.15.6.0" },
+    { name = "pytest", specifier = ">=8.3.5" },
+    { name = "pytest-cov", specifier = ">=6.1.0" },
+    { name = "pytest-dotenv", specifier = ">=0.5.2" },
+    { name = "pytest-lazy-fixtures", specifier = ">=1.1.2" },
+    { name = "pytest-mock", specifier = ">=3.14.0" },
+    { name = "pytest-qgis", specifier = ">=2.1.0" },
+    { name = "pytest-qt", specifier = ">=4.4.0" },
+    { name = "pytest-subtests", specifier = ">=0.14.1" },
+    { name = "pytest-timeout", specifier = ">=2.3.1" },
+    { name = "qgis-plugin-dev-tools", specifier = ">=0.9.1" },
+]
+lint = [
+    { name = "flake8", specifier = ">=6.0.0" },
+    { name = "flake8-pyproject", specifier = ">=1.2.3" },
+    { name = "flake8-qgis", specifier = ">=1.0.0" },
+    { name = "flake8-spellcheck", specifier = ">=0.28.0" },
+    { name = "mypy", specifier = ">=1.13.0" },
+]
+
+[[package]]
+name = "profiler-qgis-plugin-root"
+version = "0.0.1"
 source = { virtual = "." }
 dependencies = [
     { name = "qgis-plugin-tools" },
@@ -641,7 +704,6 @@ dependencies = [
 dev = [
     { name = "exceptiongroup" },
     { name = "prek" },
-    { name = "profiler-qgis-plugin" },
     { name = "pyqt5-stubs" },
     { name = "pytest" },
     { name = "pytest-cov" },
@@ -668,7 +730,6 @@ requires-dist = [{ name = "qgis-plugin-tools", specifier = ">=0.5.0" }]
 dev = [
     { name = "exceptiongroup", specifier = ">=1.2.2" },
     { name = "prek", specifier = ">=0.3.5" },
-    { name = "profiler-qgis-plugin", virtual = "." },
     { name = "pyqt5-stubs", specifier = ">=5.15.6.0" },
     { name = "pytest", specifier = ">=8.3.5" },
     { name = "pytest-cov", specifier = ">=6.1.0" },
@@ -679,71 +740,6 @@ dev = [
     { name = "pytest-qt", specifier = ">=4.4.0" },
     { name = "pytest-subtests", specifier = ">=0.14.1" },
     { name = "pytest-timeout", specifier = ">=2.3.1" },
-]
-lint = [
-    { name = "flake8", specifier = ">=6.0.0" },
-    { name = "flake8-pyproject", specifier = ">=1.2.3" },
-    { name = "flake8-qgis", specifier = ">=1.0.0" },
-    { name = "flake8-spellcheck", specifier = ">=0.28.0" },
-    { name = "mypy", specifier = ">=1.13.0" },
-]
-
-[[package]]
-name = "qgis-profiler-plugin"
-version = "0.0.1"
-source = { editable = "components/plugin" }
-dependencies = [
-    { name = "qgis-plugin-tools" },
-    { name = "qgis-profiler-lib" },
-]
-
-[package.dev-dependencies]
-dev = [
-    { name = "exceptiongroup" },
-    { name = "prek" },
-    { name = "profiler-qgis-plugin" },
-    { name = "pyqt5-stubs" },
-    { name = "pytest" },
-    { name = "pytest-cov" },
-    { name = "pytest-dotenv" },
-    { name = "pytest-lazy-fixtures" },
-    { name = "pytest-mock" },
-    { name = "pytest-qgis" },
-    { name = "pytest-qt" },
-    { name = "pytest-subtests" },
-    { name = "pytest-timeout" },
-    { name = "qgis-plugin-dev-tools" },
-]
-lint = [
-    { name = "flake8" },
-    { name = "flake8-pyproject" },
-    { name = "flake8-qgis" },
-    { name = "flake8-spellcheck" },
-    { name = "mypy" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "qgis-plugin-tools", specifier = ">=0.5.0" },
-    { name = "qgis-profiler-lib", editable = "components/lib" },
-]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "exceptiongroup", specifier = ">=1.2.2" },
-    { name = "prek", specifier = ">=0.3.5" },
-    { name = "profiler-qgis-plugin", virtual = "." },
-    { name = "pyqt5-stubs", specifier = ">=5.15.6.0" },
-    { name = "pytest", specifier = ">=8.3.5" },
-    { name = "pytest-cov", specifier = ">=6.1.0" },
-    { name = "pytest-dotenv", specifier = ">=0.5.2" },
-    { name = "pytest-lazy-fixtures", specifier = ">=1.1.2" },
-    { name = "pytest-mock", specifier = ">=3.14.0" },
-    { name = "pytest-qgis", specifier = ">=2.1.0" },
-    { name = "pytest-qt", specifier = ">=4.4.0" },
-    { name = "pytest-subtests", specifier = ">=0.14.1" },
-    { name = "pytest-timeout", specifier = ">=2.3.1" },
-    { name = "qgis-plugin-dev-tools", specifier = ">=0.9.1" },
 ]
 lint = [
     { name = "flake8", specifier = ">=6.0.0" },

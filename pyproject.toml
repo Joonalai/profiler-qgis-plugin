@@ -1,5 +1,5 @@
 [project]
-name = "profiler-qgis-plugin"
+name = "profiler-qgis-plugin-root"
 version = "0.0.1"
 readme = "README.md"
 license = "GPL-3.0-only"
@@ -18,9 +18,6 @@ dependencies = ["qgis_plugin_tools>=0.5.0,<1"]
 
 [tool.uv.workspace]
 members = ["components/*"]
-
-[tool.uv.sources]
-profiler-qgis-plugin = { workspace = true }
 
 [tool.uv]
 package = false
@@ -143,11 +140,3 @@ exclude_also = [
   "if TYPE_CHECKING:",
   "raise NotImplementedError",
 ]
-
-[tool.qgis_plugin_dev_tools]
-plugin_package_name = "profiler_plugin"
-version_number_source = "distribution"
-runtime_requires = ["qgis_plugin_tools", "profiler-qgis-plugin"]
-
-[project.entry-points.qgis_plugin_dev_tools]
-profiler_plugin = "profiler_plugin"

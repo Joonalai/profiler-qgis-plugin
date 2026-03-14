@@ -1,5 +1,5 @@
 [project]
-name = "qgis-profiler-plugin"
+name = "profiler-qgis-plugin"
 version = "0.0.1"
 description = "Add your description here"
 readme = "README.md"
@@ -12,6 +12,7 @@ build-backend = "uv_build"
 
 [tool.uv.build-backend]
 module-name = "profiler_plugin"
+include = ["**/py.typed", "**/metadata.txt", "**/*.svg", "**/*.ts", "**/*.ui"]
 
 [tool.uv]
 default-groups = ["dev", "lint"]
@@ -20,7 +21,6 @@ default-groups = ["dev", "lint"]
 dev = [
   "exceptiongroup>=1.2.2",
   "prek>=0.3.5",
-  "profiler-qgis-plugin",
   "pyqt5-stubs>=5.15.6.0",
   "pytest>=8.3.5",
   "pytest-cov>=6.1.0",
@@ -43,3 +43,15 @@ lint = [
 
 [tool.uv.sources]
 qgis-profiler-lib = { workspace = true }
+
+[tool.qgis_plugin_dev_tools]
+plugin_package_name = "profiler_plugin"
+version_number_source = "distribution"
+runtime_requires = [
+  "qgis_plugin_tools",
+  "profiler-qgis-plugin",
+  "qgis-profiler-lib",
+]
+
+[project.entry-points.qgis_plugin_dev_tools]
+profiler_plugin = "profiler_plugin"
