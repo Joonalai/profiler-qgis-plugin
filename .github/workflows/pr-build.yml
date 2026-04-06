@@ -19,9 +19,13 @@ jobs:
         run: |
           cd components/plugin
           uv sync --all-packages --no-editable
-          uv run qgis-plugin-dev-tools build
+          uv run --no-editable qgis-plugin-dev-tools build
+      - name: Extract plugin zip
+        run: |
+          mkdir -p components/plugin/dist/extracted
+          unzip components/plugin/dist/*.zip -d components/plugin/dist/extracted
       - name: Upload plugin zip
         uses: actions/upload-artifact@v7
         with:
           name: profiler-qgis-plugin-${{ github.event.pull_request.number }}
-          path: components/plugin/dist/*.zip
+          path: components/plugin/dist/extracted/*
