@@ -1,0 +1,27 @@
+name: PR Plugin Build
+
+on:
+  pull_request:
+
+jobs:
+  build:
+    name: Build QGIS Plugin
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install uv
+        uses: astral-sh/setup-uv@cec208311dfd045dd5311c1add060b2062131d57
+      - name: Install Python 3.13
+        run: uv python install 3.13
+      - name: Build QGIS Plugin
+        run: |
+          cd components/plugin
+          uv sync --all-packages --no-editable
+          uv run qgis-plugin-dev-tools build
+      - name: Upload plugin zip
+        uses: actions/upload-artifact@v7
+        with:
+          name: profiler-qgis-plugin-${{ github.event.pull_request.number }}
+          path: components/plugin/dist/*.zip
