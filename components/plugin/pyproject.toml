@@ -11,7 +11,7 @@ homepage = "https://github.com/Joonalai/profiler-qgis-plugin"
 repository = "https://github.com/Joonalai/profiler-qgis-plugin"
 
 [build-system]
-requires = ["uv_build>=0.10.9,<0.11.0"]
+requires = ["uv_build>=0.11.0,<0.12.0"]
 build-backend = "uv_build"
 
 [tool.uv.build-backend]
@@ -50,7 +50,7 @@ profiler-qgis-core = { workspace = true }
 
 [tool.qgis_plugin_dev_tools]
 plugin_package_name = "profiler_plugin"
-version_number_source = "distribution"
+version_number_source = "changelog"
 changelog_file_path = "../../CHANGELOG.md"
 env_file_path = "../../.env"
 runtime_requires = [

@@ -18,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Install uv
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@cec208311dfd045dd5311c1add060b2062131d57
       - name: Install Python 3.13
         run: uv python install 3.13
       - name: Build
@@ -26,26 +26,17 @@ jobs:
       - name: Publish
         run: uv publish
 
-  qgis:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: components/plugin
-    steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-python@v6
-        with:
-          python-version: "3.13"
-      - name: Install dependencies
+      - name: Build and publish QGIS Plugin
         run: |
-          python -m pip install -r requirements.txt
-      - run: |
-          qgis-plugin-dev-tools build
-      - run: |
-          qgis-plugin-dev-tools publish dist/*.zip
+          cd components/plugin
+          uv sync --all-packages --no-editable
+          uv run qgis-plugin-dev-tools build
+          uv run qgis-plugin-dev-tools publish dist/*.zip
         env:
           QPDT_PUBLISH_USERNAME: ${{ secrets.QGIS_REPO_USERNAME }}
           QPDT_PUBLISH_PASSWORD: ${{ secrets.QGIS_REPO_PASSWORD }}
+
+      - run: cp components/plugin/dist/* dist/
       - uses: svenstaro/upload-release-action@2.9.0
         with:
           file: dist/*
