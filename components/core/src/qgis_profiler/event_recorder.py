@@ -57,14 +57,14 @@ class StopProfilingEvent(QEvent):
     EVENT_TYPE = QEvent.Type(QEvent.registerEventType())
 
     def __init__(self, name: str, group: str) -> None:
+        """Initialize with profiling event name and group."""
         super().__init__(self.EVENT_TYPE)  # type: ignore
         self.name = name
         self.group = group
 
 
 class ProfilerEventRecorder(QObject):
-    """
-    Handles profiling events and manages signal connections.
+    """Handles profiling events and manages signal connections.
 
     This class is responsible for starting and stopping profiling of various
     actions triggered within a Qt application. It utilizes event filtering
@@ -96,6 +96,7 @@ class ProfilerEventRecorder(QObject):
         map_tools_config: dict[str, CustomEventConfig] | None = None,
         general_map_tools_config: list[CustomEventConfig] | None = None,
     ) -> None:
+        """Initialize with group name and optional map tool configurations."""
         super().__init__()
         self.group = group_name
         self._map_tools_config = map_tools_config or DEFAULT_MAP_TOOLS_CONFIG
@@ -112,17 +113,18 @@ class ProfilerEventRecorder(QObject):
             )
 
     def is_recording(self) -> bool:
+        """Return whether event recording is currently active."""
         return self._recording
 
     def start_recording(self) -> None:
-        """Starts the recording process."""
+        """Start the recording process."""
         QApplication.instance().installEventFilter(self)
         iface.mapCanvas().mapToolSet.connect(self._map_tool_changed)
         self._map_tool_changed(iface.mapCanvas().mapTool(), None)
         self._recording = True
 
     def stop_recording(self) -> None:
-        """Stops the recording process."""
+        """Stop the recording process."""
         if not self._recording:
             return
 
@@ -141,6 +143,7 @@ class ProfilerEventRecorder(QObject):
         self._recording = False
 
     def eventFilter(self, obj: QObject, event: QEvent) -> bool:  # noqa: N802
+        """Filter Qt events for profiling button clicks and map tool actions."""
         self._catch_button_events(event)
         self._catch_map_tool_events(obj, event)
 
@@ -224,9 +227,8 @@ class ProfilerEventRecorder(QObject):
         disconnect_signal(signal, connection, name)
 
     def _post_stop_profiling_event(self, name: str) -> None:
-        """
-        Since event is posted, not sent, it will be delt with
-        only after action has run or UI becomes responsive.
+        """Post a stop-profiling event to be handled after UI becomes responsive.
+
         :param name: Name of the profiling event.
         """
         QApplication.postEvent(iface.mainWindow(), StopProfilingEvent(name, self.group))

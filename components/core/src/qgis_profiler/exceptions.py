@@ -28,7 +28,10 @@ class ProfilerPluginError(QgsPluginException):
 
 
 class ProfilerNotFoundError(ProfilerPluginError):
+    """Raise when the QGIS profiler or a related component is not found."""
+
     def __init__(self, item: str = "QgsApplication.profiler()") -> None:
+        """Initialize with the name of the missing component."""
         super().__init__(
             tr("{} not initialized", item),
             bar_msg=bar_msg(tr("File a bug report for developers")),
@@ -36,12 +39,18 @@ class ProfilerNotFoundError(ProfilerPluginError):
 
 
 class EventNotFoundError(ProfilerPluginError):
+    """Raise when a profiling event is not found in the specified group."""
+
     def __init__(self, event_id: str, group: str) -> None:
+        """Initialize with the event ID and group name."""
         super().__init__(tr("{} event not found in {} group", event_id, group))
 
 
 class InvalidSettingValueError(ProfilerPluginError):
+    """Raise when a setting receives an invalid value."""
+
     def __init__(self, setting_name: str, setting_value: str) -> None:
+        """Initialize with the setting name and invalid value."""
         super().__init__(
             tr("Invalid value for {} setting: {}", setting_name, setting_value)
         )

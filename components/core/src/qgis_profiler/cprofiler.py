@@ -41,8 +41,7 @@ if TYPE_CHECKING:
 
 @dataclass
 class ProfilerEntry:  # noqa: PLW1641
-    """
-    Class representing a single profiling entry.
+    """Class representing a single profiling entry.
 
     Inspired by _lsprof.profiler_entry and _lsprof.profiler_subentry
     but made more flexible and easier to work with.
@@ -57,11 +56,12 @@ class ProfilerEntry:  # noqa: PLW1641
 
     @staticmethod
     def from_cprofiler(cprofiler: "cProfile.Profile") -> list["ProfilerEntry"]:
-        """Turns a cProfile.Profile stats into a list of ProfilerEntry objects."""
+        """Turn cProfile.Profile stats into a list of ProfilerEntry objects."""
         return [ProfilerEntry.from_stat(stat) for stat in cprofiler.getstats()]
 
     @staticmethod
     def from_stat(stat: "profiler_entry") -> "ProfilerEntry":
+        """Convert a profiler_entry stat into a ProfilerEntry."""
         calls = (
             []
             if not hasattr(stat, "calls") or not stat.calls
@@ -77,6 +77,7 @@ class ProfilerEntry:  # noqa: PLW1641
         )
 
     def __add__(self, other: "ProfilerEntry") -> "ProfilerEntry":
+        """Add two entries with the same code together."""
         if self.code != other.code:
             raise ValueError("Cannot add entries with different codes")  # noqa: TRY003
         return ProfilerEntry(
@@ -89,6 +90,7 @@ class ProfilerEntry:  # noqa: PLW1641
         )
 
     def __eq__(self, other: object) -> bool:
+        """Compare with approximate equality for floating point values."""
         if not isinstance(other, ProfilerEntry):
             return NotImplemented
         return (
@@ -111,12 +113,11 @@ class ProfilerEntry:  # noqa: PLW1641
 
     @staticmethod
     def parse_from_qgis_profiler_text(text: str) -> list["ProfilerEntry"]:  # noqa: C901
-        """
-        Parses a given profiler text into a list of `ProfilerEntry` objects.
-        Processes hierarchical structure based on indentation and generates profiling
+        """Parse a given profiler text into a list of `ProfilerEntry` objects.
+
+        Process hierarchical structure based on indentation and generate profiling
         entries.
         """
-
         profile_entries: dict[str, ProfilerEntry] = {}
 
         def profiler_lines_into_entries(
@@ -177,18 +178,17 @@ class ProfilerEntry:  # noqa: PLW1641
 
 
 class QCProfiler(cProfile.Profile):
-    """
-    cProfile.Profile subclass with QGIS-specific
-    functionality and extra utilities.
-    """
+    """Extend cProfile.Profile with QGIS-specific functionality and extra utilities."""
 
     def __init__(self) -> None:
+        """Initialize the profiler with empty QGIS stats."""
         super().__init__()
         self._qgis_stats: list[ProfilerEntry] = []
         self._profiling: bool = False
 
     @contextmanager
     def qgis_profiler_data(self, profiler_text: str) -> Generator[None, Any, None]:
+        """Temporarily set QGIS profiler stats from the given text."""
         self._qgis_stats = ProfilerEntry.parse_from_qgis_profiler_text(profiler_text)
         try:
             yield
@@ -196,19 +196,23 @@ class QCProfiler(cProfile.Profile):
             self._qgis_stats = []
 
     def enable(self, subcalls: bool = True, builtins: bool = True) -> None:  # noqa: FBT001 FBT002
+        """Enable profiling."""
         super().enable(subcalls, builtins)
         self._profiling = True
 
     def disable(self) -> None:
+        """Disable profiling."""
         super().disable()
         self._profiling = False
 
     def getstats(self) -> Sequence[Union[ProfilerEntry, "profiler_entry"]]:  # type: ignore[override]
+        """Return QGIS stats if available, otherwise standard cProfile stats."""
         if self._qgis_stats:
             return self._qgis_stats
         return super().getstats()
 
     def is_profiling(self) -> bool:
+        """Return whether profiling is currently active."""
         return self._profiling
 
     def get_stat_report(
@@ -217,8 +221,7 @@ class QCProfiler(cProfile.Profile):
         max_line_count: int = 1000,
         trim_zeros: bool = False,  # noqa: FBT001 FBT002
     ) -> str:
-        """
-        Get the profile report as a string.
+        """Get the profile report as a string.
 
         :param sort: Sort method. Can be a string or a tuple of strings.
         :param max_line_count: Maximum number of lines to return.

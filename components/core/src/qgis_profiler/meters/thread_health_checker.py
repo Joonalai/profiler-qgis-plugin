@@ -47,9 +47,12 @@ LOGGER = logging.getLogger(__name__)
 
 
 class ThreadPoller(QObject):
+    """Poll the main thread at regular intervals from a background thread."""
+
     poll = pyqtSignal()
 
     def __init__(self, poll_interval_ms: int) -> None:
+        """Initialize with the poll interval in milliseconds."""
         super().__init__()
         self._polling_active: bool = False
         self._elapsed_timer = QElapsedTimer()
@@ -98,8 +101,7 @@ class ThreadPoller(QObject):
 
 
 class MainThreadHealthChecker(Meter):
-    """
-    Monitors the health of the main application thread.
+    """Monitors the health of the main application thread.
 
     Provides mechanisms to measure delays between thread pings and
     detect anomalies based on a defined threshold.
@@ -109,6 +111,7 @@ class MainThreadHealthChecker(Meter):
     _instance: Optional["MainThreadHealthChecker"] = None
 
     def __init__(self, poll_interval_s: float, threshold_s: float) -> None:
+        """Initialize with poll interval and threshold in seconds."""
         super().__init__(supports_continuous_measurement=True)
         self._poll_interval_ms = poll_interval_s * 1000
         self._threshold_ms = threshold_s * 1000
@@ -119,6 +122,7 @@ class MainThreadHealthChecker(Meter):
         LOGGER.debug("Health checker parameters initialized: %s", self)
 
     def __str__(self) -> str:
+        """Return a string representation of the health checker parameters."""
         return (
             f"MainThreadHealthChecker("
             f"poll_interval_s={self._poll_interval_ms / 1000}, "
@@ -127,6 +131,7 @@ class MainThreadHealthChecker(Meter):
 
     @classmethod
     def get(cls) -> "MainThreadHealthChecker":
+        """Return the singleton MainThreadHealthChecker instance."""
         if cls._instance is None:
             cls._instance = MainThreadHealthChecker(
                 poll_interval_s=Settings.thread_health_checker_poll_interval.get(),
@@ -147,6 +152,7 @@ class MainThreadHealthChecker(Meter):
         start_continuous_measuring: bool = True,
         measure_after_call: bool = False,
     ) -> Callable:
+        """Decorate a function to monitor it, warning if measure_after_call is used."""
         if measure_after_call:
             warnings.warn(
                 "measure_after_call is not recommended for MainThreadHealthChecker",
@@ -163,6 +169,7 @@ class MainThreadHealthChecker(Meter):
         )
 
     def reset_parameters(self) -> None:
+        """Reset measurement parameters from current settings."""
         self._poll_interval_ms = (
             Settings.thread_health_checker_poll_interval.get() * 1000
         )
@@ -196,8 +203,7 @@ class MainThreadHealthChecker(Meter):
         self._poller = None
 
     def _measure(self) -> tuple[float, bool]:
-        """
-        Measure the delay between thread poll and main thread response.
+        """Measure the delay between thread poll and main thread response.
 
         :return: the last delay in milliseconds and whether
         it exceeded the threshold.

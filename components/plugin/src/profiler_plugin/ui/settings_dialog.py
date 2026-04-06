@@ -83,9 +83,10 @@ METER_DESCRIPTIONS: dict[SettingCategory, str] = {
 
 
 class SettingsDialog(QDialog, UI_CLASS):  # type: ignore
-    """
-    This file is originally adapted from
-    https://github.com/nlsfi/pickLayer licensed under GPL version 3
+    """Provide a dialog for configuring profiler settings.
+
+    Originally adapted from
+    https://github.com/nlsfi/pickLayer licensed under GPL version 3.
     """
 
     layout_setting_items: QVBoxLayout
@@ -94,6 +95,7 @@ class SettingsDialog(QDialog, UI_CLASS):  # type: ignore
     button_box: QDialogButtonBox
 
     def __init__(self, parent: QWidget | None = None) -> None:
+        """Initialize the settings dialog."""
         super().__init__(parent)
         self.setupUi(self)
         self.setWindowIcon(QgsApplication.getThemeIcon("/propertyicons/settings.svg"))
@@ -192,7 +194,7 @@ class SettingsDialog(QDialog, UI_CLASS):  # type: ignore
         return self._groups[category]
 
     def _add_setting(self, setting: Settings) -> None:
-        """Adds a widget to the appropriate group box based on the category."""
+        """Add a widget to the appropriate group box based on the category."""
         setting_meta = setting.value
         widget_type = setting_meta.widget_type
         widget_config = setting_meta.widget_config
