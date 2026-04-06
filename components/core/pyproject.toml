@@ -1,13 +1,13 @@
 [project]
 name = "profiler-qgis-core"
-version = "0.0.1b1"
+version = "0.1.0"
 description = "A library for profiling QGIS and QGIS plugins."
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = ["qgis_plugin_tools>=0.5.0"]
 
 [project.urls]
-homepage = "https://github.com/Joonalai/profiler-qgis-plugin"
+homepage = "https://profiler-qgis-plugin.readthedocs.io"
 repository = "https://github.com/Joonalai/profiler-qgis-plugin"
 
 [build-system]

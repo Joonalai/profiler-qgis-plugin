@@ -23,8 +23,8 @@ jobs:
         run: uv python install 3.13
       - name: Build
         run: uv build --all-packages
-      - name: Publish
-        run: uv publish
+#      - name: Publish
+#        run: uv publish
 
       - name: Build and publish QGIS Plugin
         run: |
