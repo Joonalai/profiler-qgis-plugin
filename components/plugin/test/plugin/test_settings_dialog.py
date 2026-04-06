@@ -155,7 +155,8 @@ def test_reset_settings_dialog(
     assert Settings.profiler_enabled.get() is False
 
     qtbot.mouseClick(
-        settings_dialog.button_box.button(QDialogButtonBox.Reset), Qt.LeftButton
+        settings_dialog.button_box.button(QDialogButtonBox.StandardButton.Reset),
+        Qt.MouseButton.LeftButton,
     )
     qtbot.wait(1)
 
@@ -175,7 +176,9 @@ def test_calibrate_recovery_threshold(
     )
 
     # Act
-    qtbot.mouseClick(settings_dialog._button_calibrate_recovery_meter, Qt.LeftButton)
+    qtbot.mouseClick(
+        settings_dialog._button_calibrate_recovery_meter, Qt.MouseButton.LeftButton
+    )
 
     # Assert
     assert mock_measure.call_count == 10
@@ -195,7 +198,8 @@ def test_calibrate_health_checker_threshold(
 
     # Act
     qtbot.mouseClick(
-        settings_dialog._button_calibrate_thread_health_checker, Qt.LeftButton
+        settings_dialog._button_calibrate_thread_health_checker,
+        Qt.MouseButton.LeftButton,
     )
 
     # Assert

@@ -27,7 +27,7 @@ from typing import (
 )
 
 from qgis.PyQt import QtWidgets
-from qgis.PyQt.QtCore import QEvent, QObject, QPoint, Qt, QTimer
+from qgis.PyQt.QtCore import QEvent, QObject, QPointF, Qt, QTimer
 from qgis.PyQt.QtGui import QMouseEvent
 from qgis.utils import iface as iface_
 
@@ -40,15 +40,27 @@ LOGGER = logging.getLogger(__name__)
 
 
 _mouse_left_button_release = QMouseEvent(
-    QEvent.MouseButtonRelease, QPoint(), Qt.LeftButton, Qt.NoButton, Qt.NoModifier
+    QEvent.Type.MouseButtonRelease,
+    QPointF(),
+    Qt.MouseButton.LeftButton,
+    Qt.MouseButton.NoButton,
+    Qt.KeyboardModifier.NoModifier,
 )
 
 _mouse_middle_button_release = QMouseEvent(
-    QEvent.MouseButtonRelease, QPoint(), Qt.MiddleButton, Qt.NoButton, Qt.NoModifier
+    QEvent.Type.MouseButtonRelease,
+    QPointF(),
+    Qt.MouseButton.MiddleButton,
+    Qt.MouseButton.NoButton,
+    Qt.KeyboardModifier.NoModifier,
 )
 
 _mouse_right_button_release = QMouseEvent(
-    QEvent.MouseButtonRelease, QPoint(), Qt.RightButton, Qt.NoButton, Qt.NoModifier
+    QEvent.Type.MouseButtonRelease,
+    QPointF(),
+    Qt.MouseButton.RightButton,
+    Qt.MouseButton.NoButton,
+    Qt.KeyboardModifier.NoModifier,
 )
 
 
@@ -225,7 +237,7 @@ DEFAULT_MAP_TOOLS_CONFIG: dict[str, CustomEventConfig] = {
             class_name="QgsMapToolDigitizeFeature",
             start_event_filter=CustomEventFilter(event=_mouse_right_button_release),
             stop_event_filter=CustomEventFilter(
-                event=QEvent.Show,
+                event=QEvent.Type.Show,
                 object_filter=lambda obj: (
                     isinstance(obj, QtWidgets.QDialog)
                     and obj.objectName().startswith("featureactiondlg")
@@ -261,7 +273,7 @@ GENERAL_MAP_TOOL_FUNCTIONALITIES = [
     SimpleMapToolClickConfig(
         class_name="QgsMapToolZoom",
         event=CustomEventFilter(
-            event=QEvent.Wheel,
+            event=QEvent.Type.Wheel,
             object_filter=is_object_map_canvas,
         ),
     ),

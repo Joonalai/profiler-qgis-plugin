@@ -164,7 +164,7 @@ def test_toggle_recording(
 ) -> None:
     with subtests.test("Start recording"):
         # Act
-        qtbot.mouseClick(profiler_extension.button_record, Qt.LeftButton)
+        qtbot.mouseClick(profiler_extension.button_record, Qt.MouseButton.LeftButton)
 
         # Assert
         mock_event_recorder.start_recording.assert_called_once()
@@ -176,7 +176,7 @@ def test_toggle_recording(
 
     with subtests.test("Stop recording"):
         # Act
-        qtbot.mouseClick(profiler_extension.button_record, Qt.LeftButton)
+        qtbot.mouseClick(profiler_extension.button_record, Qt.MouseButton.LeftButton)
 
         # Assert
         mock_event_recorder.stop_recording.assert_called_once()
@@ -197,13 +197,15 @@ def test_toggle_cprofile_recording(
     tmp_path: Path,
 ) -> None:
     file_path = tmp_path / "profile" / "file.prof"
-    Settings.cprofiler_profile_path.value.default = str(file_path)
+    Settings.cprofiler_profile_path.set(str(file_path))
     assert not file_path.exists()
     assert not file_path.parent.exists()
 
     with subtests.test("Start recording"):
         # Act
-        qtbot.mouseClick(profiler_extension.button_cprofiler_record, Qt.LeftButton)
+        qtbot.mouseClick(
+            profiler_extension.button_cprofiler_record, Qt.MouseButton.LeftButton
+        )
 
         # Assert
         mock_profiler.cprofiler.enable.assert_called_once()
@@ -212,7 +214,9 @@ def test_toggle_cprofile_recording(
     with subtests.test("Stop recording"):
         # Act
         qtbot.wait(19)
-        qtbot.mouseClick(profiler_extension.button_cprofiler_record, Qt.LeftButton)
+        qtbot.mouseClick(
+            profiler_extension.button_cprofiler_record, Qt.MouseButton.LeftButton
+        )
 
         # Assert
         mock_profiler.cprofiler.disable.assert_called_once()
@@ -239,7 +243,7 @@ def test_save_results(
     )
 
     # Act
-    qtbot.mouseClick(profiler_extension.button_save, Qt.LeftButton)
+    qtbot.mouseClick(profiler_extension.button_save, Qt.MouseButton.LeftButton)
 
     # Assert
     mock_profiler.save_profiler_results_as_prof_file.assert_called_once_with(
@@ -264,7 +268,7 @@ def test_save_results_without_suffix(
     )
 
     # Act
-    qtbot.mouseClick(profiler_extension.button_save, Qt.LeftButton)
+    qtbot.mouseClick(profiler_extension.button_save, Qt.MouseButton.LeftButton)
 
     # Assert
     mock_profiler.save_profiler_results_as_prof_file.assert_called_once_with(
@@ -278,11 +282,11 @@ def test_clear_button_should_clear_current_group(
     qtbot: "QtBot",
 ) -> None:
     # Arrange
-    qtbot.mouseClick(profiler_extension.button_record, Qt.LeftButton)
+    qtbot.mouseClick(profiler_extension.button_record, Qt.MouseButton.LeftButton)
     assert profiler_extension.button_clear.isEnabled()
 
     # Act
-    qtbot.mouseClick(profiler_extension.button_clear, Qt.LeftButton)
+    qtbot.mouseClick(profiler_extension.button_clear, Qt.MouseButton.LeftButton)
 
     # Assert
     mock_profiler.clear.assert_called_once_with(NEW_GROUP)
@@ -299,7 +303,7 @@ def test_button_settings_should_open_settings_dialog(
     mock_meter_recovery_measurer.reset_mock()
 
     # Act
-    qtbot.mouseClick(profiler_extension.button_settings, Qt.LeftButton)
+    qtbot.mouseClick(profiler_extension.button_settings, Qt.MouseButton.LeftButton)
 
     # Assert
     mock_settings_dialog.exec.assert_called_once()
@@ -342,4 +346,7 @@ def test_filter_line_edit_should_filter(
 
     # Assert
     profiler_extension._filter_proxy_model.group = "QGIS group"
-    assert profiler_extension._filter_proxy_model.filterRegExp().pattern() == "Manual"
+    assert (
+        profiler_extension._filter_proxy_model.filterRegularExpression().pattern()
+        == "Manual"
+    )

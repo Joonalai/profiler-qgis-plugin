@@ -15,15 +15,26 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with profiler-qgis-plugin. If not, see <https://www.gnu.org/licenses/>.
+import configparser
 import logging
+from pathlib import Path
 from typing import TYPE_CHECKING
 from unittest.mock import MagicMock
 
+import profiler_plugin
 import pytest
+import qgis_plugin_tools.tools.resources as _resources
 from qgis_profiler.meters.recovery_measurer import RecoveryMeasurer
 from qgis_profiler.meters.thread_health_checker import MainThreadHealthChecker
 from qgis_profiler.profiler import ProfilerWrapper
 from qgis_profiler.settings import Settings
+
+# Ensure plugin_name() returns the actual plugin name consistently,
+# regardless of call stack context. Without this, settings may be
+# read/written under different QSettings sections in tests vs production code.
+_metadata = configparser.ConfigParser()
+_metadata.read(Path(profiler_plugin.__file__).parent / "metadata.txt")
+_resources.PLUGIN_NAME = _metadata["general"]["name"].replace(" ", "")
 
 if TYPE_CHECKING:
     from pytest_mock import MockerFixture

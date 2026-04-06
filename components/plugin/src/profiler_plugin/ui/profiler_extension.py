@@ -99,7 +99,9 @@ class ProfilerExtension(QWidget, UI_CLASS):
             ProfilerWrapper.get().item_model(), self
         )
         self._filter_proxy_model.set_group(self._current_group())
-        self._filter_proxy_model.setFilterCaseSensitivity(Qt.CaseInsensitive)
+        self._filter_proxy_model.setFilterCaseSensitivity(
+            Qt.CaseSensitivity.CaseInsensitive
+        )
 
         self._filter_proxy_model.setRecursiveFilteringEnabled(True)
         self.tree_view.setModel(self._filter_proxy_model)
@@ -110,7 +112,7 @@ class ProfilerExtension(QWidget, UI_CLASS):
         self.filter_line_edit.setShowSearchIcon(True)
         self.filter_line_edit.setPlaceholderText(tr("Filter profiles"))
         self.filter_line_edit.valueChanged.connect(
-            self._filter_proxy_model.setFilterRegExp
+            self._filter_proxy_model.setFilterRegularExpression
         )
 
         # Threshold spinbox

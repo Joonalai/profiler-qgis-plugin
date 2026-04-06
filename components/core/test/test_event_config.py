@@ -20,7 +20,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 from pytest_lazy_fixtures import lf
-from qgis.PyQt.QtCore import QEvent, QObject, QPoint, Qt
+from qgis.PyQt.QtCore import QEvent, QObject, QPointF, Qt
 from qgis.PyQt.QtGui import QMouseEvent
 from qgis_profiler.config.event_config import (
     AdvancedDigitizingMapToolClickConfig,
@@ -41,11 +41,11 @@ if TYPE_CHECKING:
 @pytest.fixture
 def sample_event() -> QMouseEvent:
     return QMouseEvent(
-        QEvent.MouseButtonRelease,
-        QPoint(10, 10),
-        Qt.LeftButton,
-        Qt.LeftButton,
-        Qt.NoModifier,
+        QEvent.Type.MouseButtonRelease,
+        QPointF(10, 10),
+        Qt.MouseButton.LeftButton,
+        Qt.MouseButton.LeftButton,
+        Qt.KeyboardModifier.NoModifier,
     )
 
 
@@ -68,7 +68,7 @@ def mock_event_filter(mocker: "MockerFixture") -> "MagicMock":
     ("filter_event", "object_filter", "event", "qobject", "expected_result"),
     [
         (
-            QEvent.MouseButtonRelease,
+            QEvent.Type.MouseButtonRelease,
             lambda obj: obj.objectName() == "sample_object",
             lf("sample_event"),
             lf("sample_object"),
@@ -76,11 +76,11 @@ def mock_event_filter(mocker: "MockerFixture") -> "MagicMock":
         ),
         (
             QMouseEvent(
-                QEvent.MouseButtonRelease,
-                QPoint(10, 10),
-                Qt.LeftButton,
-                Qt.LeftButton,
-                Qt.NoModifier,
+                QEvent.Type.MouseButtonRelease,
+                QPointF(10, 10),
+                Qt.MouseButton.LeftButton,
+                Qt.MouseButton.LeftButton,
+                Qt.KeyboardModifier.NoModifier,
             ),
             lambda obj: obj.objectName() == "sample_object",
             lf("sample_event"),
@@ -88,21 +88,21 @@ def mock_event_filter(mocker: "MockerFixture") -> "MagicMock":
             True,
         ),
         (
-            QEvent.MouseButtonRelease,
+            QEvent.Type.MouseButtonRelease,
             None,
             lf("sample_event"),
             lf("sample_object"),
             True,
         ),
         (
-            QEvent.KeyPress,
+            QEvent.Type.KeyPress,
             lambda obj: obj.objectName() == "sample_object",
             lf("sample_event"),
             lf("sample_object"),
             False,
         ),
         (
-            QEvent.MouseButtonRelease,
+            QEvent.Type.MouseButtonRelease,
             lambda obj: False,
             lf("sample_event"),
             lf("sample_object"),
