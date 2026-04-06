@@ -15,6 +15,13 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with profiler-qgis-plugin. If not, see <https://www.gnu.org/licenses/>.
+
+"""Profiler extension widget that augments the QGIS profiler panel.
+
+Provides recording controls, cProfile integration, result filtering,
+performance meters, and access to the settings dialog.
+"""
+
 import logging
 from contextlib import suppress
 from pathlib import Path

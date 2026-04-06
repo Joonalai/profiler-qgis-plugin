@@ -15,6 +15,13 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with profiler-qgis-plugin. If not, see <https://www.gnu.org/licenses/>.
+
+"""Meter that measures how long QGIS takes to recover after a freeze.
+
+Contains :class:`RecoveryMeasurer`, which repeatedly processes main-thread events
+and reports an anomaly when the recovery time exceeds a configurable threshold.
+"""
+
 import logging
 from typing import Optional
 

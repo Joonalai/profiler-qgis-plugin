@@ -15,6 +15,13 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with profiler-qgis-plugin. If not, see <https://www.gnu.org/licenses/>.
+
+"""Meter that monitors map canvas rendering times.
+
+Contains :class:`MapRenderingMeter`, which listens to map canvas render signals
+and reports an anomaly when rendering exceeds a configurable time threshold.
+"""
+
 import logging
 import time
 from contextlib import suppress

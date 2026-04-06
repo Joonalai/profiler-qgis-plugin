@@ -15,6 +15,13 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with profiler-qgis-plugin. If not, see <https://www.gnu.org/licenses/>.
+
+"""Utility functions and helpers used across the profiler library.
+
+Includes Qt version checks, signal disconnection helpers, function argument
+parsing for dynamic event names, and file path rotation.
+"""
+
 import inspect
 import logging
 from collections.abc import Callable

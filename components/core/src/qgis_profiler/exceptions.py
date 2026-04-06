@@ -15,6 +15,9 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with profiler-qgis-plugin. If not, see <https://www.gnu.org/licenses/>.
+
+"""Custom exception classes for the QGIS Profiler plugin."""
+
 from qgis_plugin_tools.tools.custom_logging import bar_msg
 from qgis_plugin_tools.tools.exceptions import QgsPluginException
 from qgis_plugin_tools.tools.i18n import tr

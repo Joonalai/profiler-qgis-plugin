@@ -16,6 +16,12 @@
 #  You should have received a copy of the GNU General Public License
 #  along with profiler-qgis-plugin. If not, see <https://www.gnu.org/licenses/>.
 
+"""Records UI events such as button clicks and map tool interactions for profiling.
+
+Contains :class:`ProfilerEventRecorder`, which installs a Qt event filter to
+automatically capture and time user-triggered actions in QGIS.
+"""
+
 import logging
 from functools import partial
 from typing import TYPE_CHECKING, Any, cast
@@ -64,7 +70,19 @@ class ProfilerEventRecorder(QObject):
     actions triggered within a Qt application. It utilizes event filtering
     mechanisms and connects signals to actions dynamically.
 
-    Note: requires at least Qt version 3.13.1
+    Example::
+
+        from qgis_profiler.event_recorder import ProfilerEventRecorder
+
+        recorder = ProfilerEventRecorder(group_name="User Interactions")
+
+        # Connect to signals for custom handling
+        recorder.event_started.connect(lambda name: print(f"Started: {name}"))
+        recorder.event_finished.connect(lambda name: print(f"Finished: {name}"))
+
+        recorder.start_recording()
+        # ... user interacts with QGIS ...
+        recorder.stop_recording()
     """
 
     # TODO: menu buttons...

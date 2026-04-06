@@ -15,6 +15,9 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with profiler-qgis-plugin. If not, see <https://www.gnu.org/licenses/>.
+
+"""Settings dialog for configuring profiler options and calibrating meters."""
+
 import logging
 from pathlib import Path
 from typing import cast

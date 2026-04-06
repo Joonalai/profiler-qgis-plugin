@@ -38,3 +38,7 @@ pstats
 dirs
 subcalls
 viewport
+autodoc
+typehints
+docstrings
+numpy
