@@ -184,10 +184,14 @@ class SettingsDialog(QDialog, UI_CLASS):  # type: ignore
             get_log_level_name(LogTarget.STREAM)
         )
         self.combo_box_log_level_file.currentTextChanged.connect(
-            lambda level: set_setting(get_log_level_key(LogTarget.FILE), level)
+            lambda level: set_setting(
+                get_log_level_key(LogTarget.FILE), level, internal=False
+            )
         )
         self.combo_box_log_level_console.currentTextChanged.connect(
-            lambda level: set_setting(get_log_level_key(LogTarget.STREAM), level)
+            lambda level: set_setting(
+                get_log_level_key(LogTarget.STREAM), level, internal=False
+            )
         )
 
     def _calibrate_recovery_meter(self) -> None:

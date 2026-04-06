@@ -14,13 +14,23 @@ classifiers = [
   "Programming Language :: Python :: 3.14",
 ]
 
-dependencies = ["qgis_plugin_tools>=0.5.0,<1"]
 
 [tool.uv.workspace]
 members = ["components/*"]
 
 [tool.uv]
 package = false
+
+[dependency-groups]
+dev = ["prek>=0.3.5"]
+lint = [
+  "flake8>=6.0.0",
+  "flake8-pyproject>=1.2.3",
+  "flake8-qgis>=1.0.0",
+  "flake8-spellcheck>=0.28.0",
+  "mypy>=1.13.0",
+]
+
 
 [[tool.uv.index]]
 name = "testpypi"
@@ -107,6 +117,7 @@ max-line-length = 88
 spellcheck-targets = "names"
 dictionaries = "en_US,python,technical"
 select = ["SC", "QGS"]
+extend-ignore = ["QGS202"]
 
 per-file-ignores = [
   "*/test/*:INP001,SC200,QGS105",
