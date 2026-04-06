@@ -23,8 +23,8 @@ jobs:
         run: uv python install 3.13
       - name: Build
         run: uv build --all-packages
-#      - name: Publish
-#        run: uv publish
+      - name: Publish
+        run: uv publish
 
       - name: Build and publish QGIS Plugin
         run: |
@@ -36,8 +36,8 @@ jobs:
           QPDT_PUBLISH_USERNAME: ${{ secrets.QGIS_REPO_USERNAME }}
           QPDT_PUBLISH_PASSWORD: ${{ secrets.QGIS_REPO_PASSWORD }}
 
-      - run: cp components/plugin/dist/* dist/
-      - uses: svenstaro/upload-release-action@2.9.0
-        with:
-          file: dist/*
-          file_glob: true
+#      - run: cp components/plugin/dist/* dist/
+#      - uses: svenstaro/upload-release-action@2.9.0
+#        with:
+#          file: dist/*
+#          file_glob: true
