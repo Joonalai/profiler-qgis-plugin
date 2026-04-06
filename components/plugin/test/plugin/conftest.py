@@ -24,6 +24,7 @@ from unittest.mock import MagicMock
 import profiler_plugin
 import pytest
 import qgis_plugin_tools.tools.resources as _resources
+from qgis_profiler.meters.map_rendering import MapRenderingMeter
 from qgis_profiler.meters.recovery_measurer import RecoveryMeasurer
 from qgis_profiler.meters.thread_health_checker import MainThreadHealthChecker
 from qgis_profiler.profiler import ProfilerWrapper
@@ -83,4 +84,11 @@ def mock_meter_recovery_measurer(mocker: "MockerFixture") -> MagicMock:
 def mock_thread_health_checker_meter(mocker: "MockerFixture") -> MagicMock:
     mock_meter = mocker.MagicMock()
     mocker.patch.object(MainThreadHealthChecker, "get", return_value=mock_meter)
+    return mock_meter
+
+
+@pytest.fixture
+def mock_map_rendering_meter(mocker: "MockerFixture") -> MagicMock:
+    mock_meter = mocker.MagicMock()
+    mocker.patch.object(MapRenderingMeter, "get", return_value=mock_meter)
     return mock_meter

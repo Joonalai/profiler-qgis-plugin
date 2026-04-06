@@ -115,9 +115,14 @@ def profiler_extension(
     mock_settings_dialog: "MagicMock",
     mock_meter_recovery_measurer: "MagicMock",
     mock_thread_health_checker_meter: "MagicMock",
+    mock_map_rendering_meter: "MagicMock",
     _modify_mock_profiler: None,
     stub_profiler_panel: StubProfilerPanel,
 ) -> ProfilerExtension:
+    # Enable all meters so they get added to the extension
+    Settings.recovery_meter_enabled.set(True)
+    Settings.thread_health_checker_enabled.set(True)
+    Settings.map_rendering_meter_enabled.set(True)
     profiler_extension = ProfilerExtension(
         event_recorder=mock_event_recorder,
         profiler_panel=cast("QWidget", stub_profiler_panel),

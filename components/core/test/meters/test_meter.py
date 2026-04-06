@@ -112,7 +112,7 @@ def test_meter_context_stack_with_context_manager(meter: Meter, initial_context:
         ("name_and_group_set", MeterContext("foo (stub)", "bar")),
         (
             "name_args_set",
-            MeterContext("name_args_set(a=1, b=2) (stub)", Settings.active_group.get()),
+            None,  # Resolved at test time to avoid collection-time settings read
         ),
     ],
     ids=[
@@ -123,11 +123,16 @@ def test_meter_context_stack_with_context_manager(meter: Meter, initial_context:
 def test_monitor_decorator_should_set_context_and_measure(
     meter: Meter,
     method: str,
-    expected_context: MeterContext,
+    expected_context: MeterContext | None,
     initial_context: str,
     mock_profiler: "MagicMock",
     qtbot: "QtBot",
 ):
+    if expected_context is None:
+        expected_context = MeterContext(
+            "name_args_set(a=1, b=2) (stub)", Settings.active_group.get()
+        )
+
     tester = StubClass()
 
     assert not meter.is_connected_to_profiler

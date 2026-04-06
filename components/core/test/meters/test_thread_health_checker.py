@@ -39,6 +39,7 @@ def thread_health_checker(
 ) -> Iterator[MainThreadHealthChecker]:
     """Fixture to create and return a MainThreadChecker instance."""
     checker = MainThreadHealthChecker.get()
+    checker.enabled = True
     checker._poll_interval_ms = 10
     checker._threshold_ms = 90
     yield checker

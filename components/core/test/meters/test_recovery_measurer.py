@@ -24,6 +24,7 @@ from qgis_profiler.meters.recovery_measurer import RecoveryMeasurer
 def recovery_measurer() -> RecoveryMeasurer:
     meter = RecoveryMeasurer.get()
     meter.reset_parameters()
+    meter.enabled = True
     return meter
 
 
