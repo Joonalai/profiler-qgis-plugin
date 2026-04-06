@@ -29,7 +29,7 @@ from qgis_profiler.settings import Settings
 
 LOGGER = logging.getLogger(__name__)
 
-_user_role = int(Qt.UserRole)
+_user_role = int(Qt.ItemDataRole.UserRole)
 
 
 class Role(enum.Enum):

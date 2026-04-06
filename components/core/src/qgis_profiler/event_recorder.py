@@ -136,7 +136,7 @@ class ProfilerEventRecorder(QObject):
         return super().eventFilter(obj, event)
 
     def _catch_button_events(self, event: QEvent) -> None:
-        if event.type() == QEvent.MouseButtonRelease:
+        if event.type() == QEvent.Type.MouseButtonRelease:
             if (widget := utils.get_widget_under_cursor()) is None or not isinstance(
                 widget, QtWidgets.QAbstractButton
             ):

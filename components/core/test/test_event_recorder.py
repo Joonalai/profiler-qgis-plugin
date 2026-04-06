@@ -78,7 +78,7 @@ def test_recorder_should_profile_button_click(
     # Act
     qtbot.mouseMove(dialog.button)
     with qtbot.waitSignal(event_recorder.event_finished, timeout=100):
-        qtbot.mouseClick(dialog.button, Qt.LeftButton)
+        qtbot.mouseClick(dialog.button, Qt.MouseButton.LeftButton)
         qtbot.wait(1)
 
     # Assert
@@ -98,11 +98,11 @@ def test_recorder_should_handle_multiple_button_clicks(
 
     # Act
     qtbot.mouseMove(dialog.button)
-    qtbot.mouseClick(dialog.button, Qt.LeftButton)
+    qtbot.mouseClick(dialog.button, Qt.MouseButton.LeftButton)
     qtbot.wait(1)
 
     qtbot.mouseMove(dialog.button2)
-    qtbot.mouseClick(dialog.button2, Qt.LeftButton)
+    qtbot.mouseClick(dialog.button2, Qt.MouseButton.LeftButton)
     qtbot.wait(1)
 
     # Assert
@@ -125,7 +125,7 @@ def test_recorder_should_stop_gracefully_if_recording_is_in_progress(
 
     # Act
     qtbot.mouseMove(dialog.button)
-    qtbot.mouseClick(dialog.button, Qt.LeftButton)
+    qtbot.mouseClick(dialog.button, Qt.MouseButton.LeftButton)
     event_recorder.stop_recording()
 
     # Assert

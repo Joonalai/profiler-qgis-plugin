@@ -89,7 +89,7 @@ class SettingsDialog(QDialog, UI_CLASS):  # type: ignore
         self._setup_logging_settings()
 
         self.button_box.accepted.connect(self.close)
-        self.button_box.button(QDialogButtonBox.Reset).clicked.connect(
+        self.button_box.button(QDialogButtonBox.StandardButton.Reset).clicked.connect(
             self._reset_settings
         )
         self._button_calibrate_recovery_meter.clicked.connect(
