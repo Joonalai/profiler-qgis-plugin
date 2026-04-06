@@ -130,7 +130,7 @@ These awesome plugins are used as inspiration for the plugin structure:
 
 * <https://github.com/nlsfi/pickLayer>
 * <https://github.com/nlsfi/segment-reshape-qgis-plugin>
-* <https://github.com/GispoCoding/pytest-qgis>
+* <https://github.com/osgeosuomi/pytest-qgis>
 
 ## License & copyright
 
