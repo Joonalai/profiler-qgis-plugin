@@ -41,7 +41,7 @@ repos:
       - id: flake8
         additional_dependencies:
           - flake8-pyproject==1.2.4
-          - flake8-qgis==1.0.0
+          - flake8-qgis==2.0.1
           - flake8-spellcheck==0.28.0
   - repo: https://github.com/igorshubovych/markdownlint-cli
     rev: v0.45.0
