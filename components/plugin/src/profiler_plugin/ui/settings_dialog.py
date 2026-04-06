@@ -58,6 +58,26 @@ CALIBRATION_COEFFICIENT = 1.05
 
 LOGGING_LEVELS = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
 
+METER_CATEGORIES = {
+    SettingCategory.RECOVERY_METER,
+    SettingCategory.THREAD_HEALTH_CHECKER_METER,
+    SettingCategory.MAP_RENDERING_METER,
+}
+
+METER_DESCRIPTIONS: dict[SettingCategory, str] = {
+    SettingCategory.RECOVERY_METER: tr(
+        "Measures how long it takes for QGIS to become fully responsive "
+        "again after a freeze or slowdown."
+    ),
+    SettingCategory.THREAD_HEALTH_CHECKER_METER: tr(
+        "Monitors the main thread responsiveness by periodically pinging it "
+        "from a background thread and measuring the response delay."
+    ),
+    SettingCategory.MAP_RENDERING_METER: tr(
+        "Measures the total time it takes to fully render the map canvas."
+    ),
+}
+
 
 class SettingsDialog(QDialog, UI_CLASS):  # type: ignore
     """
@@ -76,6 +96,7 @@ class SettingsDialog(QDialog, UI_CLASS):  # type: ignore
         self.setWindowIcon(QgsApplication.getThemeIcon("/propertyicons/settings.svg"))
         self._widgets: dict[Settings, QWidget] = {}
         self._groups: dict[SettingCategory, QgsCollapsibleGroupBox] = {}
+        self._meters_group_box: QgsCollapsibleGroupBox | None = None
 
         self._button_calibrate_recovery_meter = QPushButton(tr("Calibrate threshold"))
         self._button_calibrate_thread_health_checker = QPushButton(
@@ -84,6 +105,7 @@ class SettingsDialog(QDialog, UI_CLASS):  # type: ignore
         self._button_calibrate_map_rendering_meter = QPushButton(
             tr("Calibrate threshold")
         )
+        self._button_calibrate_all = QPushButton(tr("Calibrate All Meters"))
 
         self._setup_plugin_settings()
         self._setup_logging_settings()
@@ -101,6 +123,7 @@ class SettingsDialog(QDialog, UI_CLASS):  # type: ignore
         self._button_calibrate_map_rendering_meter.clicked.connect(
             self._calibrate_map_rendering_meter
         )
+        self._button_calibrate_all.clicked.connect(self._calibrate_all_meters)
 
     def _setup_plugin_settings(self) -> None:
         for setting in Settings:
@@ -111,8 +134,19 @@ class SettingsDialog(QDialog, UI_CLASS):  # type: ignore
             group_box.layout().addWidget(self._button_calibrate_thread_health_checker)
         if group_box := self._groups.get(SettingCategory.MAP_RENDERING_METER):
             group_box.layout().addWidget(self._button_calibrate_map_rendering_meter)
+        if self._meters_group_box is not None:
+            self._meters_group_box.layout().addWidget(self._button_calibrate_all)
 
     def _reset_settings(self) -> None:
+        # Remove calibrate buttons from their parent layouts before clearing
+        for button in (
+            self._button_calibrate_recovery_meter,
+            self._button_calibrate_thread_health_checker,
+            self._button_calibrate_map_rendering_meter,
+            self._button_calibrate_all,
+        ):
+            button.setParent(None)
+
         # Clear all items from the settings layout
         while self.layout_setting_items.count():
             child = self.layout_setting_items.takeAt(0)
@@ -122,26 +156,47 @@ class SettingsDialog(QDialog, UI_CLASS):  # type: ignore
         # Clear stored widgets and group boxes
         self._widgets.clear()
         self._groups.clear()
+        self._meters_group_box = None
 
         # Reset settings and re-add them
         Settings.reset()
-        for setting in Settings:
-            self._add_setting(setting)
+        self._setup_plugin_settings()
+
+    def _get_or_create_meters_group(self) -> QgsCollapsibleGroupBox:
+        if self._meters_group_box is None:
+            self._meters_group_box = QgsCollapsibleGroupBox(tr("Meters"))
+            self._meters_group_box.setLayout(QVBoxLayout())
+            self.layout_setting_items.addWidget(self._meters_group_box)
+        return self._meters_group_box
+
+    def _get_or_create_group(self, category: SettingCategory) -> QgsCollapsibleGroupBox:
+        if category not in self._groups:
+            group_box = QgsCollapsibleGroupBox(category.value)
+            layout = QFormLayout()
+            group_box.setLayout(layout)
+            if category == SettingCategory.PROFILER_GROUPS:
+                group_box.setCollapsed(True)
+            if info_text := METER_DESCRIPTIONS.get(category):
+                info_label = QLabel(info_text)
+                info_label.setWordWrap(True)
+                info_label.setStyleSheet("color: gray; font-style: italic;")
+                layout.addRow(info_label)
+            self._groups[category] = group_box
+            if category in METER_CATEGORIES:
+                self._get_or_create_meters_group().layout().addWidget(group_box)
+            else:
+                self.layout_setting_items.addWidget(group_box)
+        return self._groups[category]
 
     def _add_setting(self, setting: Settings) -> None:
         """Adds a widget to the appropriate group box based on the category."""
         setting_meta = setting.value
         widget_type = setting_meta.widget_type
         widget_config = setting_meta.widget_config
-        category = setting_meta.category
 
-        if category not in self._groups:
-            group_box = QgsCollapsibleGroupBox(category.value)
-            group_box.setLayout(QFormLayout())
-            self._groups[category] = group_box
-            self.layout_setting_items.addWidget(group_box)
+        group_box = self._get_or_create_group(setting_meta.category)
 
-        group_layout = self._groups[category].layout()
+        group_layout = group_box.layout()
 
         label = QLabel(setting_meta.description)
 
@@ -224,6 +279,11 @@ class SettingsDialog(QDialog, UI_CLASS):  # type: ignore
             ),
             name="main thread poll time",
         )
+
+    def _calibrate_all_meters(self) -> None:
+        self._calibrate_recovery_meter()
+        self._calibrate_thread_health_checker()
+        self._calibrate_map_rendering_meter()
 
     def _calibrate_map_rendering_meter(self) -> None:
         _calibrate_threshold(

@@ -44,12 +44,12 @@ class WidgetType(enum.Enum):
 
 
 class SettingCategory(enum.Enum):
-    PROFILING = tr("Profiler")
-    RECORDED = tr("Recording")
+    GENERAL = tr("General")
+    PROFILER_GROUPS = tr("Profiler Groups")
     CPROFILER = tr("cProfiler")
-    RECOVERY_METER = tr("Recovery time measuring meter")
-    THREAD_HEALTH_CHECKER_METER = tr("Main thread health checker meter")
-    MAP_RENDERING_METER = tr("Map rendering meter")
+    RECOVERY_METER = tr("Recovery Meter")
+    THREAD_HEALTH_CHECKER_METER = tr("Thread Health Meter")
+    MAP_RENDERING_METER = tr("Map Rendering Meter")
 
 
 @dataclass
@@ -65,7 +65,7 @@ class WidgetConfig:
 class Setting(QObject):
     description: str
     default: Any
-    category: SettingCategory = SettingCategory.PROFILING
+    category: SettingCategory = SettingCategory.GENERAL
     widget_config: WidgetConfig | None = None
     widget_type: WidgetType | None = None
     changed = pyqtSignal()
@@ -100,103 +100,100 @@ class Settings(enum.Enum):
     profiler-related settings.
     """
 
-    # Profiler settings
+    # General settings
     profiler_enabled = Setting(
-        description=tr("Is profiler enabled"),
+        description=tr("Enable profiling"),
         default=True,
-    )
-    active_group = Setting(
-        description=tr("A profiler group used with plugin profiling"),
-        default=tr("Plugins"),
+        category=SettingCategory.GENERAL,
     )
     show_events_threshold = Setting(
-        description=tr("Threshold to control which events to show in the panel"),
+        description=tr("Hide events shorter than this (seconds)"),
         default=0.01,
-    )
-    recorded_group = Setting(
-        description=tr("A profiler group used with recorded event profiling"),
-        default=tr("Recorded Events"),
-        category=SettingCategory.RECORDED,
-    )
-    meters_group = Setting(
-        description=tr("A profiler group used with various meters"),
-        default=tr("Meters"),
-        category=SettingCategory.RECORDED,
+        category=SettingCategory.GENERAL,
     )
     start_recording_on_startup = Setting(
-        description=tr("Start recording on startup"),
+        description=tr("Automatically start recording when QGIS launches"),
         default=False,
-        category=SettingCategory.RECORDED,
+        category=SettingCategory.GENERAL,
+    )
+
+    # Profiler group settings (advanced)
+    active_group = Setting(
+        description=tr("Group name for plugin profiling results"),
+        default=tr("Profiler"),
+        category=SettingCategory.PROFILER_GROUPS,
+    )
+    recorded_group = Setting(
+        description=tr("Group name for recorded event results"),
+        default=tr("Profiler"),
+        category=SettingCategory.PROFILER_GROUPS,
+    )
+    meters_group = Setting(
+        description=tr("Group name for meter measurement results"),
+        default=tr("Profiler"),
+        category=SettingCategory.PROFILER_GROUPS,
     )
     cprofiler_profile_path = Setting(
-        description=tr(
-            "Profiler path to save cprofile report to. "
-            "A suffix will be added if file exists."
-        ),
+        description=tr("File path for saving cProfile reports"),
         default=profile_path("profiler", "cprofiler_report.prof"),
         category=SettingCategory.CPROFILER,
     )
     cprofiler_log_line_count = Setting(
-        description=tr("Maximum line count for cprofile report log."),
+        description=tr("Maximum number of lines in cProfile report"),
         default=100,
         category=SettingCategory.CPROFILER,
     )
 
-    # Recovery measurement meter settings
+    # Recovery meter settings
     recovery_meter_enabled = Setting(
-        description=tr("Is recovery meter enabled"),
+        description=tr("Enable recovery meter"),
         default=True,
         category=SettingCategory.RECOVERY_METER,
     )
     recovery_threshold = Setting(
-        description=tr("A time in seconds it normally takes to run recovery check"),
+        description=tr("Expected recovery time (seconds)"),
         default=0.8,
         widget_config=WidgetConfig(minimum=0.0, maximum=100.0, step=0.1),
         category=SettingCategory.RECOVERY_METER,
     )
     recovery_timeout = Setting(
-        description=tr("A timeout in seconds after recovery measurement should exit"),
+        description=tr("Timeout before giving up (seconds)"),
         default=10,
         category=SettingCategory.RECOVERY_METER,
     )
     recovery_process_event_count = Setting(
-        description=tr("Number of process events call in recovery measurement"),
+        description=tr("Number of events to process per measurement"),
         default=100000,
         widget_config=WidgetConfig(minimum=1, maximum=1000000, step=10),
         category=SettingCategory.RECOVERY_METER,
     )
 
-    # Health checker meter settings
+    # Thread health checker meter settings
     thread_health_checker_enabled = Setting(
-        description=tr("Enable measure main thread health check meter"),
+        description=tr("Enable thread health checker"),
         default=True,
         category=SettingCategory.THREAD_HEALTH_CHECKER_METER,
     )
     thread_health_checker_poll_interval = Setting(
-        description=tr("A time in seconds between health check measurements"),
+        description=tr("Time between health checks (seconds)"),
         default=1.0,
         category=SettingCategory.THREAD_HEALTH_CHECKER_METER,
     )
     thread_health_checker_threshold = Setting(
-        description=tr(
-            "A threshold in seconds of how fast main "
-            "thread should respond to health check"
-        ),
+        description=tr("Expected main thread response time (seconds)"),
         default=0.1,
         category=SettingCategory.THREAD_HEALTH_CHECKER_METER,
         widget_config=WidgetConfig(minimum=0.001, maximum=100.0, step=0.001),
     )
 
-    # Map rendering meter
+    # Map rendering meter settings
     map_rendering_meter_enabled = Setting(
-        description=tr("Enable measure map rendering meter"),
+        description=tr("Enable map rendering meter"),
         default=True,
         category=SettingCategory.MAP_RENDERING_METER,
     )
     map_rendering_meter_threshold = Setting(
-        description=tr(
-            "A threshold in seconds of how fast the whole map should normally render"
-        ),
+        description=tr("Expected map render time (seconds)"),
         default=1.0,
         category=SettingCategory.MAP_RENDERING_METER,
     )
