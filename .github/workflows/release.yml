@@ -30,8 +30,8 @@ jobs:
         run: |
           cd components/plugin
           uv sync --all-packages --no-editable
-          uv run qgis-plugin-dev-tools build
-          uv run qgis-plugin-dev-tools publish dist/*.zip
+          uv run --no-editable qgis-plugin-dev-tools build
+          uv run --no-editable qgis-plugin-dev-tools publish dist/*.zip
         env:
           QPDT_PUBLISH_USERNAME: ${{ secrets.QGIS_REPO_USERNAME }}
           QPDT_PUBLISH_PASSWORD: ${{ secrets.QGIS_REPO_PASSWORD }}
