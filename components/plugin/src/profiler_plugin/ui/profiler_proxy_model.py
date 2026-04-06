@@ -36,6 +36,8 @@ _user_role = int(Qt.ItemDataRole.UserRole)
 
 
 class Role(enum.Enum):
+    """Define custom data roles for the profiler model."""
+
     Name = _user_role + 1
     Group = _user_role + 2
     Elapsed = _user_role + 3
@@ -44,8 +46,8 @@ class Role(enum.Enum):
 
 
 class ProfilerProxyModel(QSortFilterProxyModel):
-    """
-    Rewrite of QGIS C++ QgsProfilerProxyModel.
+    """Rewrite of QGIS C++ QgsProfilerProxyModel.
+
     Needed to filter the profiles.
 
     Use QgsFilterProxyModel as a base class when python bindings are available.
@@ -54,6 +56,7 @@ class ProfilerProxyModel(QSortFilterProxyModel):
     def __init__(
         self, source_model: QAbstractItemModel, parent: QObject | None = None
     ) -> None:
+        """Initialize with a source model and optional parent."""
         self.group = ""
         super().__init__(parent)
         self.setSourceModel(source_model)
@@ -61,15 +64,18 @@ class ProfilerProxyModel(QSortFilterProxyModel):
         Settings.show_events_threshold.value.changed.connect(self._threshold_changed)
 
     def set_group(self, group: str) -> None:
+        """Set the active group filter and refresh the view."""
         self.group = group
         self.invalidateFilter()
 
     def set_threshold(self, threshold: float) -> None:
+        """Set the minimum elapsed-time threshold and refresh the view."""
         LOGGER.debug("Threshold set to %s", threshold)
         self.threshold = threshold
         self.invalidateFilter()
 
     def filterAcceptsRow(self, source_row: int, source_parent: QModelIndex) -> bool:  # noqa: N802
+        """Return whether a row passes the group and threshold filters."""
         result = super().filterAcceptsRow(source_row, source_parent)
         if not result or self.group == "":
             return False

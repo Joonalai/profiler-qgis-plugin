@@ -54,8 +54,7 @@ LOGGER = logging.getLogger(__name__)
 
 @dataclass
 class ProfilerResult:  # noqa: PLW1641
-    """
-    Represents the result of a profiling operation with hierarchical structure.
+    """Represents the result of a profiling operation with hierarchical structure.
 
     This class encapsulates information about a single profiling result, including
     its name, associated group, duration, and any child profiling results. It is
@@ -74,10 +73,7 @@ class ProfilerResult:  # noqa: PLW1641
     children: list["ProfilerResult"] = field(default_factory=list)
 
     def __eq__(self, other: object) -> bool:
-        """
-        Overridden to allow approximate equality evaluations
-        for floating point values.
-        """
+        """Compare with approximate equality for floating point values."""
         if not isinstance(other, ProfilerResult):
             return NotImplemented
         return (
@@ -89,11 +85,10 @@ class ProfilerResult:  # noqa: PLW1641
 
     @staticmethod
     def parse_from_text(text: str, group: str) -> list["ProfilerResult"]:
-        """
-        Parses a given text into a list of `ProfilerResult` objects by processing
-        the hierarchical structure denoted by indentation and the specified group.
-        The function expects a specific format where each line contains profiling
-        data to be interpreted.
+        """Parse a given text into a list of `ProfilerResult` objects.
+
+        Process the hierarchical structure denoted by indentation and the
+        specified group. Each line is expected to contain profiling data.
 
         :param text: The textual data representing the profiling information. Each
                      line in the text is expected to contain data in a specific format.
@@ -132,9 +127,7 @@ class ProfilerResult:  # noqa: PLW1641
 
 
 class ProfilerWrapper:
-    """
-    A wrapper for the QgsRuntimeProfiler class
-    with some additional functionality.
+    """Wrap QgsRuntimeProfiler with additional functionality.
 
     Do not initialize directly, use :meth:`ProfilerWrapper.get` instead.
 
@@ -162,6 +155,7 @@ class ProfilerWrapper:
     _instance: Optional["ProfilerWrapper"] = None
 
     def __init__(self) -> None:
+        """Initialize the profiler wrapper around QgsRuntimeProfiler."""
         profiler = QgsApplication.profiler()
         if profiler is None:
             raise ProfilerNotFoundError
@@ -174,6 +168,7 @@ class ProfilerWrapper:
 
     @staticmethod
     def get() -> "ProfilerWrapper":
+        """Return the singleton ProfilerWrapper instance."""
         if ProfilerWrapper._instance is None:
             ProfilerWrapper._instance = ProfilerWrapper()
         return ProfilerWrapper._instance
@@ -184,8 +179,8 @@ class ProfilerWrapper:
         return self._qgis_profiler.groups()
 
     def qgis_groups(self) -> dict[str, str]:
-        """
-        Dictionary of all QGIS groups in the profiler.
+        """Return a dictionary of all QGIS groups in the profiler.
+
         Key is the translated/descriptive name, value is the actual name.
         """
         return {
@@ -203,10 +198,7 @@ class ProfilerWrapper:
 
     @property
     def cprofiler_available(self) -> bool:
-        """
-        Whether cProfile is installed and
-        available for use in ProfilerWrapper.
-        """
+        """Return whether cProfile is installed and available."""
         return QCProfiler is not None
 
     @contextmanager
@@ -229,10 +221,9 @@ class ProfilerWrapper:
         self.clear(group_name)
 
     def start(self, name: str, group: str) -> str:
-        """
-        Start a new profiling event.
+        """Start a new profiling event.
 
-        :return: Returns a unique identifier for the event.
+        :return: A unique identifier for the event.
         """
         event_id = str(uuid.uuid4())
         self._qgis_profiler.start(name, group, event_id)
@@ -240,29 +231,25 @@ class ProfilerWrapper:
         return event_id
 
     def end(self, group: str) -> str:
-        """
-        End the current profiling event for a group.
+        """End the current profiling event for a group.
 
-        :return: Returns a unique identifier for the event.
+        :return: A unique identifier for the event.
         """
         self._qgis_profiler.end(group)
         return self._profiler_events.get(group, ["invalid"])[-1]
 
     def end_all(self, group: str) -> None:
-        """
-        End all profiling events for a group.
-        """
+        """End all profiling events for a group."""
         while self.is_profiling(group):
             self.end(group)
 
     def add_record(self, name: str, group: str, time: float) -> str:
-        """
-        Adds a performance profiling record.
+        """Add a performance profiling record.
 
         :param name: Name for the profiling event.
         :param group: Group category for the event being profiled.
         :param time: Time duration associated with the profiling event in seconds.
-        :return: Returns a unique identifier for the record.
+        :return: A unique identifier for the record.
         """
         event_id = str(uuid.uuid4())
         self._qgis_profiler.record(name, time, group, event_id)
@@ -279,13 +266,11 @@ class ProfilerWrapper:
     def get_profiler_data(
         self, name: str | None = None, group: str | None = None
     ) -> list[ProfilerResult]:
-        """
-        Retrieve profiler data filtered by name and/or group.
+        """Return profiler data filtered by name and/or group.
 
-        This function extracts profiling data from a resolved group and parses it
-        into structured results. It allows optional filtering by entity name.
+        Extract profiling data from a resolved group and parse it
+        into structured results. Allow optional filtering by entity name.
         """
-
         # To get the complete tree, the text version has to be parsed
         # Since python bindings do not exist for all needed methods
         group = resolve_group_name_with_cache(group)
@@ -309,31 +294,29 @@ class ProfilerWrapper:
         return find_results_with_name(name, results)
 
     def save_profiler_results_as_prof_file(self, group: str, file_path: Path) -> None:
-        """
-        Save profiler data as a cprofiler binary file for further analysis with tools
-        like https://github.com/jrfonseca/gprof2dot
-        or https://jiffyclub.github.io/snakeviz/#snakeviz
+        """Save profiler data as a cprofiler binary file for further analysis.
+
+        Compatible with tools like https://github.com/jrfonseca/gprof2dot
+        or https://jiffyclub.github.io/snakeviz/#snakeviz.
         """
         with self.cprofiler.qgis_profiler_data(self._qgis_profiler.asText(group)):
             self.cprofiler.dump_stats(file_path)
 
     def is_profiling(self, group: str | None = None) -> bool:
-        """
-        Check if profiling is active for a given group.
-        i.e. it has a entry which has started and not yet stopped.
+        """Check if profiling is active for a given group.
+
+        Return True if the group has an entry which has started and not yet stopped.
         """
         return self._qgis_profiler.groupIsActive(resolve_group_name(group))
 
     def item_model(self) -> QAbstractItemModel:
-        """
-        :return the underlying QAbstractItemModel for the profiler.
-        """
+        """:return the underlying QAbstractItemModel for the profiler."""
         return cast("QAbstractItemModel", self._qgis_profiler)
 
     def clear(self, group: str | None = None) -> None:
-        """
-        Clear all profiling data for a given group.
-        This does not remove the group.
+        """Clear all profiling data for a given group.
+
+        Note that this does not remove the group.
         """
         group = resolve_group_name(group)
         self.end(group)
@@ -343,9 +326,9 @@ class ProfilerWrapper:
         self._profiler_events.pop(group, None)
 
     def clear_all(self) -> None:
-        """
-        Clear all profiling data from all groups.
-        This does not remove any group.
+        """Clear all profiling data from all groups.
+
+        Note that this does not remove any group.
         """
         for group in self.groups:
             self.clear(group)

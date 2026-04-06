@@ -49,9 +49,12 @@ iface = cast("QgisInterface", iface_)
 
 
 class ProfilerPlugin(QObject):
+    """QGIS plugin that adds profiling capabilities to the Dev Tools panel."""
+
     name = tr("Profiler")
 
     def __init__(self) -> None:
+        """Initialize the plugin with default state."""
         super().__init__(parent=None)
         self._teardown_loggers = lambda: None
         self._profiler_panel_layout: QVBoxLayout | None = None
@@ -59,6 +62,7 @@ class ProfilerPlugin(QObject):
         self._profiler_extension: ProfilerExtension | None = None
 
     def initGui(self) -> None:  # noqa: N802
+        """Set up logging, the event recorder, and the profiler extension."""
         self._teardown_loggers = setup_loggers(
             qgis_profiler.__name__,
             profiler_plugin.__name__,
@@ -82,9 +86,7 @@ class ProfilerPlugin(QObject):
         self._add_profiler_extension()
 
     def _add_profiler_extension(self) -> None:
-        """
-        Modify the QgsProfilerPanelBase to include the ProfilerExtension
-        """
+        """Modify the QgsProfilerPanelBase to include the ProfilerExtension."""
         if (tools := iface.mainWindow().findChild(QDockWidget, "DevTools")) is None:
             return
         if (profiler_panel := tools.findChild(QWidget, "QgsProfilerPanelBase")) is None:
@@ -99,6 +101,7 @@ class ProfilerPlugin(QObject):
             self._profiler_extension.start_recording()
 
     def unload(self) -> None:
+        """Tear down logging and remove the profiler extension."""
         self._teardown_loggers()
         self._teardown_loggers = lambda: None
 

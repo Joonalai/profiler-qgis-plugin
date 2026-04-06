@@ -34,11 +34,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 class RecoveryMeasurer(Meter):
-    """
-    Sometimes QGIS freezes and becomes slow for a short period of
-    time. This meter measures how much time it takes for QGIS to
-    become fully responsive again.
-    """
+    """Measure how long QGIS takes to become fully responsive after a freeze."""
 
     _short_name = "recovery"
     _instance: Optional["RecoveryMeasurer"] = None
@@ -49,6 +45,7 @@ class RecoveryMeasurer(Meter):
         threshold_s: int,
         timeout_s: int,
     ) -> None:
+        """Initialize with event count, threshold, and timeout parameters."""
         super().__init__()
         self._process_event_count = process_event_count
         self._threshold_ms = threshold_s * 1000
@@ -58,6 +55,7 @@ class RecoveryMeasurer(Meter):
         LOGGER.debug("Recovery parameters initialized: %s", self)
 
     def __str__(self) -> str:
+        """Return a string representation of the measurer parameters."""
         return (
             f"RecoveryMeasurer("
             f"process_event_count={self._process_event_count}, "
@@ -67,6 +65,7 @@ class RecoveryMeasurer(Meter):
 
     @classmethod
     def get(cls) -> "RecoveryMeasurer":
+        """Return the singleton RecoveryMeasurer instance."""
         if cls._instance is None:
             cls._instance = RecoveryMeasurer(
                 process_event_count=Settings.recovery_process_event_count.get(),
@@ -77,6 +76,7 @@ class RecoveryMeasurer(Meter):
         return cls._instance
 
     def reset_parameters(self) -> None:
+        """Reset measurement parameters from current settings."""
         self._process_event_count = Settings.recovery_process_event_count.get()
         self._threshold_ms = Settings.recovery_threshold.get() * 1000
         self._timeout_ms = Settings.recovery_timeout.get() * 1000

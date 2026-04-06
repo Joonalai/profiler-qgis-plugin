@@ -46,10 +46,10 @@ def profile(
     group: str | None = None,
     event_args: list[str] | None = None,
 ) -> Callable:
-    """
-    Creates a profiling decorator that measures the time taken by a function and groups
-    the profiler data under a specified name. The decorator utilizes the
-    QgsApplication's profiling infrastructure for performance measurement.
+    """Create a profiling decorator for the given function.
+
+    Measure the time taken by a function and group the profiler data under a
+    specified name using QgsApplication's profiling infrastructure.
 
     :param function: Provided here to support both ``@profile`` and
         ``@profile()`` syntax.
@@ -80,7 +80,6 @@ def profile(
             pass
         # Event name will be: "process_layer(layer_name=roads)"
     """
-
     if function is None:  # @profile() syntax
 
         def decorator(function: Callable) -> Callable:
@@ -122,10 +121,9 @@ def profile_class(  # noqa: C901
     include: list[str] | None = None,
     exclude: list[str] | None = None,
 ) -> Callable[[type], type]:
-    """
-    A class decorator to automatically wrap methods with the 'profile' decorator.
-    If 'profile' decorator is already applied to a method, it will be skipped.
-    Special ``__dunder__`` methods are always skipped.
+    """Wrap public methods of a class with the 'profile' decorator.
+
+    Skip methods already decorated with 'profile' and all ``__dunder__`` methods.
 
     :param group: Optional name for the profiler group. If not provided, the group name
         is read from settings.
@@ -206,9 +204,9 @@ def cprofile(
     sort: tuple[str, ...] = ("cumtime",),
     output_file_path: Path | None = None,
 ) -> Callable:
-    """
-    Profiles the execution of a specified function using cProfile. Can be used
-    as a decorator with or without arguments.
+    """Profile the execution of a function using cProfile.
+
+    Can be used as a decorator with or without arguments.
 
     :param function: Function to be profiled. Defaults to None.
     :param log_stats: Whether to log profiling statistics. Defaults to True.
@@ -265,8 +263,7 @@ def cprofile_plugin(
     *,
     output_file_path: Path,
 ) -> Callable[[type], type]:
-    """
-    Apply a decorator to a QGIS plugin class to enable profiling.
+    """Apply a decorator to a QGIS plugin class to enable profiling.
 
     This function decorates a class to integrate profiling functionality
     via `cProfile`. Profiling is enabled during the plugin's execution

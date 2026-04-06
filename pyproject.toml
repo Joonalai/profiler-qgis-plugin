@@ -5,7 +5,6 @@ readme = "README.md"
 license = "GPL-3.0-only"
 license-files = ["LICENSE"]
 requires-python = ">=3.12"
-authors = [{ name = "Cofactor Oy", email = "dev@cofactor.fi" }]
 classifiers = [
   "Development Status :: 4 - Beta",
   "Programming Language :: Python",
@@ -49,6 +48,8 @@ explicit = true
 
 lint.ignore = [
   "ANN401", # Dynamically typed expressions (typing.Any) are disallowed
+  "D203",   # Conflicts with D211 (no-blank-line-before-class)
+  "D213",   # Conflicts with D212 (multi-line-summary-first-line)
   "G002",   # Logging statement uses %
   "PGH003", # Use specific rule codes when ignoring type issues
 ]
@@ -60,11 +61,11 @@ lint.unfixable = [
 
 # List of all rules https://docs.astral.sh/ruff/rules/
 lint.select = [
-  "ANN", # flake8-annotations
-  "B",   # flake8-bugbear
-  "C4",  # flake8-comprehensions
-  "C90", # flake8, mccabe
-  # "D", # pydocstyle # TODO: enable before first actual release
+  "ANN",  # flake8-annotations
+  "B",    # flake8-bugbear
+  "C4",   # flake8-comprehensions
+  "C90",  # flake8, mccabe
+  "D",    # pydocstyle
   "E",    # flake8, pycodestyle
   "F",    # flake8, Pyflakes
   "FURB", # refurb
@@ -106,8 +107,10 @@ target-version = "py312"
 ban-relative-imports = "all"
 
 [tool.ruff.lint.per-file-ignores]
-"docs/*" = ["INP001"]
+"docs/*" = ["ALL"]
+"*/profiler_test_utils/*" = ["D"]
 "*/test*" = [
+  "D",
   "INP001",
   "ANN201",
   "ANN202",
@@ -118,7 +121,6 @@ ban-relative-imports = "all"
   "FBT001",  # Boolean-typed positional argument in function definition
 ]
 
-
 [tool.flake8]
 max-line-length = 88
 spellcheck-targets = "names"
@@ -128,6 +130,7 @@ extend-ignore = ["QGS202"]
 
 per-file-ignores = [
   "*/test/*:INP001,SC200,QGS105",
+  "docs/*:SC200",
   "components/core/src/profiler_test_utils/*:INP001,SC200,QGS105",
 ]
 

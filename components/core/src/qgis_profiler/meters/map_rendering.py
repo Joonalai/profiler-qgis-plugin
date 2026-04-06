@@ -43,9 +43,7 @@ iface = cast("QgisInterface", iface_)
 
 
 class MapRenderingMeter(Meter):
-    """
-    Measures the time it takes to fully render the map.
-    """
+    """Measures the time it takes to fully render the map."""
 
     _short_name = "rendering"
     _instance: Optional["MapRenderingMeter"] = None
@@ -54,6 +52,7 @@ class MapRenderingMeter(Meter):
         self,
         threshold_s: float,
     ) -> None:
+        """Initialize with a rendering time threshold in seconds."""
         super().__init__(supports_continuous_measurement=True)
         self._threshold_ms = threshold_s * 1000
         self._elapsed_timer = QElapsedTimer()
@@ -61,10 +60,12 @@ class MapRenderingMeter(Meter):
         LOGGER.debug("MapRenderingMeasurer parameters initialized: %s", self)
 
     def __str__(self) -> str:
+        """Return a string representation of the meter parameters."""
         return f"MapRenderingMeasurer(threshold_s={self._threshold_ms / 1000}),"
 
     @classmethod
     def get(cls) -> "MapRenderingMeter":
+        """Return the singleton MapRenderingMeter instance."""
         if cls._instance is None:
             cls._instance = MapRenderingMeter(
                 threshold_s=Settings.map_rendering_meter_threshold.get(),
@@ -73,6 +74,7 @@ class MapRenderingMeter(Meter):
         return cls._instance
 
     def reset_parameters(self) -> None:
+        """Reset measurement parameters from current settings."""
         self._threshold_ms = Settings.map_rendering_meter_threshold.get() * 1000
         self.enabled = Settings.map_rendering_meter_enabled.get()
         LOGGER.debug("MapRenderingMeasurer parameters reset: %s", self)

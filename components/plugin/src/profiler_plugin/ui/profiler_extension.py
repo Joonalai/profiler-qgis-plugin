@@ -65,9 +65,9 @@ UI_CLASS: QWidget = load_ui_from_file(
 
 
 class ProfilerExtension(QWidget, UI_CLASS):
-    """
-    Represents a Profiler Extension Widget in the GUI.
-    Provides functionalities to control profiling operations,
+    """Represent a Profiler Extension Widget in the GUI.
+
+    Provide functionalities to control profiling operations,
     manage recording, clear profiling data, and access settings.
     """
 
@@ -82,7 +82,8 @@ class ProfilerExtension(QWidget, UI_CLASS):
     def __init__(
         self, event_recorder: ProfilerEventRecorder | None, profiler_panel: QWidget
     ) -> None:
-        """
+        """Initialize the profiler extension widget.
+
         :param event_recorder: Event recording utility for profiling.
         :param profiler_panel: Main UI panel for the profiler tool.
         """
@@ -138,9 +139,11 @@ class ProfilerExtension(QWidget, UI_CLASS):
         self._update_ui_state()
 
     def start_recording(self) -> None:
+        """Start recording profiling events."""
         self._toggle_recording()
 
     def cleanup(self) -> None:
+        """Stop recording if active and clean up all meters."""
         if self._event_recorder and self._event_recorder.is_recording():
             self._stop_recording()
         for meter in self._meters:
@@ -154,9 +157,7 @@ class ProfilerExtension(QWidget, UI_CLASS):
                 )
 
     def _configure_buttons(self) -> None:
-        """
-        Configures the buttons with icons, tooltips, and connect them to their actions.
-        """
+        """Configure buttons with icons, tooltips, and actions."""
         button_config = {
             self.button_record: (
                 self._toggle_recording,
@@ -335,9 +336,7 @@ class ProfilerExtension(QWidget, UI_CLASS):
         self._update_ui_state()
 
     def _update_ui_state(self, *args: Any) -> None:
-        """
-        Updates the state of the UI components based on the current profiling state.
-        """
+        """Update UI component states based on the current profiling state."""
         self.button_record.setEnabled(self._event_recorder is not None)
         self.button_cprofiler_record.setEnabled(
             ProfilerWrapper.get().cprofiler_available

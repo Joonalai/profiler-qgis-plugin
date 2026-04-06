@@ -38,14 +38,12 @@ LOGGER = logging.getLogger(__name__)
 
 
 def get_widget_under_cursor() -> QWidget | None:
-    """Get the widget under mouse cursor"""
+    """Get the widget under mouse cursor."""
     return QApplication.widgetAt(QCursor.pos())
 
 
 def has_suitable_qt_version(suitable_qt_version: str = QT_VERSION_MIN) -> bool:
-    """
-    Check if the QT version is recent enough.
-    """
+    """Check if the QT version is recent enough."""
     return QT_VERSION_STR >= suitable_qt_version  # noqa: SIM300
 
 
@@ -60,9 +58,7 @@ def disconnect_signal(signal: pyqtSignal, connection: Any, name: str) -> None:
 def parse_arguments(
     function: Callable, event_args: list[str], args: Any = None, kwargs: Any = None
 ) -> str:
-    """
-    Parses and formats arguments for a given function based on event_args.
-
+    """Parse and format arguments for a given function based on event_args.
 
     Also object and class attributes can be used in case of a method:
 
@@ -111,9 +107,13 @@ def parse_arguments(
 class QgisPluginType(Protocol):
     """Protocol for QGIS plugins."""
 
-    def initGui(self) -> None: ...  # noqa: N802
+    def initGui(self) -> None:  # noqa: N802
+        """Initialize the plugin GUI."""
+        ...
 
-    def unload(self) -> None: ...
+    def unload(self) -> None:
+        """Unload the plugin."""
+        ...
 
 
 def get_rotated_path(path: Path) -> Path:

@@ -44,6 +44,7 @@ class MeterContext(NamedTuple):
     group: str
 
     def with_meter_suffix(self, suffix: str) -> "MeterContext":
+        """Return a new context with the given suffix appended to the name."""
         return MeterContext(f"{self.name} ({suffix})", self.group)
 
 
@@ -55,8 +56,7 @@ class MeterAnomaly(NamedTuple):
 
 
 class Meter(QObject):
-    """
-    Abstract base class for meters to detect anomalies in QGIS performance.
+    """Abstract base class for meters to detect anomalies in QGIS performance.
 
     Each concrete meter can be used as a decorator via the :meth:`monitor`
     class method::
@@ -82,6 +82,7 @@ class Meter(QObject):
     anomaly_detected = pyqtSignal(MeterAnomaly)
 
     def __init__(self, supports_continuous_measurement: bool = False) -> None:  # noqa: FBT001, FBT002
+        """Initialize the meter with optional continuous measurement support."""
         super().__init__(None)
         self._default_context = MeterContext(
             self.__class__.__name__, Settings.meters_group.get()
@@ -93,17 +94,13 @@ class Meter(QObject):
         self._is_measuring: bool = False
 
     def __del__(self) -> None:
-        """
-        Ensure cleanup when the object is garbage collected.
-        """
+        """Ensure cleanup when the object is garbage collected."""
         self.cleanup()
 
     @classmethod
     @abc.abstractmethod
     def get(cls: type["Meter"]) -> "Meter":
-        """
-        Get a singleton instance of the meter.
-        """
+        """Get a singleton instance of the meter."""
 
     @classmethod
     def monitor(  # noqa: PLR0913
@@ -117,10 +114,10 @@ class Meter(QObject):
         start_continuous_measuring: bool = True,
         measure_after_call: bool = False,
     ) -> Callable:
-        """
-        Decorator for monitoring the meter by setting the meter context
-        within a function call and, by starting continuous measuring if supported
-        and by optionally measuring the meter after the function call.
+        """Decorate a function to monitor it with this meter.
+
+        Set the meter context within a function call, start continuous measuring
+        if supported, and optionally measure the meter after the function call.
         If the meter is disabled, nothing is done.
 
         If you want to profile the anomalies found during the function call,
@@ -141,7 +138,6 @@ class Meter(QObject):
         :return: A callable decorator function that wraps the given function to
             set the meter context during the function call.
         """
-
         if function is None:  # @monitor() syntax
 
             def decorator(func: Callable) -> Callable:
@@ -193,9 +189,7 @@ class Meter(QObject):
 
     @property
     def current_context(self) -> MeterContext:
-        """
-        :return The current context of the meter.
-        """
+        """:return The current context of the meter."""
         context = (
             self._context_stack[-1] if self._context_stack else self._default_context
         )
@@ -211,6 +205,7 @@ class Meter(QObject):
 
     @property
     def supports_continuous_measuring(self) -> bool:
+        """Return whether the meter supports continuous measurement."""
         return self._supports_continuous_measuring
 
     @property
@@ -224,6 +219,7 @@ class Meter(QObject):
 
     @property
     def is_measuring(self) -> bool:
+        """Return whether the meter is currently measuring."""
         return self._is_measuring
 
     @contextmanager
@@ -236,14 +232,11 @@ class Meter(QObject):
             self.pop_context()
 
     def add_context(self, name: str, group: str) -> None:
-        """
-        Adds context to the context stack
-        """
+        """Add context to the context stack."""
         self._context_stack.append(MeterContext(name, group))
 
     def pop_context(self) -> MeterContext | None:
-        """
-        Remove the last context from the context stack if it exists.
+        """Remove the last context from the context stack if it exists.
 
         :return: Context or None if context stack is empty.
         """
@@ -252,10 +245,9 @@ class Meter(QObject):
         return None
 
     def connect_to_profiler(self) -> None:
-        """
-        Connects anomaly detection signal to profiler's anomaly handling.
+        """Connect anomaly detection signal to profiler's anomaly handling.
 
-        This method establishes a connection between the
+        Establish a connection between the
         `anomaly_detected` signal and the `_profile_anomaly`
         handler to ensure anomalies are routed correctly.
 
@@ -265,9 +257,9 @@ class Meter(QObject):
         self._connected_to_profiler = True
 
     def measure(self) -> float | None:
-        """
-        Measure once with the meter. Signal anomaly_detected will be emitted
-        if applicable.
+        """Measure once with the meter.
+
+        Signal anomaly_detected will be emitted if applicable.
 
         :return: Duration in seconds or None if meter is disabled.
         """
@@ -279,9 +271,7 @@ class Meter(QObject):
         return None
 
     def start_measuring(self) -> bool:
-        """
-        Starts the measurement process and reflects the status of whether
-        measurements have started successfully.
+        """Start the measurement process.
 
         :return: A boolean indicating if the measurement
             process was initiated successfully.
@@ -292,16 +282,12 @@ class Meter(QObject):
         return False
 
     def stop_measuring(self) -> None:
-        """
-        Stops the continuous measurement process if applicable.
-        """
+        """Stop the continuous measurement process if applicable."""
         self._is_measuring = False
         self._stop_measuring()
 
     def cleanup(self) -> None:
-        """
-        Cleanup the meter and stop measuring if continuous measuring is supported.
-        """
+        """Cleanup the meter and stop measuring if continuous measuring is supported."""
         self.stop_measuring()
         with suppress(TypeError):
             self.anomaly_detected.disconnect(self._profile_anomaly)
@@ -317,14 +303,11 @@ class Meter(QObject):
 
     @abc.abstractmethod
     def reset_parameters(self) -> None:
-        """
-        Reset the meter parameters based on setting values.
-        """
+        """Reset the meter parameters based on setting values."""
 
     @abc.abstractmethod
     def _measure(self) -> tuple[float, bool]:
-        """
-        Perform actual measurement.
+        """Perform actual measurement.
 
         :return: A tuple containing a duration in seconds and a
         boolean indicating whether an anomaly was detected.

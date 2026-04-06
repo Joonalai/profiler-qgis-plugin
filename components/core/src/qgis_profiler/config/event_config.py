@@ -15,6 +15,9 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with profiler-qgis-plugin. If not, see <https://www.gnu.org/licenses/>.
+
+"""Event configuration for map tool profiling."""
+
 import enum
 import logging
 from abc import ABC, abstractmethod
@@ -65,10 +68,13 @@ _mouse_right_button_release = QMouseEvent(
 
 
 def is_object_map_canvas(obj: QObject) -> bool:
+    """Check whether the given object is the map canvas viewport."""
     return obj == iface.mapCanvas().viewport()
 
 
 class EventResponse(enum.Enum):
+    """Represent possible profiling responses to a matched event."""
+
     START_PROFILING = enum.auto()
     STOP_PROFILING = enum.auto()
     STOP_PROFILING_DELAYED = enum.auto()
@@ -76,11 +82,14 @@ class EventResponse(enum.Enum):
 
 
 class CustomEventFilter(NamedTuple):
+    """Filter definition for matching Qt events with optional object constraints."""
+
     event: QEvent | QEvent.Type
     object_filter: Callable[[QObject], bool] | None = None
     stop_after_responsive: bool = False
 
     def matches(self, event: QEvent, obj: QObject) -> bool:
+        """Check whether the given event and object match this filter."""
         if not self._event_matches(event):
             return False
 
@@ -101,47 +110,51 @@ class CustomEventFilter(NamedTuple):
 
 
 class CustomEventConfig(Protocol):
+    """Protocol for custom event configurations."""
+
     class_name: str
 
     @property
-    def name(self) -> str: ...
+    def name(self) -> str:
+        """Return the display name for this config."""
+        ...
 
     def activate(self) -> None:
         """Activate the custom config when starting recording."""
         ...
 
     def matches(self, event: QEvent, obj: QObject) -> EventResponse | None:
-        """Check what to do with the event"""
+        """Check what to do with the event."""
         ...
 
 
 class MapToolConfig(ABC):
-    """
-    Config for QGIS map tools.
-    Implements the protocol CustomEventConfig.
+    """Config for QGIS map tools.
+
+    Implement the protocol CustomEventConfig.
     """
 
     def __init__(self, class_name: str, profile_name: str | None = None) -> None:
+        """Initialize with the map tool class name and optional profile name."""
         self.class_name = class_name
         self.profile_name = profile_name or class_name
 
     @property
     def name(self) -> str:
+        """Return the display name for this config."""
         return self.profile_name or self.class_name
 
     @abstractmethod
     def activate(self) -> None:
-        pass
+        """Activate the config when starting recording."""
 
     @abstractmethod
     def matches(self, event: QEvent, obj: QObject) -> EventResponse | None:
-        pass
+        """Determine the event response for the given event and object."""
 
 
 class SimpleMapToolConfig(MapToolConfig):
-    """
-    Measures the time between two events.
-    """
+    """Measures the time between two events."""
 
     def __init__(
         self,
@@ -150,15 +163,18 @@ class SimpleMapToolConfig(MapToolConfig):
         stop_event_filter: CustomEventFilter,
         profile_name: str | None = None,
     ) -> None:
+        """Initialize with start and stop event filters."""
         super().__init__(class_name, profile_name)
         self.start_event_filter = start_event_filter
         self.stop_event_filter = stop_event_filter
         self._profiling_started = False
 
     def activate(self) -> None:
+        """Reset profiling state."""
         self._profiling_started = False
 
     def matches(self, event: QEvent, obj: QObject) -> EventResponse | None:
+        """Determine the event response based on start and stop filters."""
         if not self._profiling_started and self.start_event_filter.matches(event, obj):
             self._profiling_started = True
             return EventResponse.START_PROFILING
@@ -171,10 +187,7 @@ class SimpleMapToolConfig(MapToolConfig):
 
 
 class SimpleMapToolClickConfig(MapToolConfig):
-    """
-    Measures the time it takes for the UI to become
-    responsive after a click on a canvas
-    """
+    """Measure the time for the UI to become responsive after a canvas click."""
 
     def __init__(
         self,
@@ -182,6 +195,7 @@ class SimpleMapToolClickConfig(MapToolConfig):
         event: CustomEventFilter | None = None,
         profile_name: str | None = None,
     ) -> None:
+        """Initialize with optional custom event filter."""
         super().__init__(class_name, profile_name)
         self.event = event or CustomEventFilter(
             event=_mouse_left_button_release,
@@ -189,25 +203,31 @@ class SimpleMapToolClickConfig(MapToolConfig):
         )
 
     def activate(self) -> None:
-        pass
+        """Activate the config (no-op for simple click config)."""
 
     def matches(self, event: QEvent, obj: QObject) -> EventResponse | None:
+        """Return start-and-stop-delayed response if the event matches."""
         if self.event.matches(event, obj):
             return EventResponse.START_AND_STOP_DELAYED
         return None
 
 
 class AdvancedDigitizingMapToolClickConfig(SimpleMapToolClickConfig):
+    """Click config for advanced digitizing tools with scene item tracking."""
+
     def __init__(
         self,
         class_name: str,
         event: CustomEventFilter | None = None,
         profile_name: str | None = None,
     ) -> None:
+        """Initialize with scene item count tracking."""
         super().__init__(class_name, event, profile_name)
         self.initial_canvas_scene_item_count = 0
 
     def activate(self) -> None:
+        """Set the initial canvas scene item count after a short delay."""
+
         def _set_initial_count() -> None:
             self.initial_canvas_scene_item_count = len(
                 iface.mapCanvas().scene().items()
@@ -219,6 +239,7 @@ class AdvancedDigitizingMapToolClickConfig(SimpleMapToolClickConfig):
         QTimer.singleShot(100, _set_initial_count)
 
     def matches(self, event: QEvent, obj: QObject) -> EventResponse | None:
+        """Match only when scene items have increased since activation."""
         if (
             self.event.matches(event, obj)
             and len(iface.mapCanvas().scene().items())

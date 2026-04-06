@@ -45,12 +45,16 @@ LOGGER = logging.getLogger(__name__)
 
 
 class WidgetType(enum.Enum):
+    """Represent the type of widget used for a setting in the UI."""
+
     LINE_EDIT = "line_edit"
     CHECKBOX = "checkbox"
     SPIN_BOX = "spin_box"
 
 
 class SettingCategory(enum.Enum):
+    """Categorize settings for the settings dialog."""
+
     GENERAL = tr("General")
     PROFILER_GROUPS = tr("Profiler Groups")
     CPROFILER = tr("cProfiler")
@@ -70,6 +74,8 @@ class WidgetConfig:
 
 @dataclass
 class Setting(QObject):
+    """Define a single setting with default, category, and widget metadata."""
+
     description: str
     default: Any
     category: SettingCategory = SettingCategory.GENERAL
@@ -78,7 +84,7 @@ class Setting(QObject):
     changed = pyqtSignal()
 
     def __post_init__(self) -> None:
-        """Deduces the widget type based on the default value's type."""
+        """Deduce the widget type based on the default value's type."""
         super().__init__()
         if isinstance(self.default, bool):
             self.widget_type = WidgetType.CHECKBOX
@@ -98,13 +104,10 @@ class Setting(QObject):
 
 
 class Settings(enum.Enum):
-    """
-    Represents the Profiler Settings, designed for managing configuration
-    of the profiler plugin via QgsSettings. Use get and set methods to
-    interact with the settings.
+    """Manage profiler plugin configuration via QgsSettings.
 
-    This class provides a structured way to access, and manage
-    profiler-related settings.
+    Use get and set methods to interact with the settings.
+    Provide a structured way to access and manage profiler-related settings.
     """
 
     # General settings
@@ -207,15 +210,12 @@ class Settings(enum.Enum):
 
     @staticmethod
     def reset() -> None:
-        """
-        Resets the state of the application or relevant subsystem to its initial default
-        state.
-        """
+        """Reset all settings to their default values."""
         for setting in Settings:
             setting.set(setting.value.default)
 
     def get(self) -> Any:
-        """Gets the setting value."""
+        """Return the setting value."""
         setting = self.value
         value = get_setting(self.name, setting.default)
         if not isinstance(value, type(setting.default)):
@@ -228,12 +228,12 @@ class Settings(enum.Enum):
         return value
 
     def get_with_cache(self) -> Any:
-        """Gets the setting value with caching."""
+        """Return the setting value with caching."""
         time_hash = int(time.time() / CACHE_INTERVAL)
         return self._get_cached(time_hash)
 
     def set(self, value: Any) -> None:
-        """Sets the setting value."""
+        """Set the setting value."""
         if not isinstance(value, type(self.value.default)):
             if isinstance(self.value.default, bool):
                 value = bool(value)
@@ -244,22 +244,22 @@ class Settings(enum.Enum):
 
     @lru_cache
     def _get_cached(self, time_hash: int) -> Any:
-        """
-        This method uses a time-sensitive hash to ensure
-        that cache stays valid maximum of CACHE_INTERVAL seconds.
+        """Return cached value using a time-sensitive hash.
+
+        Ensure that cache stays valid maximum of CACHE_INTERVAL seconds.
         """
         return self.get()
 
 
 def resolve_group_name(group: str | None = None) -> str:
-    """Helper method to resolve the group name, falling back to settings."""
+    """Resolve the group name, falling back to settings."""
     if group is not None:
         return group
     return Settings.active_group.get()
 
 
 def resolve_group_name_with_cache(group: str | None = None) -> str:
-    """Helper method to resolve the group name with cache, falling back to settings."""
+    """Resolve the group name with cache, falling back to settings."""
     if group is not None:
         return group
     return Settings.active_group.get_with_cache()
