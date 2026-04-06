@@ -12,6 +12,6 @@ changelog=
 tags= profiling, profiler, performance, development
 repository=https://github.com/Joonalai/profiler-qgis-plugin
 tracker=https://github.com/Joonalai/profiler-qgis-plugin/issues
-homepage=https://github.com/Joonalai/profiler-qgis-plugin
+homepage=https://profiler-qgis-plugin.readthedocs.io
 experimental=True
 deprecated=False

@@ -16,6 +16,8 @@
 #  You should have received a copy of the GNU General Public License
 #  along with profiler-qgis-plugin. If not, see <https://www.gnu.org/licenses/>.
 
+"""Plugin entry point providing the :func:`classFactory` function required by QGIS."""
+
 from typing import TYPE_CHECKING
 
 from profiler_plugin.plugin import ProfilerPlugin

@@ -15,6 +15,14 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with profiler-qgis-plugin. If not, see <https://www.gnu.org/licenses/>.
+
+"""Abstract base class for performance anomaly detection meters.
+
+Defines :class:`Meter`, which all concrete meters extend. Meters measure specific
+aspects of QGIS performance, emit anomalies when thresholds are exceeded, and can
+optionally record results into the profiler.
+"""
+
 import abc
 from collections.abc import Callable, Generator
 from contextlib import contextmanager, suppress
@@ -49,6 +57,22 @@ class MeterAnomaly(NamedTuple):
 class Meter(QObject):
     """
     Abstract base class for meters to detect anomalies in QGIS performance.
+
+    Each concrete meter can be used as a decorator via the :meth:`monitor`
+    class method::
+
+        from qgis_profiler.meters.recovery_measurer import RecoveryMeasurer
+        from qgis_profiler.meters.thread_health_checker import MainThreadHealthChecker
+
+        @RecoveryMeasurer.monitor(name="Load Layers")
+        def load_layers():
+            # Recovery time is measured after this function returns
+            pass
+
+        @MainThreadHealthChecker.monitor(name="Heavy Processing")
+        def heavy_processing():
+            # Thread health is monitored during execution
+            pass
     """
 
     __metaclass__ = abc.ABCMeta
@@ -104,18 +128,18 @@ class Meter(QObject):
 
         :param function: Provided here to support both @monitor and @monitor() syntax.
         :param name: Optional name for this context. If not provided, the
-        name of the function being wrapped will be used.
+            name of the function being wrapped will be used.
         :param group: Optional group name for the context. If not provided,
-        the group name is read from settings.
+            the group name is read from settings.
         :param name_args: Optional list of argument names to include in the context
-        name. If specified, the context name will include these argument values.
+            name. If specified, the context name will include these argument values.
         :param connect_to_profiler: Optional flag to connect to meter to a profiler
-        if not yet connected.
+            if not yet connected.
         :param start_continuous_measuring: Optional flag to start continuous measuring.
         :param measure_after_call: Optional flag to measure the meter after the function
-        call. For some meters this might be expensive.
+            call. For some meters this might be expensive.
         :return: A callable decorator function that wraps the given function to
-        set the meter context during the function call.
+            set the meter context during the function call.
         """
 
         if function is None:  # @monitor() syntax

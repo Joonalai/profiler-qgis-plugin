@@ -15,6 +15,14 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with profiler-qgis-plugin. If not, see <https://www.gnu.org/licenses/>.
+
+"""cProfile integration for QGIS profiling.
+
+Contains :class:`QCProfiler`, a :class:`cProfile.Profile` subclass that can merge
+QgsRuntimeProfiler data with standard cProfile statistics, and :class:`ProfilerEntry`,
+a dataclass for representing individual profiling entries.
+"""
+
 import cProfile
 import io
 import pstats

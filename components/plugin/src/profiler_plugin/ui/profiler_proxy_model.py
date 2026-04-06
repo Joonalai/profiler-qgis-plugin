@@ -15,6 +15,9 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with profiler-qgis-plugin. If not, see <https://www.gnu.org/licenses/>.
+
+"""Proxy model for filtering profiler results by group and elapsed-time threshold."""
+
 import enum
 import logging
 

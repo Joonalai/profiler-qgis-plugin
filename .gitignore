@@ -13,6 +13,7 @@ coverage.xml
 
 dist
 build
+docs/_build
 
 .env
 

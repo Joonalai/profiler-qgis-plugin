@@ -16,6 +16,13 @@
 #  You should have received a copy of the GNU General Public License
 #  along with profiler-qgis-plugin. If not, see <https://www.gnu.org/licenses/>.
 
+"""Singleton wrapper around QgsRuntimeProfiler with hierarchical result parsing.
+
+Contains :class:`ProfilerWrapper`, the central access point for all profiling
+operations, and :class:`ProfilerResult`, a dataclass representing hierarchical
+profiling results.
+"""
+
 import logging
 import uuid
 from collections import defaultdict
@@ -129,7 +136,27 @@ class ProfilerWrapper:
     A wrapper for the QgsRuntimeProfiler class
     with some additional functionality.
 
-    Do not initialize directly, use ProfilerWrapper.get() instead.
+    Do not initialize directly, use :meth:`ProfilerWrapper.get` instead.
+
+    Example::
+
+        from qgis_profiler.profiler import ProfilerWrapper
+
+        profiler = ProfilerWrapper.get()
+
+        # Context manager
+        with profiler.profile("Loading layers", "My Plugin"):
+            load_layers()
+
+        # Manual start/stop
+        event_id = profiler.start("Processing", "My Plugin")
+        do_work()
+        profiler.end("My Plugin")
+
+        # Retrieve results
+        results = profiler.get_profiler_data(group="My Plugin")
+        for result in results:
+            print(f"{result.name}: {result.duration}s")
     """
 
     _instance: Optional["ProfilerWrapper"] = None

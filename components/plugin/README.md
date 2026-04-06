@@ -1,3 +1,4 @@
 # QGIS profiler plugin
 
-Check the repository for usage information: <https://github.com/Joonalai/profiler-qgis-plugin>.
+Check the [documentation](https://profiler-qgis-plugin.readthedocs.io/en/latest/plugin/index.html)
+for usage information.

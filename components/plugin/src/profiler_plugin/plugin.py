@@ -16,6 +16,12 @@
 #  You should have received a copy of the GNU General Public License
 #  along with profiler-qgis-plugin. If not, see <https://www.gnu.org/licenses/>.
 
+"""Main QGIS plugin module containing :class:`ProfilerPlugin`.
+
+Sets up logging, the event recorder, and injects the profiler extension
+widget into the QGIS Dev Tools panel.
+"""
+
 from typing import TYPE_CHECKING, cast
 
 import qgis_plugin_tools

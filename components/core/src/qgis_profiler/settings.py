@@ -15,6 +15,13 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with profiler-qgis-plugin. If not, see <https://www.gnu.org/licenses/>.
+
+"""Plugin configuration management via QgsSettings.
+
+Contains the :class:`Settings` enum whose members define all profiler plugin
+settings with defaults, descriptions, and widget metadata for the settings dialog.
+"""
+
 import enum
 import logging
 import os

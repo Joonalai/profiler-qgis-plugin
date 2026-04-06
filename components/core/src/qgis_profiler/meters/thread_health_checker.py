@@ -16,6 +16,13 @@
 #  You should have received a copy of the GNU General Public License
 #  along with profiler-qgis-plugin. If not, see <https://www.gnu.org/licenses/>.
 
+"""Meter that monitors main thread responsiveness.
+
+Contains :class:`MainThreadHealthChecker`, which polls the main thread from a
+background thread and reports an anomaly when the response time exceeds a
+configurable threshold.
+"""
+
 import logging
 import time
 import warnings

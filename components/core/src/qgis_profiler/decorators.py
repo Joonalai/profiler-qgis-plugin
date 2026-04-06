@@ -15,6 +15,14 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with profiler-qgis-plugin. If not, see <https://www.gnu.org/licenses/>.
+
+"""Decorators for profiling functions and classes.
+
+Provides :func:`profile` and :func:`profile_class` for QgsRuntimeProfiler-based
+timing, and :func:`cprofile` and :func:`cprofile_plugin` for cProfile-based
+profiling with optional file output.
+"""
+
 import logging
 from collections.abc import Callable
 from functools import wraps
@@ -43,14 +51,34 @@ def profile(
     the profiler data under a specified name. The decorator utilizes the
     QgsApplication's profiling infrastructure for performance measurement.
 
-    :param function: Provided here to support both @monitor and @monitor() syntax.
+    :param function: Provided here to support both ``@profile`` and
+        ``@profile()`` syntax.
     :param name: Optional name for the profiler item. If not provided, the function's
         name will be used as the name.
     :param group: Optional name for the profiler group. If not provided, the group name
-    is read from settings.
+        is read from settings.
     :param event_args: Optional list of argument names to include in the event name.
         If specified, the event name will include these argument values.
     :return: A decorator that wraps the specified function for profiling.
+
+    Example::
+
+        from qgis_profiler.decorators import profile
+
+        @profile
+        def process_features():
+            pass
+
+        # With custom name and group
+        @profile(name="Feature Processing", group="My Plugin")
+        def another_function():
+            pass
+
+        # With argument values in event name
+        @profile(event_args=["layer_name"])
+        def process_layer(layer_name: str):
+            pass
+        # Event name will be: "process_layer(layer_name=roads)"
     """
 
     if function is None:  # @profile() syntax
@@ -97,14 +125,30 @@ def profile_class(  # noqa: C901
     """
     A class decorator to automatically wrap methods with the 'profile' decorator.
     If 'profile' decorator is already applied to a method, it will be skipped.
+    Special ``__dunder__`` methods are always skipped.
 
     :param group: Optional name for the profiler group. If not provided, the group name
-    is read from settings.
+        is read from settings.
     :param include: List of method names to include
-    (only these will be wrapped if provided).
+        (only these will be wrapped if provided).
     :param exclude: List of method names to exclude
-    (these will NOT be wrapped, overrides include).
+        (these will NOT be wrapped, overrides include).
     :return: A class with decorated methods based on the include/exclude criteria.
+
+    Example::
+
+        from qgis_profiler.decorators import profile_class
+
+        @profile_class(group="My Plugin", exclude=["helper"])
+        class LayerProcessor:
+            def load(self):
+                pass  # profiled
+
+            def process(self):
+                pass  # profiled
+
+            def helper(self):
+                pass  # NOT profiled (excluded)
     """
 
     def decorator(cls: type) -> type:  # noqa: C901
@@ -172,6 +216,15 @@ def cprofile(
     :param sort: Tuple of columns used for sorting profiling output.
     :param output_file_path: File path to save profiling output, if provided.
     :return: Callable decorator or wrapped function.
+
+    Example::
+
+        from pathlib import Path
+        from qgis_profiler.decorators import cprofile
+
+        @cprofile(output_file_path=Path("/tmp/report.prof"))
+        def expensive_operation():
+            pass
     """
     if function is None:  # @cprofile() syntax
 
@@ -227,8 +280,31 @@ def cprofile_plugin(
     https://jiffyclub.github.io/snakeviz/#snakeviz
 
     :param output_file_path: Path to save profiling results.
-    If the file exists, a suffix will be added to the filename.
+        If the file exists, a suffix will be added to the filename.
     :return: Decorated class.
+
+    Example::
+
+        from pathlib import Path
+        from qgis_profiler.decorators import cprofile_plugin
+
+        @cprofile_plugin(output_file_path=Path("/tmp/my_plugin.prof"))
+        class MyPlugin:
+            def __init__(self, iface):
+                self.iface = iface
+
+            def initGui(self):
+                pass
+
+            def unload(self):
+                # cProfile results are saved here automatically
+                pass
+
+    The output ``.prof`` file can be analyzed with
+    `snakeviz <https://jiffyclub.github.io/snakeviz/>`_::
+
+        pip install snakeviz
+        snakeviz /tmp/my_plugin.prof
     """
 
     def decorator(cls: type) -> type:

@@ -16,6 +16,8 @@
 #  You should have received a copy of the GNU General Public License
 #  along with profiler-qgis-plugin. If not, see <https://www.gnu.org/licenses/>.
 
+"""Constants used throughout the QGIS Profiler library."""
+
 QT_VERSION_MIN: str = "5.13.1"
 
 EPSILON = 1e-3
