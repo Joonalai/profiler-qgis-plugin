@@ -39,8 +39,7 @@ Open QGIS development tools and interact with the profiling panel.
 
 ## Requirements
 
-* QGIS version **3.34** or higher.
-* Qt version **5.13.1** or higher.
+* QGIS version **3.40** or higher including QGIS 4.
 
 ## Contributing
 
@@ -60,4 +59,4 @@ These awesome plugins are used as inspiration for the plugin structure:
 
 Licensed under GNU GPL v3.0.
 
-Copyright (C) 2025 profiler-qgis-plugin contributors.
+Copyright (C) 2025-2026 profiler-qgis-plugin contributors.
