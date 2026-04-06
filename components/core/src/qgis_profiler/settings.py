@@ -157,7 +157,7 @@ class Settings(enum.Enum):
     # Recovery meter settings
     recovery_meter_enabled = Setting(
         description=tr("Enable recovery meter"),
-        default=True,
+        default=False,
         category=SettingCategory.RECOVERY_METER,
     )
     recovery_threshold = Setting(
@@ -181,7 +181,7 @@ class Settings(enum.Enum):
     # Thread health checker meter settings
     thread_health_checker_enabled = Setting(
         description=tr("Enable thread health checker"),
-        default=True,
+        default=False,
         category=SettingCategory.THREAD_HEALTH_CHECKER_METER,
     )
     thread_health_checker_poll_interval = Setting(
@@ -199,7 +199,7 @@ class Settings(enum.Enum):
     # Map rendering meter settings
     map_rendering_meter_enabled = Setting(
         description=tr("Enable map rendering meter"),
-        default=True,
+        default=False,
         category=SettingCategory.MAP_RENDERING_METER,
     )
     map_rendering_meter_threshold = Setting(
