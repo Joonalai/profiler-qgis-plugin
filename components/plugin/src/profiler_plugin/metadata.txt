@@ -1,10 +1,10 @@
 [general]
 name=Profiler
 description=Tool and library to make profiling QGIS and plugins easy
-about=This plugin extends the Debugging/Development Tools dock widget profiling panel in various ways. Check <a href="https://github.com/Joonalai/profiler-qgis-plugin/blob/main/README.md">README</a> for instructions.
+about=This plugin extends the Debugging/Development Tools dock widget profiling panel in various ways to allow advanced profiling of QGIS and plugins.
 version=0.0.1.dev0
 qgisMinimumVersion=3.40
-qgisMaximumVersion=3.99
+qgisMaximumVersion=4.99
 # icon=resources/icons/icon.svg
 author=Joonalai
 email=dev@cofactor.fi
