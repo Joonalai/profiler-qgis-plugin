@@ -3,7 +3,14 @@ name = "profiler-qgis-plugin"
 version = "0.1.0.post1"
 description = "The QGIS Profiler Plugin aims to extend QGIS Profiler development tool to be able to profile plugins and QGIS itself easily."
 readme = "README.md"
+license = "GPL-3.0-only"
 requires-python = ">=3.12"
+classifiers = [
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+]
 dependencies = ["qgis_plugin_tools>=0.5.0", "profiler-qgis-core"]
 
 [project.urls]
