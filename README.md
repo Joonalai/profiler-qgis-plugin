@@ -22,7 +22,8 @@ to be able to profile plugins and QGIS itself easily.
 * A feature to record any python code with [cProfile](https://docs.python.org/3/library/profile.html#module-cProfile)
   (if installed in the system)
 * Ability to save the profile results into a stats file for further analysis
-* Performance meters for detecting anomalies (recovery time, thread health, map rendering)
+* Performance meters for detecting anomalies (recovery time, thread health,
+  map rendering)
 * Settings to control the behavior
 
 ## Installation
@@ -69,11 +70,9 @@ from qgis_profiler.decorators import cprofile_plugin
 
 @cprofile_plugin()
 class MyPlugin:
-    def initGui(self):
-        ...
+    def initGui(self): ...
 
-    def unload(self):
-        ...
+    def unload(self): ...
 ```
 
 ### Profiling with Decorators
@@ -86,14 +85,12 @@ from qgis_profiler.decorators import profile, profile_class
 
 
 @profile
-def my_slow_function():
-    ...
+def my_slow_function(): ...
 
 
 @profile_class(exclude=["_private_method"])
 class MyProcessor:
-    def process(self):
-        ...
+    def process(self): ...
 ```
 
 Results appear in the profiler tree under the configured group name.
