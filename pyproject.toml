@@ -153,7 +153,7 @@ log_cli_level = "INFO"
 log_cli_format = "%(asctime)s %(levelname)-10s (%(filename)s) %(message)s"
 log_cli_date_format = "%H:%M:%S"
 qt_log_level_fail = "CRITICAL"
-qgis_qui_enabled = true
+qgis_gui_enabled = true
 
 [tool.coverage.paths]
 source = ["src", "**/site-packages"]
