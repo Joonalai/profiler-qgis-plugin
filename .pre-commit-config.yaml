@@ -2,7 +2,7 @@ default_stages: [pre-commit]
 default_install_hook_types: [pre-commit, commit-msg, pre-push]
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v6.0.0
+    rev: 3e8a8703264a2f4a69428a0aa4dcb512790b2c8c  # frozen: v6.0.0
     hooks:
       - id: trailing-whitespace
         stages: ["pre-commit"]
@@ -15,41 +15,41 @@ repos:
       - id: check-added-large-files
         exclude: '.*\.gif'
   - repo: https://github.com/ComPWA/taplo-pre-commit
-    rev: v0.9.3
+    rev: ade0f95ddcf661c697d4670d2cfcbe95d0048a0a  # frozen: v0.9.3
     hooks:
       - id: taplo-format
   - repo: https://github.com/gitleaks/gitleaks
-    rev: v8.30.0
+    rev: 83d9cd684c87d95d656c1458ef04895a7f1cbd8e  # frozen: v8.30.1
     hooks:
       - id: gitleaks
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.5
+    rev: cb8c523fd4835aba42af70f4cad5568db4df0b6c  # frozen: v0.16.0
     hooks:
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix, --extend-fixable=F401, --unsafe-fixes]
       - id: ruff-format
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.19.1
+    rev: 41e691678310dfd3833f7ab4e180ddb014310356  # frozen: v2.3.0
     hooks:
       - id: mypy
         args: [ --explicit-package-bases ] # for monorepo components
         additional_dependencies:
           - PyQt5-stubs==5.15.6.0
   - repo: https://github.com/PyCQA/flake8
-    rev: 7.3.0
+    rev: c48217e1fc006c2dddd14df54e83b67da15de5cd  # frozen: 7.3.0
     hooks:
       - id: flake8
         additional_dependencies:
           - flake8-pyproject==1.2.4
-          - flake8-qgis==2.0.1
+          - flake8-qgis==2.1.0
           - flake8-spellcheck==0.28.0
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.45.0
+    rev: 5b5dddc4fb0f83c3ea1fc5616fa63e115dce83e0  # frozen: v0.49.1
     hooks:
       - id: markdownlint
         args: ["--fix"]
   - repo: https://github.com/Lucas-C/pre-commit-hooks
-    rev: v1.5.6
+    rev: ad1b27d73581aa16cca06fc4a0761fc563ffe8e8  # frozen: v1.5.6
     hooks:
       - id: insert-license  # Insert a short license disclaimer as a header comment in source files
         files: \.py$
@@ -67,7 +67,7 @@ repos:
         pass_filenames: false
   # commit-msg hooks
   - repo: https://github.com/jorisroovers/gitlint
-    rev: v0.19.1
+    rev: acc9d9de6369b76d22cb4167029d2035e8730b98  # frozen: v0.19.1
     hooks:
       - id: gitlint
         stages: [commit-msg]
