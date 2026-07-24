@@ -117,6 +117,7 @@ ban-relative-imports = "all"
   "E501",
   "PLR2004", # Magic value used in comparison, consider replacing {value} with a constant variable
   "PLR0913", # Too many arguments to function call (len(args) > 5)
+  "PLR0917", # Too many positional arguments (fixtures injected into tests)
   "S101",    # Use of assert detected
   "FBT001",  # Boolean-typed positional argument in function definition
 ]
@@ -152,7 +153,7 @@ log_cli_level = "INFO"
 log_cli_format = "%(asctime)s %(levelname)-10s (%(filename)s) %(message)s"
 log_cli_date_format = "%H:%M:%S"
 qt_log_level_fail = "CRITICAL"
-qgis_qui_enabled = true
+qgis_gui_enabled = true
 
 [tool.coverage.paths]
 source = ["src", "**/site-packages"]

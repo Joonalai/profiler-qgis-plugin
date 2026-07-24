@@ -22,7 +22,8 @@ to be able to profile plugins and QGIS itself easily.
 * A feature to record any python code with [cProfile](https://docs.python.org/3/library/profile.html#module-cProfile)
   (if installed in the system)
 * Ability to save the profile results into a stats file for further analysis
-* Performance meters for detecting anomalies (recovery time, thread health, map rendering)
+* Performance meters for detecting anomalies (recovery time, thread health,
+  map rendering)
 * Settings to control the behavior
 
 ## Installation
