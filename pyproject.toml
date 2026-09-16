@@ -169,3 +169,6 @@ exclude_also = [
   "if TYPE_CHECKING:",
   "raise NotImplementedError",
 ]
+
+[tool.bandit]
+exclude_dirs = ["test", "docs"]
