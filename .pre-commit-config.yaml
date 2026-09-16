@@ -43,6 +43,11 @@ repos:
           - flake8-pyproject==1.2.4
           - flake8-qgis==2.1.0
           - flake8-spellcheck==0.28.0
+  - repo: https://github.com/PyCQA/bandit
+    rev: 92ae8b82fb422a639f0ed8d99e96cea769594e08  # frozen: v1.9.4
+    hooks:
+      - id: bandit
+        args: [ "-c", "pyproject.toml" ]
   - repo: https://github.com/igorshubovych/markdownlint-cli
     rev: 5b5dddc4fb0f83c3ea1fc5616fa63e115dce83e0  # frozen: v0.49.1
     hooks:
