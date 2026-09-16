@@ -17,7 +17,7 @@ jobs:
       fail-fast: false
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Install the latest version of uv
         uses: astral-sh/setup-uv@cec208311dfd045dd5311c1add060b2062131d57
 
@@ -31,22 +31,16 @@ jobs:
           uv run pytest -v --qgis_disable_gui --cov --cov-branch --cov-report=xml --junitxml=junit.xml -o junit_family=legacy
 
 
-      - name: Install curl
+      - name: Install curl and git
         if: ${{ matrix.qgis-image-tags == 'latest' }}
         run: |
           apt update
-          apt install -y curl
+          apt install -y curl git
 
       - name: Upload coverage reports to Codecov
         if: ${{ matrix.qgis-image-tags == 'latest' }}
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v7
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: Joonalai/profiler-qgis-plugin
           fail_ci_if_error: true
-
-      - name: Upload test results to Codecov
-        if: ${{ !cancelled() && matrix.qgis-image-tags == 'latest' }}
-        uses: codecov/test-results-action@v1
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
