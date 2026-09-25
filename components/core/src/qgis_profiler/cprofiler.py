@@ -79,7 +79,8 @@ class ProfilerEntry:  # noqa: PLW1641
     def __add__(self, other: "ProfilerEntry") -> "ProfilerEntry":
         """Add two entries with the same code together."""
         if self.code != other.code:
-            raise ValueError("Cannot add entries with different codes")  # noqa: TRY003
+            msg = "Cannot add entries with different codes"
+            raise ValueError(msg)
         return ProfilerEntry(
             self.code,
             self.callcount + other.callcount,

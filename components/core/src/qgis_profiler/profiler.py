@@ -193,7 +193,8 @@ class ProfilerWrapper:
     def cprofiler(self) -> QCProfiler:
         """QCProfiler instance. Only available if cProfile is installed."""
         if self._cprofiler is None:
-            raise ProfilerNotFoundError("cProfile")
+            msg = "cProfile"
+            raise ProfilerNotFoundError(msg)
         return self._cprofiler
 
     @property

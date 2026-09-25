@@ -54,19 +54,19 @@ def sample_text(default_group: str) -> str:
     ).strip()
 
 
-def test_profiler_results_should_be_considered_equal():
+def test_profiler_results_should_be_considered_equal() -> None:
     result1 = ProfilerResult("Task A", "group", 1.25)
     result2 = ProfilerResult("Task A", "group", 1.251)
     assert result1 == result2
 
 
-def test_profiler_results_should_not_be_considered_equal():
+def test_profiler_results_should_not_be_considered_equal() -> None:
     result1 = ProfilerResult("Task A", "group", 1.25)
     result2 = ProfilerResult("Task A", "group", 1.26)
     assert result1 != result2
 
 
-def test_profiler_result_parsing(sample_text: str, default_group: str):
+def test_profiler_result_parsing(sample_text: str, default_group: str) -> None:
     results = ProfilerResult.parse_from_text(sample_text, default_group)
     assert results == [
         ProfilerResult(
@@ -99,7 +99,7 @@ def test_profiler_result_parsing(sample_text: str, default_group: str):
 
 def test_profiler_start_and_end(
     profiler: "ProfilerWrapper", qtbot: "QtBot", default_group: str
-):
+) -> None:
     # Act
     event_id = profiler.start("test", default_group)
     qtbot.wait(10)
@@ -116,7 +116,7 @@ def test_profiler_start_and_end(
 
 def test_profiler_add_record(
     profiler: "ProfilerWrapper", qtbot: "QtBot", default_group: str
-):
+) -> None:
     # Act
     event_id = profiler.add_record("added_record", default_group, 0.01)
     qtbot.wait(10)
@@ -132,7 +132,7 @@ def test_profiler_add_record(
 
 def test_profiler_context_manager(
     profiler: "ProfilerWrapper", qtbot: "QtBot", default_group: str
-):
+) -> None:
     # Arrange
     def some_function():
         with profiler.profile("some_function") as event_id:
@@ -217,7 +217,7 @@ def test_profile_decorator_should_profile_method(
     method_result: int,
     expected_name: str,
     expected_data: list[ProfilerResult],
-):
+) -> None:
     assert getattr(decorator_tester, method)(1, 2) == method_result
     assert default_group in profiler.groups
     data = profiler.get_profiler_data(expected_name)
@@ -313,7 +313,7 @@ def test_profile_class_decorator_should_profile_class(
     method_result: int,
     expected_name: str,
     expected_data: list[ProfilerResult],
-):
+) -> None:
     assert getattr(class_decorator_tester, method)(1, 2) == method_result
     assert default_group in profiler.groups
     data = profiler.get_profiler_data(expected_name)
@@ -326,7 +326,7 @@ def test_profile_class_decorator_should_profile_class(
 def test_profile_decorator_should_profile_method_with_group_kwarg(
     profiler: "ProfilerWrapper",
     decorator_tester: DecoratorTester,
-):
+) -> None:
     assert decorator_tester.add_with_group_kwarg(1, 2) == 3
     assert EXTRA_GROUP in profiler.groups
 
@@ -342,7 +342,7 @@ def test_profile_decorator_should_not_profile_if_profiling_is_disabled(
     profiler: "ProfilerWrapper",
     decorator_tester: DecoratorTester,
     mocker: "MockerFixture",
-):
+) -> None:
     # Arrange
     mock_settings = mocker.patch.object(Settings, "get_with_cache", return_value=False)
     # Act

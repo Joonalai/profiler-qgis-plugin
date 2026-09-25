@@ -21,7 +21,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 from unittest.mock import MagicMock
 
-import profiler_plugin
 import pytest
 import qgis_plugin_tools.tools.resources as _resources
 from qgis_profiler.meters.map_rendering import MapRenderingMeter
@@ -29,6 +28,8 @@ from qgis_profiler.meters.recovery_measurer import RecoveryMeasurer
 from qgis_profiler.meters.thread_health_checker import MainThreadHealthChecker
 from qgis_profiler.profiler import ProfilerWrapper
 from qgis_profiler.settings import Settings
+
+import profiler_plugin
 
 # Ensure plugin_name() returns the actual plugin name consistently,
 # regardless of call stack context. Without this, settings may be

@@ -49,7 +49,7 @@ def thread_health_checker(
 
 def test_thread_poller_should_start_polling(
     thread_health_checker: MainThreadHealthChecker, qtbot: "QtBot"
-):
+) -> None:
     assert not thread_health_checker.is_measuring
 
     thread_health_checker.start_measuring()
@@ -67,7 +67,7 @@ def test_health_checker_should_emit_anomaly_on_thread_block(
     thread_health_checker: MainThreadHealthChecker,
     meters_group: str,
     qtbot: "QtBot",
-):
+) -> None:
     # Arrange
     thread_health_checker.start_measuring()
 
@@ -94,7 +94,7 @@ def test_health_checker_should_emit_anomaly_on_thread_block(
 def test_health_checker_measure_should_poll_blocking(
     thread_health_checker: MainThreadHealthChecker,
     qtbot: "QtBot",
-):
+) -> None:
     duration = thread_health_checker.measure()
     assert duration == pytest.approx(0.1, abs=1e-1)
 
@@ -109,7 +109,7 @@ def test_monitor_main_thread_health_decorator_should_profile(
     mock_profiler: "MagicMock",
     qtbot: "QtBot",
     method: str,
-):
+) -> None:
     # Act
     with qtbot.waitSignal(thread_health_checker.anomaly_detected, timeout=200):
         getattr(decorator_tester, method)()

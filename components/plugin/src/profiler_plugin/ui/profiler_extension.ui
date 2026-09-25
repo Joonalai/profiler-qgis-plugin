@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+
 <ui version="4.0">
  <class>profiler_extension</class>
  <widget class="QWidget" name="profiler_extension">

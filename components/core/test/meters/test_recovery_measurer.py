@@ -28,5 +28,7 @@ def recovery_measurer() -> RecoveryMeasurer:
     return meter
 
 
-def test_recovery_measurer_should_measure_recovery(recovery_measurer: RecoveryMeasurer):
+def test_recovery_measurer_should_measure_recovery(
+    recovery_measurer: RecoveryMeasurer,
+) -> None:
     assert recovery_measurer.measure() == pytest.approx(0.1, abs=2e-1)

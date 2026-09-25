@@ -80,7 +80,7 @@ def parsed_profiler_entries(sample_text: str) -> list[ProfilerEntry]:
 
 def test_parse_profile_entries_from_qgis_profiler_text(
     parsed_profiler_entries: list[ProfilerEntry],
-):
+) -> None:
     assert parsed_profiler_entries == [
         ProfilerEntry(
             code="_import",
@@ -153,7 +153,7 @@ def test_parse_profile_entries_from_qgis_profiler_text(
 
 def test_cprofiler_should_generate_stat_report_from_qgis_profiler_text(
     cprofiler: QCProfiler, sample_text: str
-):
+) -> None:
     with cprofiler.qgis_profiler_data(sample_text):
         report = cprofiler.get_stat_report("cumtime")
     LOGGER.debug("\n%s", report)
@@ -172,7 +172,9 @@ def test_cprofiler_should_generate_stat_report_from_qgis_profiler_text(
     )
 
 
-def test_cprofiler_report_should_be_trimmed(cprofiler: QCProfiler, sample_text: str):
+def test_cprofiler_report_should_be_trimmed(
+    cprofiler: QCProfiler, sample_text: str
+) -> None:
     with cprofiler.qgis_profiler_data(sample_text):
         report = cprofiler.get_stat_report("cumtime", max_line_count=2, trim_zeros=True)
     LOGGER.debug("\n%s", report)
@@ -189,7 +191,9 @@ def test_cprofiler_report_should_be_trimmed(cprofiler: QCProfiler, sample_text: 
     )
 
 
-def test_cprofiler_should_profile_normally(cprofiler: QCProfiler, sample_text: str):
+def test_cprofiler_should_profile_normally(
+    cprofiler: QCProfiler, sample_text: str
+) -> None:
     cprofiler.enable(builtins=False)
     assert cprofiler.is_profiling()
     f = Class()
@@ -217,7 +221,7 @@ def test_cprofiler_should_profile_normally(cprofiler: QCProfiler, sample_text: s
         assert "_import" in report
 
 
-def test_cprofile_decorator(tmp_path: Path):
+def test_cprofile_decorator(tmp_path: Path) -> None:
     # Arrange
     result_file = tmp_path / "result.prof"
     assert not result_file.exists()
@@ -230,7 +234,7 @@ def test_cprofile_decorator(tmp_path: Path):
     assert result_file.stat().st_size > 0
 
 
-def test_cprofile_plugin_decorator(tmp_path: Path):
+def test_cprofile_plugin_decorator(tmp_path: Path) -> None:
     # Arrange
     result_file = tmp_path / "result.prof"
     assert not result_file.exists()
