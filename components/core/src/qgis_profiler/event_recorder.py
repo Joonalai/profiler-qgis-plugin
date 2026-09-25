@@ -85,7 +85,7 @@ class ProfilerEventRecorder(QObject):
         recorder.stop_recording()
     """
 
-    # TODO: menu buttons...
+    # TODO: menu buttons...  # noqa: TD003
 
     event_started = pyqtSignal(str)
     event_finished = pyqtSignal(str)

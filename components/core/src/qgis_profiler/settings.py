@@ -243,7 +243,7 @@ class Settings(enum.Enum):
         self.value.changed.emit()
 
     @lru_cache
-    def _get_cached(self, time_hash: int) -> Any:
+    def _get_cached(self, time_hash: int) -> Any:  # noqa: ARG002 (cache key)
         """Return cached value using a time-sensitive hash.
 
         Ensure that cache stays valid maximum of CACHE_INTERVAL seconds.

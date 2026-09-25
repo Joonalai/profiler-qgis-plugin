@@ -102,7 +102,7 @@ class CustomEventFilter(NamedTuple):
 
             if isinstance(event, QMouseEvent):  # noqa: SIM102
                 if event.button() == cast("QMouseEvent", self.event).button():
-                    # TODO: add support for buttons and modifiers
+                    # TODO: add support for buttons and modifiers  # noqa: TD003
                     return True
             return False
 

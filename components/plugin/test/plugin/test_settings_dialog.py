@@ -75,7 +75,7 @@ def test_settings_dialog_initialization(settings_dialog: "SettingsDialog") -> No
     assert set(settings_dialog._widgets.keys()) == set(Settings)
     assert set(settings_dialog._groups.keys()) == set(SettingCategory)
     assert settings_dialog._button_calibrate_recovery_meter.isEnabled()
-    # utils.wait(10000)
+    # utils.wait(10000)  # noqa: ERA001
 
 
 @pytest.mark.parametrize(
