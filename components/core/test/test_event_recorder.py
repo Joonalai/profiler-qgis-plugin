@@ -145,7 +145,7 @@ def test_recorder_should_handle_map_tool_change(
     map_tool_pan: "QgsMapTool",
     map_tool_identify: "QgsMapTool",
     qgis_canvas: "QgsMapCanvas",
-):
+) -> None:
     # Arrange
     event_recorder.start_recording()
     assert event_recorder._current_map_tool_config
@@ -183,7 +183,7 @@ def test_recorder_should_record_map_tool_events(
     attribute_to_mock: str,
     response: EventResponse | None,
     expected_methods_to_call: list[str],
-):
+) -> None:
     # Arrange
     mock_event_config.matches.return_value = response
     event_recorder.start_recording()

@@ -116,7 +116,7 @@ def test_custom_event_filter(
     event: QMouseEvent,
     qobject: QObject,
     expected_result: bool,
-):
+) -> None:
     # Arrange
     event_filter = CustomEventFilter(filter_event, object_filter)
     # Act
@@ -127,7 +127,7 @@ def test_custom_event_filter(
 
 def test_simple_map_tool_config_should_match_events(
     mock_event_filter: "MagicMock", sample_event: QMouseEvent, sample_object: QObject
-):
+) -> None:
     config = SimpleMapToolConfig("test", mock_event_filter, mock_event_filter, "name")
     assert not config._profiling_started
     assert config.name == "name"
@@ -141,7 +141,7 @@ def test_simple_map_tool_config_should_match_events(
 
 def test_simple_map_tool_config_should_match_events_and_stop_after_responsive(
     mock_event_filter: "MagicMock", sample_event: QMouseEvent, sample_object: QObject
-):
+) -> None:
     mock_event_filter.stop_after_responsive = True
     config = SimpleMapToolConfig("test", mock_event_filter, mock_event_filter, "name")
 
@@ -154,7 +154,7 @@ def test_simple_map_tool_config_should_match_events_and_stop_after_responsive(
 
 def test_simple_map_tool_config_should_not_match_events(
     mock_event_filter: "MagicMock", sample_event: QMouseEvent, sample_object: QObject
-):
+) -> None:
     mock_event_filter.matches.return_value = False
     config = SimpleMapToolConfig("test", mock_event_filter, mock_event_filter, "name")
     assert not config.matches(sample_event, sample_object)
@@ -178,7 +178,7 @@ def test_simple_map_tool_click_config_should_match_event(
     sample_event: QMouseEvent,
     qobject: Callable[[], QObject],
     expected_result: EventResponse | None,
-):
+) -> None:
     config = SimpleMapToolClickConfig("test")
     assert config.matches(sample_event, qobject()) == expected_result
 
@@ -187,7 +187,7 @@ def test_advanced_digitizing_map_tool_click_config_should_match(
     mock_event_filter: "MagicMock",
     sample_event: QMouseEvent,
     qgis_canvas: "QgsMapCanvas",
-):
+) -> None:
     config = AdvancedDigitizingMapToolClickConfig("test")
     assert config.initial_canvas_scene_item_count == 0
 
@@ -204,7 +204,7 @@ def test_advanced_digitizing_map_tool_click_config_should_not_match(
     sample_event: QMouseEvent,
     qtbot: "QtBot",
     qgis_canvas: "QgsMapCanvas",
-):
+) -> None:
     config = AdvancedDigitizingMapToolClickConfig("test")
     assert config.initial_canvas_scene_item_count == 0
     config.activate()

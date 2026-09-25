@@ -108,9 +108,8 @@ class ProfilerEventRecorder(QObject):
         self._current_map_tool_config: CustomEventConfig | None = None
 
         if not utils.has_suitable_qt_version(QT_VERSION_MIN):
-            raise ValueError(  # noqa: TRY003
-                f"Qt version is too old. Please upgrade to {QT_VERSION_MIN}+"
-            )
+            msg = f"Qt version is too old. Please upgrade to {QT_VERSION_MIN}+"
+            raise ValueError(msg)
 
     def is_recording(self) -> bool:
         """Return whether event recording is currently active."""

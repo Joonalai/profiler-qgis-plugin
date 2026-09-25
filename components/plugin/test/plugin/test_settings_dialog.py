@@ -20,7 +20,6 @@ from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
 import pytest
-from profiler_plugin.ui.settings_dialog import SettingsDialog
 from pytest_mock import MockerFixture
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtWidgets import (
@@ -34,6 +33,8 @@ from qgis.PyQt.QtWidgets import (
 from qgis_profiler.meters.recovery_measurer import RecoveryMeasurer
 from qgis_profiler.meters.thread_health_checker import MainThreadHealthChecker
 from qgis_profiler.settings import SettingCategory, Settings
+
+from profiler_plugin.ui.settings_dialog import SettingsDialog
 
 if TYPE_CHECKING:
     from unittest.mock import MagicMock

@@ -67,12 +67,12 @@ def initial_context(meters_group: str):
     return MeterContext("StubMeter (stub)", meters_group)
 
 
-def test_meter_should_emit_anomaly_detected(meter: Meter, qtbot: "QtBot"):
+def test_meter_should_emit_anomaly_detected(meter: Meter, qtbot: "QtBot") -> None:
     with qtbot.waitSignal(meter.anomaly_detected, timeout=100):
         assert meter.measure() == 1.0
 
 
-def test_meter_context_stack(meter: Meter, initial_context: str):
+def test_meter_context_stack(meter: Meter, initial_context: str) -> None:
     group1 = "group1"
     group2 = "group2"
 
@@ -89,7 +89,9 @@ def test_meter_context_stack(meter: Meter, initial_context: str):
     assert meter.current_context == initial_context
 
 
-def test_meter_context_stack_with_context_manager(meter: Meter, initial_context: str):
+def test_meter_context_stack_with_context_manager(
+    meter: Meter, initial_context: str
+) -> None:
     group1 = "group1"
     group2 = "group2"
 
@@ -127,7 +129,7 @@ def test_monitor_decorator_should_set_context_and_measure(
     initial_context: str,
     mock_profiler: "MagicMock",
     qtbot: "QtBot",
-):
+) -> None:
     if expected_context is None:
         expected_context = MeterContext(
             "name_args_set(a=1, b=2) (stub)", Settings.active_group.get()
@@ -151,7 +153,7 @@ def test_monitor_decorator_should_set_context_and_measure(
 def test_monitor_decorator_should_not_do_anything_if_disabled(
     meter: Meter,
     mock_profiler: "MagicMock",
-):
+) -> None:
     tester = StubClass()
     meter.enabled = False
 

@@ -41,7 +41,7 @@ def meter(
 
 def test_map_rendering_meter_should_measure_map_rendering_time(
     meter: MapRenderingMeter, qgis_canvas: QgsMapCanvas, qtbot: "QtBot"
-):
+) -> None:
     with (
         qtbot.waitSignal(qgis_canvas.renderStarting, timeout=100),
         qtbot.waitSignal(qgis_canvas.mapCanvasRefreshed, timeout=100),
@@ -54,7 +54,7 @@ def test_map_rendering_meter_should_measure_map_rendering_time(
 
 def test_map_rendering_meter_should_start_measuring(
     meter: MapRenderingMeter, qgis_canvas: "QgsMapCanvas", qtbot: "QtBot"
-):
+) -> None:
     meter.start_measuring()
     with (
         qtbot.waitSignal(qgis_canvas.renderStarting),

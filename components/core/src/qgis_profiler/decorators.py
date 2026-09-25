@@ -310,7 +310,8 @@ def cprofile_plugin(
             return cls
 
         if not issubclass(cls, QgisPluginType):
-            raise TypeError(f"Class {cls.__name__} is not a QGIS plugin")  # noqa: TRY003
+            msg = f"Class {cls.__name__} is not a QGIS plugin"
+            raise TypeError(msg)
 
         original_unload = cls.unload  # type: ignore[attr-defined]
 

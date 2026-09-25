@@ -19,8 +19,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
 import pytest
-from profiler_plugin.ui.profiler_extension import ProfilerExtension
-from profiler_plugin.ui.settings_dialog import SettingsDialog
 from pytest_mock import MockerFixture
 from qgis.PyQt.QtCore import QStringListModel, Qt
 from qgis.PyQt.QtWidgets import (
@@ -33,6 +31,9 @@ from qgis.PyQt.QtWidgets import (
     QWidget,
 )
 from qgis_profiler.settings import Settings
+
+from profiler_plugin.ui.profiler_extension import ProfilerExtension
+from profiler_plugin.ui.settings_dialog import SettingsDialog
 
 NEW_GROUP = "New manual group"
 INITIAL_GROUPS = ["Manual group", "QGIS group"]
