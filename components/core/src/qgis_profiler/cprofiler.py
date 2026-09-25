@@ -151,7 +151,7 @@ class ProfilerEntry:  # noqa: PLW1641
                         lines, parents | {name}, level + 1
                     )
                     if calls:
-                        profile_entries[name]._extend_calls(calls)
+                        profile_entries[name]._extend_calls(calls)  # noqa: SLF001
                     else:
                         # No children, inline time should be total time
                         entry.inlinetime = total_time

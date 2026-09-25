@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 
 
 def classFactory(  # noqa: N802 (qgis naming)
-    iface: "QgisInterface",
+    iface: "QgisInterface",  # noqa: ARG001
 ) -> ProfilerPlugin:
     """Create and return the plugin instance."""
     return ProfilerPlugin()

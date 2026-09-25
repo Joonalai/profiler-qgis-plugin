@@ -335,7 +335,7 @@ class ProfilerExtension(QWidget, UI_CLASS):
         self._reset_meters()
         self._update_ui_state()
 
-    def _update_ui_state(self, *args: Any) -> None:
+    def _update_ui_state(self, *args: Any) -> None:  # noqa: ARG002
         """Update UI component states based on the current profiling state."""
         self.button_record.setEnabled(self._event_recorder is not None)
         self.button_cprofiler_record.setEnabled(

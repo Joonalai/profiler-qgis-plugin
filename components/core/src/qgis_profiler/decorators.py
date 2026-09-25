@@ -111,7 +111,7 @@ def profile(
             ProfilerWrapper.get().end(group_name)
 
     # Mark wrapper as profiled
-    wrapper._profiled = True  # type: ignore
+    wrapper._profiled = True  # type: ignore  # noqa: SLF001
     return wrapper
 
 
