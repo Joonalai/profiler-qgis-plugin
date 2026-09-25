@@ -119,7 +119,7 @@ Full documentation is available at
 
 Contributions are welcome! Feel free to open issues or submit pull requests.
 
-See [development readme](docs/DEVELOPMENT.md) for details.
+See [development readme](./DEVELOPMENT.md) for details.
 
 ## Inspirations
 
