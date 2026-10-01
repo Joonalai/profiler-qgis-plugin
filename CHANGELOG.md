@@ -5,6 +5,7 @@
 - Updated dependencies and added bandit security checks
 - Adopted qgis-plugin-copier-template
 - Dropped support for QGS < 3.40
+- Fixed duplicate meter contexts after reopening the settings dialog
 
 ## 0.1.0 (2026-04-07)
 

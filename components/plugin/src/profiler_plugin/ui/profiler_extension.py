@@ -150,8 +150,12 @@ class ProfilerExtension(QWidget, UI_CLASS):
             meter.cleanup()
         self._meters.clear()
 
-        with suppress(TypeError):
-            if self._event_recorder:
+        if self._event_recorder:
+            with suppress(TypeError):
+                self._event_recorder.event_started.disconnect(
+                    self._event_recorder_event_started
+                )
+            with suppress(TypeError):
                 self._event_recorder.event_finished.disconnect(
                     self._event_recorder_event_finished
                 )
