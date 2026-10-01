@@ -386,3 +386,29 @@ def test_filter_line_edit_should_filter(
         profiler_extension._filter_proxy_model.filterRegularExpression().pattern()
         == "Manual"
     )
+
+
+@pytest.mark.parametrize(
+    ("filter_text", "matching", "not_matching"),
+    [
+        ("refresh(", "canvas.refresh()", "canvas.refresh"),
+        ("[layer]", "load [layer]", "load l"),
+        ("a.b", "a.b", "axb"),
+        ("MANUAL", "manual group", "auto group"),
+    ],
+)
+def test_filter_line_edit_should_match_text_literally(
+    profiler_extension: ProfilerExtension,
+    qtbot: "QtBot",
+    filter_text: str,
+    matching: str,
+    not_matching: str,
+) -> None:
+    # Act
+    qtbot.keyClicks(profiler_extension.filter_line_edit, filter_text)
+
+    # Assert
+    regex = profiler_extension._filter_proxy_model.filterRegularExpression()
+    assert regex.isValid()
+    assert regex.match(matching).hasMatch()
+    assert not regex.match(not_matching).hasMatch()

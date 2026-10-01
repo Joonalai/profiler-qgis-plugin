@@ -6,6 +6,7 @@
 - Adopted qgis-plugin-copier-template
 - Dropped support for QGS < 3.40
 - Fixed duplicate meter contexts after reopening the settings dialog
+- Profile filter now matches the typed text literally instead of as a regular expression
 
 ## 0.1.0 (2026-04-07)
 
