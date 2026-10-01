@@ -283,7 +283,7 @@ class ProfilerExtension(QWidget, UI_CLASS):
             )
             MsgBar.info(
                 tr("Profiler results saved"),
-                tr("File saved to {}", str(file_path)),
+                tr("File saved to {}", str(path)),
                 success=True,
             )
 

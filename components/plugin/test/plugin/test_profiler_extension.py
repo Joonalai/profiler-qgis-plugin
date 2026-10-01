@@ -270,6 +270,7 @@ def test_save_results_without_suffix(
     stub_profiler_panel: StubProfilerPanel,
     qtbot: "QtBot",
     monkeypatch: "pytest.MonkeyPatch",
+    mocker: MockerFixture,
     tmp_path: Path,
 ) -> None:
     # Arrange
@@ -277,6 +278,7 @@ def test_save_results_without_suffix(
     monkeypatch.setattr(
         QFileDialog, "getSaveFileName", classmethod(lambda *args: (str(file_path), ""))
     )
+    mock_msg_bar = mocker.patch("profiler_plugin.ui.profiler_extension.MsgBar")
 
     # Act
     qtbot.mouseClick(profiler_extension.button_save, Qt.MouseButton.LeftButton)
@@ -285,6 +287,8 @@ def test_save_results_without_suffix(
     mock_profiler.save_profiler_results_as_prof_file.assert_called_once_with(
         INITIAL_GROUPS[0], file_path.with_suffix(".prof")
     )
+    mock_msg_bar.info.assert_called_once()
+    assert str(file_path.with_suffix(".prof")) in mock_msg_bar.info.call_args.args[1]
 
 
 def test_clear_button_should_clear_current_group(
