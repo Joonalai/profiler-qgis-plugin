@@ -89,7 +89,7 @@ class MapRenderingMeter(Meter):
         with suppress(TypeError):
             iface.mapCanvas().renderStarting.disconnect(self._rendering_started)
         with suppress(TypeError):
-            iface.mapCanvas().renderStarting.disconnect(self._rendering_started)
+            iface.mapCanvas().mapCanvasRefreshed.disconnect(self._rendering_finished)
 
     def _rendering_started(self) -> None:
         self._elapsed_timer.restart()
