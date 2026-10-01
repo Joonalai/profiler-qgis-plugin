@@ -27,6 +27,7 @@ if TYPE_CHECKING:
     from unittest.mock import MagicMock
 
     from pytestqt.qtbot import QtBot
+    from qgis_profiler.meters.meter import MeterAnomaly
 
 
 @pytest.fixture
@@ -63,3 +64,40 @@ def test_map_rendering_meter_should_start_measuring(
     ):
         QTimer.singleShot(1, qgis_canvas.renderStarting.emit)
         QTimer.singleShot(60, qgis_canvas.mapCanvasRefreshed.emit)
+
+
+def test_map_rendering_meter_should_not_duplicate_anomalies_after_restart(
+    meter: MapRenderingMeter, qgis_canvas: "QgsMapCanvas", qtbot: "QtBot"
+) -> None:
+    # Arrange
+    anomalies: list["MeterAnomaly"] = []
+    meter.anomaly_detected.connect(anomalies.append)
+    meter.start_measuring()
+    meter.stop_measuring()
+    meter.start_measuring()
+
+    # Act
+    qgis_canvas.renderStarting.emit()
+    qtbot.wait(60)
+    qgis_canvas.mapCanvasRefreshed.emit()
+
+    # Assert
+    assert len(anomalies) == 1
+
+
+def test_map_rendering_meter_should_not_measure_after_stop(
+    meter: MapRenderingMeter, qgis_canvas: "QgsMapCanvas", qtbot: "QtBot"
+) -> None:
+    # Arrange
+    anomalies: list["MeterAnomaly"] = []
+    meter.anomaly_detected.connect(anomalies.append)
+    meter.start_measuring()
+    meter.stop_measuring()
+
+    # Act
+    qgis_canvas.renderStarting.emit()
+    qtbot.wait(60)
+    qgis_canvas.mapCanvasRefreshed.emit()
+
+    # Assert
+    assert anomalies == []
