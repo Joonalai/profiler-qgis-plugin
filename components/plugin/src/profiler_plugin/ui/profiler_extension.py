@@ -29,7 +29,7 @@ from typing import TYPE_CHECKING, Any
 
 from qgis.core import QgsApplication
 from qgis.gui import QgsFilterLineEdit
-from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtCore import QRegularExpression, Qt
 from qgis.PyQt.QtWidgets import (
     QComboBox,
     QDoubleSpinBox,
@@ -119,9 +119,7 @@ class ProfilerExtension(QWidget, UI_CLASS):
         self.filter_line_edit.setShowClearButton(True)
         self.filter_line_edit.setShowSearchIcon(True)
         self.filter_line_edit.setPlaceholderText(tr("Filter profiles"))
-        self.filter_line_edit.valueChanged.connect(
-            self._filter_proxy_model.setFilterRegularExpression
-        )
+        self.filter_line_edit.valueChanged.connect(self._set_filter_text)
 
         # Threshold spinbox
         self.double_spin_box_threshold.setValue(Settings.show_events_threshold.get())
@@ -198,6 +196,11 @@ class ProfilerExtension(QWidget, UI_CLASS):
         qgis_groups = ProfilerWrapper.get().qgis_groups()
         text = self.combo_box_group.currentText()
         return qgis_groups.get(text, text)
+
+    def _set_filter_text(self, text: str) -> None:
+        self._filter_proxy_model.setFilterRegularExpression(
+            QRegularExpression.escape(text)
+        )
 
     def _reset_proxy_model_group(self, _: str) -> None:
         self._filter_proxy_model.set_group(self._current_group())
