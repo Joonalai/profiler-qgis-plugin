@@ -1348,14 +1348,14 @@ wheels = [
 
 [[package]]
 name = "pytest-qgis"
-version = "4.1.1"
+version = "5.0.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "pytest" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/5e/b9/79eb97d5c30eb14b3a9c108e06436a7d982071fd473512e6ea28bc66fc64/pytest_qgis-4.1.1.tar.gz", hash = "sha256:c7f86f6cb7640a2f595e97fdbbd314450ad88461d1eb1a16c2bb599ad66f57a7", size = 29746, upload-time = "2026-08-04T12:32:40.164Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/20/e5/1a6fe1704bfb9b34ef93d060cad8e9378c96cff40761aa7b8eb4dbda07c8/pytest_qgis-5.0.0.tar.gz", hash = "sha256:a5cf91d0a4e00551fbaef349813557fc707366852206258834d21c6b9534bc4d", size = 31738, upload-time = "2026-10-01T12:32:02.601Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/de/77/b9e111799b2117346d3001eee9ef492a5305797a0ec59c0bd1e1206480f1/pytest_qgis-4.1.1-py3-none-any.whl", hash = "sha256:78ba6152280203748003e16e1e54e8939ae580d7a0767bb21078e41d166eb6c9", size = 31603, upload-time = "2026-08-04T12:32:39.045Z" },
+    { url = "https://files.pythonhosted.org/packages/bb/bd/602ad58b688be67cf6d7a9e3781bbc97fd1cf1ef62bd442978541ac34d70/pytest_qgis-5.0.0-py3-none-any.whl", hash = "sha256:31690ffb0e818aa22f9a9c48af087ea853a02a43608981fd2af28a6bad97a95e", size = 33110, upload-time = "2026-10-01T12:32:00.965Z" },
 ]
 
 [[package]]
@@ -1471,11 +1471,11 @@ wheels = [
 
 [[package]]
 name = "qgis-plugin-tools"
-version = "2.0.0"
+version = "2.1.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/46/22/f3928d1cb90753e9ebba23bd3092540316f1484ea1a4018538d6356a4dcb/qgis_plugin_tools-2.0.0.tar.gz", hash = "sha256:a682788fced8177c8957ab655b08426a9260791da7f53ab25eb03d3a95a820d4", size = 37925, upload-time = "2026-09-24T21:25:09.734Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/13/c9/6152f9bc1d728a6f396f66f2b1a7510c1c023327511ae65e6a9852a9982f/qgis_plugin_tools-2.1.0.tar.gz", hash = "sha256:75112f226f98301aaaa8d444ddf995269be61f2927ba65acea89f302272baf00", size = 38849, upload-time = "2026-10-01T12:49:20.5Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/54/c1/28dd74bfcbce8b92366e1ed3a49b03fe971438172275014de1d26c96d51d/qgis_plugin_tools-2.0.0-py3-none-any.whl", hash = "sha256:208dfcfb7774b614a1c4ebae94cc587cc8354649d4c4ac738b5d95fe0a6e05c2", size = 59376, upload-time = "2026-09-24T21:25:08.86Z" },
+    { url = "https://files.pythonhosted.org/packages/20/71/4b3f26361194fa30bbc6b1228b2271a88c611349f59aa907748993374f7b/qgis_plugin_tools-2.1.0-py3-none-any.whl", hash = "sha256:f763c5610d687267330048a76d4f2db5a13eb0c8e62eaadffa5554a4cdba7609", size = 63219, upload-time = "2026-10-01T12:49:19.244Z" },
 ]
 
 [[package]]
