@@ -3,6 +3,8 @@
 ## Unreleased
 
 - Updated dependencies and added bandit security checks
+- Adopted qgis-plugin-copier-template
+- Dropped support for QGS < 3.40
 
 ## 0.1.0 (2026-04-07)
 
