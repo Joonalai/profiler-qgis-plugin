@@ -20,7 +20,7 @@ from typing import TYPE_CHECKING, cast
 
 import pytest
 from pytest_mock import MockerFixture
-from qgis.PyQt.QtCore import QStringListModel, Qt
+from qgis.PyQt.QtCore import QObject, QStringListModel, Qt, pyqtSignal
 from qgis.PyQt.QtWidgets import (
     QComboBox,
     QDialog,
@@ -43,6 +43,11 @@ if TYPE_CHECKING:
 
     from pytest_subtests import SubTests
     from pytestqt.qtbot import QtBot
+
+
+class StubEventRecorderSignals(QObject):
+    event_started = pyqtSignal(str)
+    event_finished = pyqtSignal(str)
 
 
 class StubProfilerPanel(QDialog):
@@ -317,6 +322,31 @@ def test_button_settings_should_open_settings_dialog(
     mock_meter_recovery_measurer.reset_parameters.assert_called_once()
     mock_thread_health_checker_meter.cleanup.assert_called_once()
     mock_thread_health_checker_meter.reset_parameters.assert_called()
+
+
+def test_reopening_settings_should_not_duplicate_event_connections(
+    mock_event_recorder: "MagicMock",
+    mock_meter_recovery_measurer: "MagicMock",
+    profiler_extension: ProfilerExtension,
+    qtbot: "QtBot",
+) -> None:
+    # Arrange
+    # Use real signals so that (dis)connections take effect
+    signals = StubEventRecorderSignals()
+    mock_event_recorder.event_started = signals.event_started
+    mock_event_recorder.event_finished = signals.event_finished
+    for _ in range(3):
+        qtbot.mouseClick(profiler_extension.button_settings, Qt.MouseButton.LeftButton)
+    mock_meter_recovery_measurer.reset_mock()
+
+    # Act
+    signals.event_started.emit("event")
+    signals.event_finished.emit("event")
+
+    # Assert
+    mock_meter_recovery_measurer.add_context.assert_called_once()
+    mock_meter_recovery_measurer.measure.assert_called_once()
+    mock_meter_recovery_measurer.pop_context.assert_called_once()
 
 
 def test_cleanup_should_clean_meters(
