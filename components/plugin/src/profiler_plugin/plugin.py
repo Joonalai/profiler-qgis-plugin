@@ -22,6 +22,7 @@ Sets up logging, the event recorder, and injects the profiler extension
 widget into the QGIS Dev Tools panel.
 """
 
+import logging
 from typing import TYPE_CHECKING, cast
 
 import qgis_plugin_tools
@@ -40,12 +41,15 @@ from qgis_profiler.event_recorder import ProfilerEventRecorder
 from qgis_profiler.settings import Settings
 
 import profiler_plugin
+from profiler_plugin import env
 from profiler_plugin.ui.profiler_extension import ProfilerExtension
 
 if TYPE_CHECKING:
     from qgis.gui import QgisInterface
 
 iface = cast("QgisInterface", iface_)
+
+LOGGER = logging.getLogger(__name__)
 
 
 class ProfilerPlugin(QObject):
@@ -83,13 +87,19 @@ class ProfilerPlugin(QObject):
                 ),
             )
 
-        self._add_profiler_extension()
+        if hasattr(iface, "initializationCompleted"):
+            iface.initializationCompleted.connect(self.iface_initialization_completed)
 
-    def _add_profiler_extension(self) -> None:
-        """Modify the QgsProfilerPanelBase to include the ProfilerExtension."""
-        if (tools := iface.mainWindow().findChild(QDockWidget, "DevTools")) is None:
-            return
-        if (profiler_panel := tools.findChild(QWidget, "QgsProfilerPanelBase")) is None:
+        if bool(env.IS_DEVELOPMENT_MODE):
+            self.iface_initialization_completed()
+
+    def iface_initialization_completed(self) -> None:
+        """Run additional setup for the plugin.
+
+        Executed after initializationCompleted signal is emitted.
+        """
+        if (profiler_panel := _find_profiler_panel()) is None:
+            LOGGER.warning("Could not find the QGIS profiler panel")
             return
         self._profiler_panel_layout = profiler_panel.layout()
 
@@ -111,3 +121,9 @@ class ProfilerPlugin(QObject):
             self._profiler_extension.cleanup()
             self._profiler_extension.deleteLater()
         self._profiler_extension = None  # type:ignore[assignment]
+
+
+def _find_profiler_panel() -> QWidget | None:
+    if (tools := iface.mainWindow().findChild(QDockWidget, "DevTools")) is None:
+        return None
+    return tools.findChild(QWidget, "QgsProfilerPanelBase")

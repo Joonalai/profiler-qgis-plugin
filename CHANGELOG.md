@@ -9,6 +9,7 @@
 - Profile filter now matches the typed text literally instead of as a regular expression
 - Fixed the save notification showing the file path without the added `.prof` suffix
 - Fixed the map rendering meter reporting the same slow render more than once
+- Fixed the profiler extension missing from the profiler panel when QGIS starts with the plugin enabled
 
 ## 0.1.0 (2026-04-07)
 
