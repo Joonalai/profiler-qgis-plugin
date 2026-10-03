@@ -307,6 +307,8 @@ class ProfilerExtension(QWidget, UI_CLASS):
             output_file_path.parent.mkdir(parents=True, exist_ok=True)
             output_file_path = get_rotated_path(output_file_path)
             ProfilerWrapper.get().cprofiler.dump_stats(output_file_path)
+            # Start the next recording from scratch
+            ProfilerWrapper.get().cprofiler.clear()
             MsgBar.info(
                 tr("Profiler results saved"),
                 tr("File saved to {}", str(output_file_path)),
