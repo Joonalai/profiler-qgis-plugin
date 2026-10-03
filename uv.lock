@@ -1042,7 +1042,7 @@ wheels = [
 
 [[package]]
 name = "profiler-qgis-core"
-version = "1.0.0"
+version = "1.0.0.post0"
 source = { editable = "components/core" }
 dependencies = [
     { name = "qgis-plugin-tools" },
@@ -1053,7 +1053,7 @@ requires-dist = [{ name = "qgis-plugin-tools", specifier = ">=2.0.0" }]
 
 [[package]]
 name = "profiler-qgis-plugin"
-version = "1.0.0"
+version = "1.0.0.post0"
 source = { editable = "components/plugin" }
 dependencies = [
     { name = "profiler-qgis-core" },
