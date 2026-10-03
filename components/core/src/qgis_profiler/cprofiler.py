@@ -26,10 +26,10 @@ a dataclass for representing individual profiling entries.
 import cProfile
 import io
 import pstats
+import sys
 from collections.abc import Generator, Sequence
 from contextlib import contextmanager
-from copy import deepcopy
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from types import CodeType
 from typing import TYPE_CHECKING, Any, Union
 
@@ -113,11 +113,18 @@ class ProfilerEntry:  # noqa: PLW1641
         self.calls = list(call_dict.values())
 
     @staticmethod
-    def parse_from_qgis_profiler_text(text: str) -> list["ProfilerEntry"]:  # noqa: C901
+    def parse_from_qgis_profiler_text(
+        text: str,
+        add_root: bool = False,  # noqa: FBT001 FBT002
+    ) -> list["ProfilerEntry"]:
         """Parse a given profiler text into a list of `ProfilerEntry` objects.
 
         Process hierarchical structure based on indentation and generate profiling
         entries.
+
+        :param text: QGIS profiler text, the first line being the group name.
+        :param add_root: Add an entry for the group that calls all top level
+            entries. Tools like snakeviz need a single root to build the call tree.
         """
         profile_entries: dict[str, ProfilerEntry] = {}
 
@@ -135,7 +142,9 @@ class ProfilerEntry:  # noqa: PLW1641
                     # This line is at the current level
                     lines.pop(0)
                     parts = line.split(": ")
-                    name = parts[0].strip("- ").strip()
+                    # cProfile matches callers to entries by the identity of the code,
+                    # so the same name has to always be the same object
+                    name = sys.intern(parts[0].strip("- ").strip())
                     total_time = round(float(parts[1].strip()), 3)
                     entry = ProfilerEntry(name, totaltime=total_time)
 
@@ -159,11 +168,7 @@ class ProfilerEntry:  # noqa: PLW1641
                     if not new_entry:
                         profile_entries[name] += entry
 
-                    if level > 1:
-                        if entry.calls:
-                            entry = deepcopy(entry)
-                            entry.calls = []
-                        results.append(entry)
+                    results.append(replace(entry, calls=[]))
 
                 elif line_level < level:
                     # This line belongs to a parent level or is a group name
@@ -171,11 +176,17 @@ class ProfilerEntry:  # noqa: PLW1641
             return results
 
         # The first line is the name of the group
-        profiler_lines_into_entries(
-            text.splitlines()[1:],
-            set(),
-        )
-        return list(profile_entries.values())
+        group, *lines = text.splitlines() or [""]
+        top_level_entries = profiler_lines_into_entries(lines, set())
+        entries = list(profile_entries.values())
+        if add_root and top_level_entries:
+            root = ProfilerEntry(
+                sys.intern(group.strip()),
+                totaltime=sum(entry.totaltime for entry in top_level_entries),
+            )
+            root._extend_calls(top_level_entries)
+            entries.insert(0, root)
+        return entries
 
 
 class QCProfiler(cProfile.Profile):
@@ -188,9 +199,15 @@ class QCProfiler(cProfile.Profile):
         self._profiling: bool = False
 
     @contextmanager
-    def qgis_profiler_data(self, profiler_text: str) -> Generator[None, Any, None]:
+    def qgis_profiler_data(
+        self,
+        profiler_text: str,
+        add_root: bool = False,  # noqa: FBT001 FBT002
+    ) -> Generator[None, Any, None]:
         """Temporarily set QGIS profiler stats from the given text."""
-        self._qgis_stats = ProfilerEntry.parse_from_qgis_profiler_text(profiler_text)
+        self._qgis_stats = ProfilerEntry.parse_from_qgis_profiler_text(
+            profiler_text, add_root
+        )
         try:
             yield
         finally:

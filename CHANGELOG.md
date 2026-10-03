@@ -12,6 +12,7 @@
 - Fixed the profiler extension missing from the profiler panel when QGIS starts with the plugin enabled
 - Settings dialog is now scrollable and fits on smaller screens
 - Fixed meter results not appearing in the profiler panel until the group was changed
+- Fixed snakeviz failing to open `.prof` files saved from the profiler panel
 
 ## 0.1.0 (2026-04-07)
 

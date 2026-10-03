@@ -315,7 +315,9 @@ class ProfilerWrapper:
         Compatible with tools like https://github.com/jrfonseca/gprof2dot
         or https://jiffyclub.github.io/snakeviz/#snakeviz.
         """
-        with self.cprofiler.qgis_profiler_data(self._qgis_profiler.asText(group)):
+        with self.cprofiler.qgis_profiler_data(
+            self._qgis_profiler.asText(group), add_root=True
+        ):
             self.cprofiler.dump_stats(file_path)
 
     def is_profiling(self, group: str | None = None) -> bool:
