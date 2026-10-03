@@ -20,11 +20,14 @@ from typing import TYPE_CHECKING, cast
 
 import pytest
 from pytest_mock import MockerFixture
+from qgis.gui import QgsMessageBar
 from qgis.PyQt.QtCore import QObject, QStringListModel, Qt, pyqtSignal
 from qgis.PyQt.QtWidgets import (
+    QApplication,
     QComboBox,
     QDialog,
     QFileDialog,
+    QPushButton,
     QToolButton,
     QTreeView,
     QVBoxLayout,
@@ -85,6 +88,15 @@ def mock_settings_dialog(mocker: MockerFixture) -> "MagicMock":
         return_value=mock_settings_dialog,
     )
     return mock_settings_dialog
+
+
+@pytest.fixture
+def message_bar(mocker: MockerFixture, qtbot: "QtBot") -> QgsMessageBar:
+    message_bar = QgsMessageBar()
+    qtbot.addWidget(message_bar)
+    mock_iface = mocker.patch("profiler_plugin.ui.profiler_extension.iface")
+    mock_iface.messageBar.return_value = message_bar
+    return message_bar
 
 
 @pytest.fixture
@@ -203,6 +215,7 @@ def test_toggle_cprofile_recording(
     mock_profiler: "MagicMock",
     mock_thread_health_checker_meter: "MagicMock",
     stub_profiler_panel: StubProfilerPanel,
+    message_bar: QgsMessageBar,
     qtbot: "QtBot",
     subtests: "SubTests",
     tmp_path: Path,
@@ -236,6 +249,20 @@ def test_toggle_cprofile_recording(
         mock_profiler.cprofiler.dump_stats.assert_called_once_with(file_path)
         mock_profiler.cprofiler.clear.assert_called_once()
         assert not profiler_extension.button_cprofiler_record.isChecked()
+
+    with subtests.test("Saved message shows the file name and copies the path"):
+        message = message_bar.currentItem()
+        assert message is not None
+        assert message.text() == file_path.name
+        copy_button = next(
+            button
+            for button in message.findChildren(QPushButton)
+            if button.text() == "Copy path"
+        )
+
+        qtbot.mouseClick(copy_button, Qt.MouseButton.LeftButton)
+
+        assert QApplication.clipboard().text() == str(file_path)
 
 
 def test_save_results(

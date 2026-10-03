@@ -25,19 +25,23 @@ performance meters, and access to the settings dialog.
 import logging
 from contextlib import suppress
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
-from qgis.core import QgsApplication
+from qgis.core import Qgis, QgsApplication
 from qgis.gui import QgsFilterLineEdit
-from qgis.PyQt.QtCore import QRegularExpression, Qt
+from qgis.PyQt.QtCore import QRegularExpression, Qt, QUrl
+from qgis.PyQt.QtGui import QDesktopServices
 from qgis.PyQt.QtWidgets import (
+    QApplication,
     QComboBox,
     QDoubleSpinBox,
     QFileDialog,
+    QPushButton,
     QToolButton,
     QTreeView,
     QWidget,
 )
+from qgis.utils import iface as iface_
 from qgis_plugin_tools.tools.i18n import tr
 from qgis_plugin_tools.tools.messages import MsgBar
 from qgis_plugin_tools.tools.resources import load_ui_from_file
@@ -54,10 +58,15 @@ from profiler_plugin.ui.profiler_proxy_model import ProfilerProxyModel
 from profiler_plugin.ui.settings_dialog import SettingsDialog
 
 if TYPE_CHECKING:
+    from qgis.gui import QgisInterface
     from qgis.PyQt.QtGui import QIcon
     from qgis_profiler.meters.meter import Meter
 
+iface = cast("QgisInterface", iface_)
+
 LOGGER = logging.getLogger(__name__)
+
+SAVED_MESSAGE_DURATION_S = 15
 
 UI_CLASS: QWidget = load_ui_from_file(
     str(Path(__file__).parent.joinpath("profiler_extension.ui"))
@@ -309,11 +318,8 @@ class ProfilerExtension(QWidget, UI_CLASS):
             ProfilerWrapper.get().cprofiler.dump_stats(output_file_path)
             # Start the next recording from scratch
             ProfilerWrapper.get().cprofiler.clear()
-            MsgBar.info(
-                tr("Profiler results saved"),
-                tr("File saved to {}", str(output_file_path)),
-                success=True,
-            )
+            LOGGER.info("cProfile results saved to %s", output_file_path)
+            _show_saved_file_message(tr("cProfile results saved"), output_file_path)
 
         self._update_ui_state()
 
@@ -365,3 +371,22 @@ class ProfilerExtension(QWidget, UI_CLASS):
             self.combo_box_group.currentText()
             not in ProfilerWrapper.get().qgis_groups()
         )
+
+
+def _show_saved_file_message(title: str, file_path: Path) -> None:
+    """Show a short message with buttons to copy the path and open the folder."""
+    message_bar = iface.messageBar()
+    message = message_bar.createMessage(title, file_path.name)
+
+    copy_button = QPushButton(tr("Copy path"), message)
+    copy_button.clicked.connect(
+        lambda: QApplication.clipboard().setText(str(file_path))
+    )
+    open_button = QPushButton(tr("Open folder"), message)
+    open_button.clicked.connect(
+        lambda: QDesktopServices.openUrl(QUrl.fromLocalFile(str(file_path.parent)))
+    )
+    message.layout().addWidget(copy_button)
+    message.layout().addWidget(open_button)
+
+    message_bar.pushWidget(message, Qgis.MessageLevel.Success, SAVED_MESSAGE_DURATION_S)
