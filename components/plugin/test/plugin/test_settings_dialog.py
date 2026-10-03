@@ -21,7 +21,7 @@ from typing import TYPE_CHECKING, Any
 
 import pytest
 from pytest_mock import MockerFixture
-from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtCore import QRect, Qt
 from qgis.PyQt.QtWidgets import (
     QCheckBox,
     QDialogButtonBox,
@@ -34,7 +34,7 @@ from qgis_profiler.meters.recovery_measurer import RecoveryMeasurer
 from qgis_profiler.meters.thread_health_checker import MainThreadHealthChecker
 from qgis_profiler.settings import SettingCategory, Settings
 
-from profiler_plugin.ui.settings_dialog import SettingsDialog
+from profiler_plugin.ui.settings_dialog import MAX_SCREEN_HEIGHT_RATIO, SettingsDialog
 
 if TYPE_CHECKING:
     from unittest.mock import MagicMock
@@ -76,6 +76,48 @@ def test_settings_dialog_initialization(settings_dialog: "SettingsDialog") -> No
     assert set(settings_dialog._groups.keys()) == set(SettingCategory)
     assert settings_dialog._button_calibrate_recovery_meter.isEnabled()
     # utils.wait(10000)  # noqa: ERA001
+
+
+def test_settings_dialog_should_fit_on_small_screen(
+    qtbot: "QtBot",
+    mocker: MockerFixture,
+    mock_meter_recovery_measurer: "MagicMock",
+) -> None:
+    # Arrange
+    screen_height = 400
+    mock_screen = mocker.MagicMock()
+    mock_screen.availableGeometry.return_value = QRect(0, 0, 800, screen_height)
+    mocker.patch.object(SettingsDialog, "screen", return_value=mock_screen)
+
+    # Act
+    dialog = SettingsDialog()
+    qtbot.addWidget(dialog)
+    dialog.show()
+    qtbot.wait(1)
+
+    # Assert
+    assert dialog.height() <= screen_height * MAX_SCREEN_HEIGHT_RATIO
+    assert dialog.scroll_area.verticalScrollBar().maximum() > 0
+
+
+def test_settings_dialog_should_show_all_settings_on_large_screen(
+    qtbot: "QtBot",
+    mocker: MockerFixture,
+    mock_meter_recovery_measurer: "MagicMock",
+) -> None:
+    # Arrange
+    mock_screen = mocker.MagicMock()
+    mock_screen.availableGeometry.return_value = QRect(0, 0, 4000, 4000)
+    mocker.patch.object(SettingsDialog, "screen", return_value=mock_screen)
+
+    # Act
+    dialog = SettingsDialog()
+    qtbot.addWidget(dialog)
+    dialog.show()
+    qtbot.wait(1)
+
+    # Assert
+    assert dialog.scroll_area.verticalScrollBar().maximum() == 0
 
 
 @pytest.mark.parametrize(

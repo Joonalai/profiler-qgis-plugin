@@ -34,6 +34,7 @@ from qgis.PyQt.QtWidgets import (
     QLabel,
     QLineEdit,
     QPushButton,
+    QScrollArea,
     QSpinBox,
     QVBoxLayout,
     QWidget,
@@ -58,6 +59,7 @@ UI_CLASS: QWidget = load_ui_from_file(
 
 LOGGER = logging.getLogger(__name__)
 CALIBRATION_COEFFICIENT = 1.05
+MAX_SCREEN_HEIGHT_RATIO = 0.85
 
 LOGGING_LEVELS = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
 
@@ -89,6 +91,8 @@ class SettingsDialog(QDialog, UI_CLASS):  # type: ignore
     https://github.com/nlsfi/pickLayer licensed under GPL version 3.
     """
 
+    scroll_area: QScrollArea
+    scroll_area_contents: QWidget
     layout_setting_items: QVBoxLayout
     combo_box_log_level_file: QComboBox
     combo_box_log_level_console: QComboBox
@@ -129,6 +133,17 @@ class SettingsDialog(QDialog, UI_CLASS):  # type: ignore
             self._calibrate_map_rendering_meter
         )
         self._button_calibrate_all.clicked.connect(self._calibrate_all_meters)
+        self._resize_to_fit_screen()
+
+    def _resize_to_fit_screen(self) -> None:
+        """Grow the dialog to show all settings, but keep it within the screen."""
+        if (screen := self.screen()) is None:
+            return
+        max_height = int(screen.availableGeometry().height() * MAX_SCREEN_HEIGHT_RATIO)
+        # Height of everything else than the scrollable settings
+        other_height = self.sizeHint().height() - self.scroll_area.sizeHint().height()
+        height = self.scroll_area_contents.sizeHint().height() + other_height
+        self.resize(self.width(), min(height, max_height))
 
     def _setup_plugin_settings(self) -> None:
         for setting in Settings:
