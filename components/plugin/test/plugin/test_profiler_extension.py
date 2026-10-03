@@ -234,6 +234,7 @@ def test_toggle_cprofile_recording(
         mock_profiler.cprofiler.get_stat_report.assert_called_once()
         assert file_path.parent.exists()
         mock_profiler.cprofiler.dump_stats.assert_called_once_with(file_path)
+        mock_profiler.cprofiler.clear.assert_called_once()
         assert not profiler_extension.button_cprofiler_record.isChecked()
 
 
