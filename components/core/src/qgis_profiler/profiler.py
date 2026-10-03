@@ -34,7 +34,7 @@ from profile import Profile as PythonProfile
 from typing import Optional, cast
 
 from qgis.core import QgsApplication, QgsRuntimeProfiler
-from qgis.PyQt.QtCore import QAbstractItemModel, QCoreApplication
+from qgis.PyQt.QtCore import QAbstractItemModel, QCoreApplication, QModelIndex
 
 from qgis_profiler.constants import EPSILON
 from qgis_profiler.exceptions import EventNotFoundError, ProfilerNotFoundError
@@ -253,7 +253,22 @@ class ProfilerWrapper:
         :return: A unique identifier for the record.
         """
         event_id = str(uuid.uuid4())
-        self._qgis_profiler.record(name, time, group, event_id)
+        inserted_indexes: list[QModelIndex] = []
+
+        def store_inserted_index(parent: QModelIndex, first: int, _: int) -> None:
+            inserted_indexes.append(self._qgis_profiler.index(first, 0, parent))
+
+        self._qgis_profiler.rowsInserted.connect(store_inserted_index)
+        try:
+            self._qgis_profiler.record(name, time, group, event_id)
+        finally:
+            self._qgis_profiler.rowsInserted.disconnect(store_inserted_index)
+
+        # QgsRuntimeProfiler.record sets the time after inserting the row without
+        # notifying, so filtering proxy models would not see the time at all
+        for index in inserted_indexes:
+            self._qgis_profiler.dataChanged.emit(index, index.siblingAtColumn(1))
+
         self._profiler_events[group].append(event_id)
         return event_id
 
