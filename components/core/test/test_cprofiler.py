@@ -16,6 +16,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with profiler-qgis-plugin. If not, see <https://www.gnu.org/licenses/>.
 import logging
+import pstats
 import sys
 import time
 from pathlib import Path
@@ -189,6 +190,40 @@ def test_cprofiler_report_should_be_trimmed(
       3/2    0.000    0.000    0.900    0.450 bar
         5    0.800    0.160    0.800    0.160 sleep"""
     )
+
+
+def test_qgis_profiler_stats_should_link_callers(
+    cprofiler: QCProfiler, sample_text: str
+) -> None:
+    # Act
+    with cprofiler.qgis_profiler_data(sample_text):
+        cprofiler.create_stats()
+
+    # Assert
+    sleep_callers = cprofiler.stats[("~", 0, "sleep")][-1]  # type: ignore[attr-defined]
+    assert set(sleep_callers) == {("~", 0, "foo"), ("~", 0, "bar")}
+
+
+def test_qgis_profiler_stats_should_have_group_as_root(
+    cprofiler: QCProfiler, tmp_path: Path
+) -> None:
+    # Arrange
+    # A group with only top level events, for example meter results
+    text = "Group\n- first: 0.1\n- second: 0.2\n- first: 0.3"
+    file_path = tmp_path / "file.prof"
+
+    # Act
+    with cprofiler.qgis_profiler_data(text, add_root=True):
+        cprofiler.dump_stats(file_path)
+
+    # Assert
+    stats = pstats.Stats(str(file_path)).stats  # type: ignore[attr-defined]
+    roots = [func for func, stat in stats.items() if not stat[-1]]
+    assert roots == [("~", 0, "Group")]
+    assert stats[("~", 0, "Group")][3] == pytest.approx(0.6)
+    assert stats[("~", 0, "first")][-1] == {
+        ("~", 0, "Group"): (2, 2, pytest.approx(0.4), pytest.approx(0.4))
+    }
 
 
 def test_cprofiler_should_profile_normally(
