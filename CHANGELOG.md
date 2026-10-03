@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## Unreleased
+## 1.0.0 - 2026-10-03
 
 - Updated dependencies and added bandit security checks
 - Adopted qgis-plugin-copier-template
