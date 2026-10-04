@@ -62,6 +62,7 @@ jobs:
 
       - name: Publish QGIS Plugin
         run: |
+          cd components/plugin
           uv run --no-editable qgis-plugin-dev-tools publish dist/*.zip
         env:
           # Make sure these are set in your repository secrets
