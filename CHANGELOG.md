@@ -1,5 +1,7 @@
 # CHANGELOG
 
+## Unreleased
+
 ## 1.0.0 - 2026-10-04
 
 - Updated dependencies and added bandit security checks
