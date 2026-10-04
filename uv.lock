@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = ">=3.12"
 resolution-markers = [
     "python_full_version >= '3.15'",
@@ -1042,7 +1042,7 @@ wheels = [
 
 [[package]]
 name = "profiler-qgis-core"
-version = "0.1.0.post1"
+version = "1.0.0"
 source = { editable = "components/core" }
 dependencies = [
     { name = "qgis-plugin-tools" },
@@ -1053,7 +1053,7 @@ requires-dist = [{ name = "qgis-plugin-tools", specifier = ">=2.0.0" }]
 
 [[package]]
 name = "profiler-qgis-plugin"
-version = "0.1.0.post1"
+version = "1.0.0"
 source = { editable = "components/plugin" }
 dependencies = [
     { name = "profiler-qgis-core" },
@@ -1070,6 +1070,7 @@ requires-dist = [
 name = "profiler-qgis-plugin-root"
 version = "0.0.1"
 source = { virtual = "." }
+default-groups = ["dev", "lint"]
 
 [package.dev-dependencies]
 dev = [
