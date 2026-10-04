@@ -59,17 +59,3 @@ jobs:
         if: ${{ matrix.qgis-image-tag == '3.44-noble' }}
         run: |
           uv run coverage report --fail-under=80
-
-      - name: Install curl and git
-        if: ${{ matrix.qgis-image-tag == '3.44-noble' }}
-        run: |
-          apt update
-          apt install -y curl git
-
-      - name: Upload coverage reports to Codecov
-        if: ${{ matrix.qgis-image-tag == '3.44-noble' }}
-        uses: codecov/codecov-action@v7
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          slug: Joonalai/profiler-qgis-plugin
-          fail_ci_if_error: true

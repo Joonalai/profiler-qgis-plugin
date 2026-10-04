@@ -1,7 +1,6 @@
 # QGIS profiler plugin
 
 ![tests](https://github.com/Joonalai/profiler-qgis-plugin/workflows/Tests/badge.svg)
-[![codecov](https://codecov.io/gh/Joonalai/profiler-qgis-plugin/branch/main/graph/badge.svg?token=D1RUB69MUM)](https://codecov.io/gh/Joonalai/profiler-qgis-plugin)
 [![docs](https://readthedocs.org/projects/profiler-qgis-plugin/badge/?version=latest)](https://profiler-qgis-plugin.readthedocs.io/en/latest/)
 [![GPLv3 license](https://img.shields.io/badge/License-GPLv3-blue.svg)](http://perso.crans.org/besson/LICENSE.html)
 [![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
