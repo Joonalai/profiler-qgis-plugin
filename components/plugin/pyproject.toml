@@ -11,7 +11,7 @@ classifiers = [
   "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: 3.14",
 ]
-dependencies = ["qgis_plugin_tools>=2.0.0", "profiler-qgis-core"]
+dependencies = ["qgis_plugin_tools>=2.1.2", "profiler-qgis-core"]
 
 [project.urls]
 homepage = "https://profiler-qgis-plugin.readthedocs.io"
@@ -35,7 +35,7 @@ version_number_source = "pyproject"
 changelog_file_path = "../../CHANGELOG.md"
 env_file_path = "../../.env"
 runtime_requires = [
-  "qgis_plugin_tools",
+  "qgis_plugin_tools>=2.1.2",
   "profiler-qgis-plugin",
   "profiler-qgis-core",
 ]

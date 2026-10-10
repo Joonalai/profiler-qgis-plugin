@@ -34,7 +34,12 @@ from qgis_profiler.settings import (
     Settings,
     resolve_group_name_with_cache,
 )
-from qgis_profiler.utils import QgisPluginType, get_rotated_path, parse_arguments
+from qgis_profiler.utils import (
+    QgisPluginType,
+    get_function_name,
+    get_rotated_path,
+    parse_arguments,
+)
 
 LOGGER = logging.getLogger(__name__)
 
@@ -100,7 +105,7 @@ def profile(
             return function(*args, **kwargs)
 
         group_name = resolve_group_name_with_cache(group)
-        event_name = name if name is not None else function.__name__
+        event_name = name if name is not None else get_function_name(function)
         if event_args:
             event_name += parse_arguments(function, event_args, args, kwargs)
 
@@ -115,12 +120,12 @@ def profile(
     return wrapper
 
 
-def profile_class(  # noqa: C901
+def profile_class[T](  # noqa: C901
     *,
     group: str | None = None,
     include: list[str] | None = None,
     exclude: list[str] | None = None,
-) -> Callable[[type], type]:
+) -> Callable[[type[T]], type[T]]:
     """Wrap public methods of a class with the 'profile' decorator.
 
     Skip methods already decorated with 'profile' and all ``__dunder__`` methods.
@@ -149,7 +154,7 @@ def profile_class(  # noqa: C901
                 pass  # NOT profiled (excluded)
     """
 
-    def decorator(cls: type) -> type:  # noqa: C901
+    def decorator(cls: type[T]) -> type[T]:  # noqa: C901
         for attr_name, attr_value in cls.__dict__.items():
             # Ignore special methods (__ methods)
             if attr_name.startswith("__"):
@@ -259,10 +264,10 @@ def cprofile(
     return wrapper
 
 
-def cprofile_plugin(
+def cprofile_plugin[T](
     *,
     output_file_path: Path,
-) -> Callable[[type], type]:
+) -> Callable[[type[T]], type[T]]:
     """Apply a decorator to a QGIS plugin class to enable profiling.
 
     This function decorates a class to integrate profiling functionality
@@ -304,7 +309,7 @@ def cprofile_plugin(
         snakeviz /tmp/my_plugin.prof
     """
 
-    def decorator(cls: type) -> type:
+    def decorator(cls: type[T]) -> type[T]:
         if not Settings.profiler_enabled.get():
             LOGGER.debug("Profiling is disabled.")
             return cls
@@ -313,7 +318,7 @@ def cprofile_plugin(
             msg = f"Class {cls.__name__} is not a QGIS plugin"
             raise TypeError(msg)
 
-        original_unload = cls.unload  # type: ignore[attr-defined]
+        original_unload = cls.unload
 
         @wraps(original_unload)
         def wrapper(*args: Any, **kwargs: Any) -> Any:

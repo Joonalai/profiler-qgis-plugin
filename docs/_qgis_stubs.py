@@ -280,6 +280,14 @@ def install_stubs() -> None:
             "set_setting": lambda *args, **kwargs: None,
         },
     )
+    _make_module("qgis_plugin_tools.utils")
+    _make_module(
+        "qgis_plugin_tools.utils.typing_utils",
+        {
+            "require": lambda value, msg=None: value,
+            "require_type": lambda value, cls, msg=None: value,
+        },
+    )
 
     # -- _lsprof (cProfile base class and type hints) --
     class _LsprofProfiler:

@@ -28,7 +28,7 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any, Protocol, runtime_checkable
 
-from qgis.PyQt.QtCore import QT_VERSION_STR, pyqtSignal
+from qgis.PyQt.QtCore import QT_VERSION_STR, pyqtBoundSignal
 from qgis.PyQt.QtGui import QCursor
 from qgis.PyQt.QtWidgets import QApplication, QWidget
 
@@ -47,7 +47,12 @@ def has_suitable_qt_version(suitable_qt_version: str = QT_VERSION_MIN) -> bool:
     return QT_VERSION_STR >= suitable_qt_version  # noqa: SIM300
 
 
-def disconnect_signal(signal: pyqtSignal, connection: Any, name: str) -> None:
+def get_function_name(function: Callable) -> str:
+    """Get the name of a callable, falling back to its string representation."""
+    return getattr(function, "__name__", str(function))
+
+
+def disconnect_signal(signal: pyqtBoundSignal, connection: Any, name: str) -> None:
     """Disconnect connection from signal safely."""
     try:
         signal.disconnect(connection)

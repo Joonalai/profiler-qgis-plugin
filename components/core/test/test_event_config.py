@@ -22,6 +22,7 @@ import pytest
 from pytest_lazy_fixtures import lf
 from qgis.PyQt.QtCore import QEvent, QObject, QPointF, Qt
 from qgis.PyQt.QtGui import QMouseEvent
+from qgis_plugin_tools.utils.typing_utils import require
 from qgis_profiler.config.event_config import (
     AdvancedDigitizingMapToolClickConfig,
     CustomEventFilter,
@@ -191,10 +192,10 @@ def test_advanced_digitizing_map_tool_click_config_should_match(
     config = AdvancedDigitizingMapToolClickConfig("test")
     assert config.initial_canvas_scene_item_count == 0
 
-    assert len(qgis_canvas.scene().items()) == 1
+    assert len(require(qgis_canvas.scene()).items()) == 1
     # The canvas scene count is 1 so match should be found
     assert (
-        config.matches(sample_event, qgis_canvas.viewport())
+        config.matches(sample_event, require(qgis_canvas.viewport()))
         == EventResponse.START_AND_STOP_DELAYED
     )
 

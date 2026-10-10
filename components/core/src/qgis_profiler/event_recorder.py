@@ -28,9 +28,10 @@ from typing import TYPE_CHECKING, Any, cast
 
 from qgis.gui import QgsMapTool
 from qgis.PyQt import QtWidgets
-from qgis.PyQt.QtCore import QEvent, QObject, pyqtSignal
+from qgis.PyQt.QtCore import QEvent, QObject, pyqtBoundSignal, pyqtSignal
 from qgis.PyQt.QtWidgets import QApplication
 from qgis.utils import iface as iface_
+from qgis_plugin_tools.utils.typing_utils import require
 
 from qgis_profiler import utils
 from qgis_profiler.config.event_config import (
@@ -58,7 +59,7 @@ class StopProfilingEvent(QEvent):
 
     def __init__(self, name: str, group: str) -> None:
         """Initialize with profiling event name and group."""
-        super().__init__(self.EVENT_TYPE)  # type: ignore
+        super().__init__(self.EVENT_TYPE)
         self.name = name
         self.group = group
 
@@ -104,7 +105,7 @@ class ProfilerEventRecorder(QObject):
             general_map_tools_config or GENERAL_MAP_TOOL_FUNCTIONALITIES
         )
         self._recording = False
-        self._connections: dict[str, tuple[pyqtSignal, Any]] = {}
+        self._connections: dict[str, tuple[pyqtBoundSignal, Any]] = {}
         self._current_map_tool_config: CustomEventConfig | None = None
 
         if not utils.has_suitable_qt_version(QT_VERSION_MIN):
@@ -117,9 +118,10 @@ class ProfilerEventRecorder(QObject):
 
     def start_recording(self) -> None:
         """Start the recording process."""
-        QApplication.instance().installEventFilter(self)
-        iface.mapCanvas().mapToolSet.connect(self._map_tool_changed)
-        self._map_tool_changed(iface.mapCanvas().mapTool(), None)
+        require(QApplication.instance()).installEventFilter(self)
+        canvas = require(iface.mapCanvas())
+        canvas.mapToolSet.connect(self._map_tool_changed)
+        self._map_tool_changed(canvas.mapTool(), None)
         self._recording = True
 
     def stop_recording(self) -> None:
@@ -127,22 +129,29 @@ class ProfilerEventRecorder(QObject):
         if not self._recording:
             return
 
-        QApplication.instance().removeEventFilter(self)
+        require(QApplication.instance()).removeEventFilter(self)
         if self._connections:
             for name, (signal, connection) in self._connections.items():
                 LOGGER.debug("Disconnecting action %s", name)
                 disconnect_signal(signal, connection, name)
 
         disconnect_signal(
-            iface.mapCanvas().mapToolSet, self._map_tool_changed, "map_tool_set"
+            require(iface.mapCanvas()).mapToolSet,
+            self._map_tool_changed,
+            "map_tool_set",
         )
 
         ProfilerWrapper.get().end_all(self.group)
         self._connections.clear()
         self._recording = False
 
-    def eventFilter(self, obj: QObject, event: QEvent) -> bool:  # noqa: N802
+    def eventFilter(  # noqa: N802  # ty: ignore[invalid-method-override]
+        self, obj: QObject | None, event: QEvent | None
+    ) -> bool:
         """Filter Qt events for profiling button clicks and map tool actions."""
+        if obj is None or event is None:
+            return False
+
         self._catch_button_events(event)
         self._catch_map_tool_events(obj, event)
 
@@ -163,13 +172,12 @@ class ProfilerEventRecorder(QObject):
                 return
 
             # If no suitable actions are found, connect to button.clicked
-            button = cast("QtWidgets.QAbstractButton", widget)
-            name = button.text() or button.objectName()
+            name = widget.text() or widget.objectName()
             if name and name not in self._connections:
-                connection = button.clicked.connect(
+                connection = widget.clicked.connect(
                     partial(self._stop_profiling_after_signal_is_emitted, name)
                 )
-                self._connections[name] = button.clicked, connection
+                self._connections[name] = widget.clicked, connection
                 self._start_profiling(name)
 
     def _catch_map_tool_events(self, obj: QObject, event: QEvent) -> None:
@@ -198,9 +206,13 @@ class ProfilerEventRecorder(QObject):
             self._start_profiling(config.name)
             self._post_stop_profiling_event(config.name)
 
-    def _map_tool_changed(self, current: QgsMapTool, _: QgsMapTool | None) -> None:
+    def _map_tool_changed(
+        self, current: QgsMapTool | None, _: QgsMapTool | None
+    ) -> None:
         ProfilerWrapper.get().end_all(self.group)
-        if config := self._map_tools_config.get(current.__class__.__name__):
+        if current is not None and (
+            config := self._map_tools_config.get(current.__class__.__name__)
+        ):
             LOGGER.debug("Map tool changed to %s", config.class_name)
             self._current_map_tool_config = config
             config.activate()
@@ -230,4 +242,6 @@ class ProfilerEventRecorder(QObject):
 
         :param name: Name of the profiling event.
         """
-        QApplication.postEvent(iface.mainWindow(), StopProfilingEvent(name, self.group))
+        QApplication.postEvent(
+            require(iface.mainWindow()), StopProfilingEvent(name, self.group)
+        )

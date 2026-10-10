@@ -31,7 +31,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass, field
 from pathlib import Path
 from profile import Profile as PythonProfile
-from typing import Optional, cast
+from typing import TYPE_CHECKING, Optional, cast
 
 from qgis.core import QgsApplication, QgsRuntimeProfiler
 from qgis.PyQt.QtCore import QAbstractItemModel, QCoreApplication, QModelIndex
@@ -43,10 +43,15 @@ from qgis_profiler.settings import (
     resolve_group_name_with_cache,
 )
 
-try:
+if TYPE_CHECKING:
     from qgis_profiler.cprofiler import QCProfiler
-except ModuleNotFoundError:
-    QCProfiler = None  # type: ignore
+
+try:
+    from qgis_profiler.cprofiler import QCProfiler as _QCProfiler
+
+    CPROFILE_AVAILABLE = True
+except ModuleNotFoundError:  # pragma: no cover
+    CPROFILE_AVAILABLE = False
 
 
 LOGGER = logging.getLogger(__name__)
@@ -161,7 +166,7 @@ class ProfilerWrapper:
             raise ProfilerNotFoundError
         self._qgis_profiler: QgsRuntimeProfiler = profiler
         self._cprofiler: QCProfiler | None = (
-            QCProfiler() if QCProfiler is not None else None
+            _QCProfiler() if CPROFILE_AVAILABLE else None
         )
         self._pprofiler = PythonProfile()  # noqa: SC200
         self._profiler_events: dict[str, list[str]] = defaultdict(list)
@@ -190,7 +195,7 @@ class ProfilerWrapper:
         }
 
     @property
-    def cprofiler(self) -> QCProfiler:
+    def cprofiler(self) -> "QCProfiler":
         """QCProfiler instance. Only available if cProfile is installed."""
         if self._cprofiler is None:
             msg = "cProfile"
@@ -200,7 +205,7 @@ class ProfilerWrapper:
     @property
     def cprofiler_available(self) -> bool:
         """Return whether cProfile is installed and available."""
-        return QCProfiler is not None
+        return CPROFILE_AVAILABLE
 
     @contextmanager
     def profile(
