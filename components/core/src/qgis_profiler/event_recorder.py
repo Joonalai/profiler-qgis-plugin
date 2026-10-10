@@ -23,13 +23,15 @@ automatically capture and time user-triggered actions in QGIS.
 """
 
 import logging
+from collections import defaultdict
 from functools import partial
 from typing import TYPE_CHECKING, Any, cast
 
 from qgis.gui import QgsMapTool
 from qgis.PyQt import QtWidgets
-from qgis.PyQt.QtCore import QEvent, QObject, pyqtBoundSignal, pyqtSignal
-from qgis.PyQt.QtWidgets import QApplication
+from qgis.PyQt.QtCore import QEvent, QObject, QPoint, Qt, pyqtBoundSignal, pyqtSignal
+from qgis.PyQt.QtGui import QMouseEvent
+from qgis.PyQt.QtWidgets import QApplication, QStyle, QStyleOptionButton
 from qgis.utils import iface as iface_
 from qgis_plugin_tools.utils.typing_utils import require
 
@@ -106,6 +108,10 @@ class ProfilerEventRecorder(QObject):
         )
         self._recording = False
         self._connections: dict[str, tuple[pyqtBoundSignal, Any]] = {}
+        # Ids of started but not yet stopped profiler events, by event name.
+        # Stops are matched to starts by name so that a stop for one event
+        # can never end some other event.
+        self._started_events: dict[str, list[str]] = defaultdict(list)
         self._current_map_tool_config: CustomEventConfig | None = None
 
         if not utils.has_suitable_qt_version(QT_VERSION_MIN):
@@ -141,7 +147,7 @@ class ProfilerEventRecorder(QObject):
             "map_tool_set",
         )
 
-        ProfilerWrapper.get().end_all(self.group)
+        self._end_all_events()
         self._connections.clear()
         self._recording = False
 
@@ -152,7 +158,7 @@ class ProfilerEventRecorder(QObject):
         if obj is None or event is None:
             return False
 
-        self._catch_button_events(event)
+        self._catch_button_events(obj, event)
         self._catch_map_tool_events(obj, event)
 
         if event.type() == StopProfilingEvent.EVENT_TYPE:
@@ -164,21 +170,26 @@ class ProfilerEventRecorder(QObject):
 
         return super().eventFilter(obj, event)
 
-    def _catch_button_events(self, event: QEvent) -> None:
-        if event.type() == QEvent.Type.MouseButtonRelease:
-            if (widget := utils.get_widget_under_cursor()) is None or not isinstance(
-                widget, QtWidgets.QAbstractButton
-            ):
-                return
+    def _catch_button_events(self, obj: QObject, event: QEvent) -> None:
+        if event.type() != QEvent.Type.MouseButtonRelease or not isinstance(
+            obj, QtWidgets.QAbstractButton
+        ):
+            return
 
-            # If no suitable actions are found, connect to button.clicked
-            name = widget.text() or widget.objectName()
-            if name and name not in self._connections:
-                connection = widget.clicked.connect(
-                    partial(self._stop_profiling_after_signal_is_emitted, name)
-                )
-                self._connections[name] = widget.clicked, connection
-                self._start_profiling(name)
+        # Profiling is stopped when the button emits clicked. Start only if the
+        # release is going to emit it, otherwise the event would never be
+        # stopped and it would accumulate the time of every later event.
+        button = obj
+        if not _release_emits_clicked(button, cast("QMouseEvent", event)):
+            return
+
+        name = button.text() or button.objectName()
+        if name and name not in self._connections:
+            connection = button.clicked.connect(
+                partial(self._stop_profiling_after_signal_is_emitted, name)
+            )
+            self._connections[name] = button.clicked, connection
+            self._start_profiling(name)
 
     def _catch_map_tool_events(self, obj: QObject, event: QEvent) -> None:
         response = None
@@ -209,7 +220,7 @@ class ProfilerEventRecorder(QObject):
     def _map_tool_changed(
         self, current: QgsMapTool | None, _: QgsMapTool | None
     ) -> None:
-        ProfilerWrapper.get().end_all(self.group)
+        self._end_all_events()
         if current is not None and (
             config := self._map_tools_config.get(current.__class__.__name__)
         ):
@@ -223,12 +234,21 @@ class ProfilerEventRecorder(QObject):
     def _start_profiling(self, name: str) -> None:
         LOGGER.debug("Start profiling: %s", name)
         self.event_started.emit(name)
-        ProfilerWrapper.get().start(name, self.group)
+        event_id = ProfilerWrapper.get().start(name, self.group)
+        self._started_events[name].append(event_id)
 
     def _stop_profiling(self, name: str, group: str) -> None:
+        event_ids = self._started_events.get(name)
+        if not event_ids:
+            LOGGER.debug("Ignoring stop for %s which was never started", name)
+            return
         LOGGER.debug("Stop profiling: %s", name)
-        ProfilerWrapper.get().end(group)
+        ProfilerWrapper.get().end_event(event_ids.pop(), group)
         self.event_finished.emit(name)
+
+    def _end_all_events(self) -> None:
+        ProfilerWrapper.get().end_all(self.group)
+        self._started_events.clear()
 
     def _stop_profiling_after_signal_is_emitted(self, name: str) -> None:
         LOGGER.debug("Posting stop profiling event for %s", name)
@@ -245,3 +265,39 @@ class ProfilerEventRecorder(QObject):
         QApplication.postEvent(
             require(iface.mainWindow()), StopProfilingEvent(name, self.group)
         )
+
+
+def _release_emits_clicked(
+    button: QtWidgets.QAbstractButton, event: QMouseEvent
+) -> bool:
+    """Return whether the mouse release will make the button emit clicked.
+
+    Mirror the conditions of QAbstractButton.mouseReleaseEvent: the left
+    button is released while the button is down (it was pressed) and the
+    cursor is still over the clickable area of the button.
+    """
+    if event.button() != Qt.MouseButton.LeftButton or not button.isDown():
+        return False
+    position = event.position().toPoint() if hasattr(event, "position") else event.pos()
+    return _hit_button(button, position)
+
+
+def _hit_button(button: QtWidgets.QAbstractButton, position: QPoint) -> bool:
+    """Mirror QAbstractButton.hitButton, which is protected and thus not callable.
+
+    QCheckBox and QRadioButton override it to accept only releases over the
+    indicator and the label, not over the rest of the widget.
+    """
+    if isinstance(button, QtWidgets.QCheckBox):
+        click_rect = QStyle.SubElement.SE_CheckBoxClickRect
+    elif isinstance(button, QtWidgets.QRadioButton):
+        click_rect = QStyle.SubElement.SE_RadioButtonClickRect
+    else:
+        return button.rect().contains(position)
+
+    option = QStyleOptionButton()
+    option.initFrom(button)
+    option.text = button.text()
+    option.icon = button.icon()
+    option.iconSize = button.iconSize()
+    return button.style().subElementRect(click_rect, option, button).contains(position)

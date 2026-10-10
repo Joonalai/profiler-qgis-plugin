@@ -29,6 +29,8 @@ from typing import (
     cast,
 )
 
+from qgis.core import QgsEditFormConfig, QgsSettings, QgsVectorLayer
+from qgis.gui import QgsMapToolCapture, QgsMapToolDigitizeFeature
 from qgis.PyQt import QtWidgets
 from qgis.PyQt.QtCore import QEvent, QObject, QPointF, Qt, QTimer
 from qgis.PyQt.QtGui import QMouseEvent
@@ -75,6 +77,49 @@ def is_object_map_canvas(obj: QObject) -> bool:
 
 def _canvas_scene_item_count() -> int:
     return len(require(require(iface.mapCanvas()).scene()).items())
+
+
+# Setting QGIS checks in QgsFeatureAction::addFeature
+_DISABLE_ATTRIBUTE_DIALOG_SETTING = (
+    "qgis/digitizing/disable_enter_attribute_values_dialog"
+)
+_MIN_VERTICES_TO_FINISH = {
+    QgsMapToolCapture.CaptureMode.CaptureLine: 2,
+    QgsMapToolCapture.CaptureMode.CapturePolygon: 3,
+}
+
+
+def digitizing_will_show_feature_form(obj: QObject) -> bool:
+    """Check whether a right click on the map canvas will show the feature form.
+
+    QgsMapToolDigitizeFeature finishes a line or a polygon on right click, but
+    only if enough vertices have been digitized, and QGIS then shows the
+    attribute form only if it is not suppressed for the layer. Mirror these
+    conditions so that profiling is not started when there will be no form
+    to stop it.
+    """
+    if not is_object_map_canvas(obj):
+        return False
+    tool = iface.mapCanvas().mapTool()
+    if not isinstance(tool, QgsMapToolDigitizeFeature):
+        return False
+    min_vertices = _MIN_VERTICES_TO_FINISH.get(tool.mode())
+    if min_vertices is None or tool.size() < min_vertices:
+        return False
+    layer = tool.layer() or tool.currentVectorLayer()
+    return isinstance(layer, QgsVectorLayer) and not _is_feature_form_suppressed(layer)
+
+
+def _is_feature_form_suppressed(layer: QgsVectorLayer) -> bool:
+    """Mirror how QgsFeatureAction::addFeature decides to show the form."""
+    suppress = layer.editFormConfig().suppress()
+    if suppress == QgsEditFormConfig.FeatureFormSuppress.SuppressOn:
+        return True
+    if suppress == QgsEditFormConfig.FeatureFormSuppress.SuppressOff:
+        return False
+    return layer.fields().count() == 0 or QgsSettings().value(
+        _DISABLE_ATTRIBUTE_DIALOG_SETTING, defaultValue=False, type=bool
+    )
 
 
 class EventResponse(enum.Enum):
@@ -258,7 +303,10 @@ DEFAULT_MAP_TOOLS_CONFIG: dict[str, CustomEventConfig] = {
         # to show the feature action dialog in a responsive state
         SimpleMapToolConfig(
             class_name="QgsMapToolDigitizeFeature",
-            start_event_filter=CustomEventFilter(event=_mouse_right_button_release),
+            start_event_filter=CustomEventFilter(
+                event=_mouse_right_button_release,
+                object_filter=digitizing_will_show_feature_form,
+            ),
             stop_event_filter=CustomEventFilter(
                 event=QEvent.Type.Show,
                 object_filter=lambda obj: (
