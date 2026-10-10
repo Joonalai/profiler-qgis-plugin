@@ -1,5 +1,5 @@
 # Changes here will be overwritten by Copier; NEVER EDIT MANUALLY
-_commit: v0.6.3
+_commit: v0.8.1
 _src_path: https://github.com/osgeosuomi/qgis-plugin-copier-template.git
 add_github_workflows: true
 insert_copyright_header: true
@@ -16,3 +16,4 @@ qgis_plugin_module: profiler_plugin
 qgis_plugin_name: Profiler
 qgis_version: QGIS3 & QGIS4
 setup_translations: false
+type_checking_library: ty
