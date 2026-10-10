@@ -16,51 +16,22 @@
 #  You should have received a copy of the GNU General Public License
 #  along with profiler-qgis-plugin. If not, see <https://www.gnu.org/licenses/>.
 import logging
-from os.path import normpath
-from pathlib import Path
 from typing import TYPE_CHECKING
 from unittest.mock import MagicMock
 
 import pytest
-from qgis_plugin_tools.tools import resources
 from qgis_profiler.meters.map_rendering import MapRenderingMeter
 from qgis_profiler.meters.recovery_measurer import RecoveryMeasurer
 from qgis_profiler.meters.thread_health_checker import MainThreadHealthChecker
 from qgis_profiler.profiler import ProfilerWrapper
 from qgis_profiler.settings import Settings
 
-import profiler_plugin
-
 if TYPE_CHECKING:
-    from collections.abc import Iterator
-
     from pytest_mock import MockerFixture
 
 LOGGER = logging.getLogger(__name__)
 
 WAIT_AFTER_MOUSE_MOVE = 1
-
-PLUGIN_DIR = Path(profiler_plugin.__file__).parent
-
-
-@pytest.fixture(scope="session", autouse=True)
-def _resolve_plugin_path_to_profiler_plugin() -> "Iterator[None]":
-    """Resolve qgis_plugin_tools plugin path to profiler_plugin in all calls.
-
-    qgis_plugin_tools finds the plugin by walking the call stack for a plugin
-    package. Test modules and qgis_profiler are not inside profiler_plugin, so
-    calls made from them (e.g. Settings.reset()) would resolve to a fallback
-    plugin name and read/write a different QSettings section than the plugin
-    code under test.
-    """
-    with pytest.MonkeyPatch.context() as mp:
-        mp.setattr(
-            resources,
-            "plugin_path",
-            lambda *args: normpath(PLUGIN_DIR.joinpath(*args)),
-        )
-        assert resources.plugin_name() == "Profiler"
-        yield
 
 
 @pytest.fixture

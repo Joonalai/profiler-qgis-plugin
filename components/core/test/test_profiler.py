@@ -166,9 +166,11 @@ def test_profiler_end_event_should_not_end_other_events(
     assert profiler.get_profiler_data("ended") == [
         ProfilerResult("ended", default_group, 0.0)
     ]
-    assert profiler.get_profiler_data("active") == [
-        ProfilerResult("active", default_group, 0.01)
-    ]
+    (active_result,) = profiler.get_profiler_data("active")
+    assert active_result.name == "active"
+    assert active_result.group == default_group
+    # Wall-clock time of qtbot.wait(10) varies on a loaded machine
+    assert active_result.duration == pytest.approx(0.01, abs=0.05)
 
 
 def test_profiler_clear_should_end_all_active_events(

@@ -29,7 +29,7 @@ from typing import (
     cast,
 )
 
-from qgis.core import QgsEditFormConfig, QgsSettings, QgsVectorLayer
+from qgis.core import Qgis, QgsSettings, QgsVectorLayer
 from qgis.gui import QgsMapToolCapture, QgsMapToolDigitizeFeature
 from qgis.PyQt import QtWidgets
 from qgis.PyQt.QtCore import QEvent, QObject, QPointF, Qt, QTimer
@@ -100,7 +100,7 @@ def digitizing_will_show_feature_form(obj: QObject) -> bool:
     """
     if not is_object_map_canvas(obj):
         return False
-    tool = iface.mapCanvas().mapTool()
+    tool = require(iface.mapCanvas()).mapTool()
     if not isinstance(tool, QgsMapToolDigitizeFeature):
         return False
     min_vertices = _MIN_VERTICES_TO_FINISH.get(tool.mode())
@@ -113,9 +113,9 @@ def digitizing_will_show_feature_form(obj: QObject) -> bool:
 def _is_feature_form_suppressed(layer: QgsVectorLayer) -> bool:
     """Mirror how QgsFeatureAction::addFeature decides to show the form."""
     suppress = layer.editFormConfig().suppress()
-    if suppress == QgsEditFormConfig.FeatureFormSuppress.SuppressOn:
+    if suppress == Qgis.AttributeFormSuppression.On:
         return True
-    if suppress == QgsEditFormConfig.FeatureFormSuppress.SuppressOff:
+    if suppress == Qgis.AttributeFormSuppression.Off:
         return False
     return layer.fields().count() == 0 or QgsSettings().value(
         _DISABLE_ATTRIBUTE_DIALOG_SETTING, defaultValue=False, type=bool

@@ -302,7 +302,9 @@ def _release_emits_clicked(
     """
     if event.button() != Qt.MouseButton.LeftButton or not button.isDown():
         return False
-    position = event.position().toPoint() if hasattr(event, "position") else event.pos()
+    # QMouseEvent.position exists only in Qt6, pos is deprecated there
+    position_getter = getattr(event, "position", None)
+    position = position_getter().toPoint() if position_getter else event.pos()
     return _hit_button(button, position)
 
 
@@ -324,4 +326,5 @@ def _hit_button(button: QtWidgets.QAbstractButton, position: QPoint) -> bool:
     option.text = button.text()
     option.icon = button.icon()
     option.iconSize = button.iconSize()
-    return button.style().subElementRect(click_rect, option, button).contains(position)
+    style = require(button.style())
+    return style.subElementRect(click_rect, option, button).contains(position)
