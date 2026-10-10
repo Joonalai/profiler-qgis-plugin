@@ -23,7 +23,6 @@ automatically capture and time user-triggered actions in QGIS.
 """
 
 import logging
-from collections import defaultdict
 from functools import partial
 from typing import TYPE_CHECKING, Any, cast
 
@@ -108,10 +107,10 @@ class ProfilerEventRecorder(QObject):
         )
         self._recording = False
         self._connections: dict[str, tuple[pyqtBoundSignal, Any]] = {}
-        # Ids of started but not yet stopped profiler events, by event name.
-        # Stops are matched to starts by name so that a stop for one event
-        # can never end some other event.
-        self._started_events: dict[str, list[str]] = defaultdict(list)
+        # Started but not yet stopped profiler events as (name, event id)
+        # pairs in start order. Stops are matched to starts by name so that
+        # a stop for one event can never end some other event.
+        self._started_events: list[tuple[str, str]] = []
         self._current_map_tool_config: CustomEventConfig | None = None
 
         if not utils.has_suitable_qt_version(QT_VERSION_MIN):
@@ -235,16 +234,32 @@ class ProfilerEventRecorder(QObject):
         LOGGER.debug("Start profiling: %s", name)
         self.event_started.emit(name)
         event_id = ProfilerWrapper.get().start(name, self.group)
-        self._started_events[name].append(event_id)
+        self._started_events.append((name, event_id))
 
     def _stop_profiling(self, name: str, group: str) -> None:
-        event_ids = self._started_events.get(name)
-        if not event_ids:
-            LOGGER.debug("Ignoring stop for %s which was never started", name)
+        index = next(
+            (
+                i
+                for i in reversed(range(len(self._started_events)))
+                if self._started_events[i][0] == name
+            ),
+            None,
+        )
+        if index is None:
+            LOGGER.debug("Ignoring stop for %s which is not running", name)
             return
-        LOGGER.debug("Stop profiling: %s", name)
-        ProfilerWrapper.get().end_event(event_ids.pop(), group)
-        self.event_finished.emit(name)
+        if not ProfilerWrapper.get().end_event(self._started_events[index][1], group):
+            del self._started_events[index]
+            return
+        # The profiler can only end the most recent event, so ending this
+        # event also ended the events started after it (nested events).
+        # Finish them too, most recent first, so that every started event
+        # is finished exactly once.
+        ended_events = self._started_events[index:]
+        del self._started_events[index:]
+        for ended_name, _ in reversed(ended_events):
+            LOGGER.debug("Stop profiling: %s", ended_name)
+            self.event_finished.emit(ended_name)
 
     def _end_all_events(self) -> None:
         ProfilerWrapper.get().end_all(self.group)

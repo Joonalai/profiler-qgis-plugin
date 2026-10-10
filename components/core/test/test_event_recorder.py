@@ -237,6 +237,33 @@ def test_recorder_stop_should_only_end_the_event_it_was_meant_for(
     assert not profiler.is_profiling(default_group)
 
 
+def test_recorder_should_finish_nested_events_with_the_enclosing_event(
+    event_recorder: ProfilerEventRecorder,
+    profiler: "ProfilerWrapper",
+    default_group: str,
+) -> None:
+    """Ending an event ends the events nested in it, which must finish once."""
+    # Arrange
+    event_recorder.start_recording()
+    event_recorder._start_profiling("outer")
+    event_recorder._start_profiling("inner")
+    finished: list[str] = []
+    event_recorder.event_finished.connect(finished.append)
+
+    # Act
+    event_recorder._stop_profiling("outer", default_group)
+
+    # Assert
+    assert finished == ["inner", "outer"]
+    assert not profiler.is_profiling(default_group)
+
+    # Act: the delayed stop of the nested event arrives afterwards
+    event_recorder._stop_profiling("inner", default_group)
+
+    # Assert
+    assert finished == ["inner", "outer"]
+
+
 def test_recorder_should_not_accumulate_time_of_other_events(
     event_recorder: ProfilerEventRecorder,
     profiler: "ProfilerWrapper",
