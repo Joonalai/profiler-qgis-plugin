@@ -114,6 +114,76 @@ def test_profiler_start_and_end(
     assert profiler.get_event_time(event_id) == pytest.approx(0.0, abs=1e-1)
 
 
+def test_profiler_end_should_return_id_of_the_ended_nested_event(
+    profiler: "ProfilerWrapper", default_group: str
+) -> None:
+    outer_id = profiler.start("outer", default_group)
+    inner_id = profiler.start("inner", default_group)
+
+    assert profiler.end(default_group) == inner_id
+    assert profiler.end(default_group) == outer_id
+    assert profiler.end(default_group) == "invalid"
+    assert not profiler.is_profiling(default_group)
+
+
+def test_profiler_end_event_should_end_the_event_and_events_nested_in_it(
+    profiler: "ProfilerWrapper", default_group: str
+) -> None:
+    # Arrange
+    outer_id = profiler.start("outer", default_group)
+    middle_id = profiler.start("middle", default_group)
+    inner_id = profiler.start("inner", default_group)
+
+    # Act
+    assert profiler.end_event(middle_id, default_group)
+
+    # Assert
+    assert profiler.is_event_active(outer_id, default_group)
+    assert not profiler.is_event_active(middle_id, default_group)
+    assert not profiler.is_event_active(inner_id, default_group)
+    assert profiler.is_profiling(default_group)
+    assert profiler.end(default_group) == outer_id
+
+
+def test_profiler_end_event_should_not_end_other_events(
+    profiler: "ProfilerWrapper", qtbot: "QtBot", default_group: str
+) -> None:
+    """Regression test: ending an inactive event must not end the active one."""
+    # Arrange
+    ended_id = profiler.start("ended", default_group)
+    profiler.end(default_group)
+    active_id = profiler.start("active", default_group)
+
+    # Act
+    assert not profiler.end_event(ended_id, default_group)
+    assert not profiler.end_event("unknown", default_group)
+    assert not profiler.end_event(active_id, "other group")
+
+    # Assert
+    assert profiler.is_event_active(active_id, default_group)
+    qtbot.wait(10)
+    assert profiler.end_event(active_id, default_group)
+    assert profiler.get_profiler_data("ended") == [
+        ProfilerResult("ended", default_group, 0.0)
+    ]
+    assert profiler.get_profiler_data("active") == [
+        ProfilerResult("active", default_group, 0.01)
+    ]
+
+
+def test_profiler_clear_should_end_all_active_events(
+    profiler: "ProfilerWrapper", default_group: str
+) -> None:
+    for i in range(5):
+        profiler.start(f"event {i}", default_group)
+
+    profiler.clear(default_group)
+
+    assert not profiler.is_profiling(default_group)
+    assert profiler.get_profiler_data(group=default_group) == []
+    assert profiler.end(default_group) == "invalid"
+
+
 def test_profiler_add_record(
     profiler: "ProfilerWrapper", qtbot: "QtBot", default_group: str
 ) -> None:

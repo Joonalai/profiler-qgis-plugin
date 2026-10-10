@@ -169,7 +169,11 @@ class ProfilerWrapper:
             _QCProfiler() if CPROFILE_AVAILABLE else None
         )
         self._pprofiler = PythonProfile()  # noqa: SC200
+        # All event ids ever created per group (used to validate event ids)
         self._profiler_events: dict[str, list[str]] = defaultdict(list)
+        # Ids of the events that have been started but not yet ended, per group.
+        # Mirrors the internal stack of QgsRuntimeProfiler.
+        self._active_events: dict[str, list[str]] = defaultdict(list)
 
     @staticmethod
     def get() -> "ProfilerWrapper":
@@ -234,20 +238,48 @@ class ProfilerWrapper:
         event_id = str(uuid.uuid4())
         self._qgis_profiler.start(name, group, event_id)
         self._profiler_events[group].append(event_id)
+        self._active_events[group].append(event_id)
         return event_id
 
     def end(self, group: str) -> str:
-        """End the current profiling event for a group.
+        """End the most recently started profiling event for a group.
 
-        :return: A unique identifier for the event.
+        :return: A unique identifier for the ended event, or "invalid" if
+            no event started via this wrapper was active.
         """
         self._qgis_profiler.end(group)
-        return self._profiler_events.get(group, ["invalid"])[-1]
+        active_events = self._active_events.get(group)
+        return active_events.pop() if active_events else "invalid"
+
+    def end_event(self, event_id: str, group: str) -> bool:
+        """End a specific profiling event for a group.
+
+        QgsRuntimeProfiler keeps a stack of started events per group and can
+        only end the topmost one. Ending a specific event therefore also ends
+        any events that were started after it and are still active (nested
+        events). If the event is not active, nothing is ended. This
+        prevents a stop for one event from ending some other event.
+
+        :param event_id: Identifier returned by :meth:`start`.
+        :param group: Group of the event.
+        :return: True if the event was active and got ended, False otherwise.
+        """
+        if event_id not in self._active_events.get(group, []):
+            LOGGER.debug("Event %s is not active in group %s", event_id, group)
+            return False
+        while self.end(group) != event_id:
+            pass
+        return True
+
+    def is_event_active(self, event_id: str, group: str) -> bool:
+        """Return whether the event has been started but not yet ended."""
+        return event_id in self._active_events.get(group, [])
 
     def end_all(self, group: str) -> None:
         """End all profiling events for a group."""
         while self.is_profiling(group):
             self.end(group)
+        self._active_events.pop(group, None)
 
     def add_record(self, name: str, group: str, time: float) -> str:
         """Add a performance profiling record.
@@ -342,9 +374,7 @@ class ProfilerWrapper:
         Note that this does not remove the group.
         """
         group = resolve_group_name(group)
-        self.end(group)
-        self.end(group)
-        self.end(group)
+        self.end_all(group)
         self._qgis_profiler.clear(group)
         self._profiler_events.pop(group, None)
 

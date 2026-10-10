@@ -20,23 +20,69 @@ from typing import TYPE_CHECKING
 
 import pytest
 from pytest_lazy_fixtures import lf
+from qgis.core import (
+    QgsEditFormConfig,
+    QgsPointXY,
+    QgsProject,
+    QgsSettings,
+    QgsVectorLayer,
+)
+from qgis.gui import (
+    QgsAdvancedDigitizingDockWidget,
+    QgsMapToolCapture,
+    QgsMapToolDigitizeFeature,
+)
 from qgis.PyQt.QtCore import QEvent, QObject, QPointF, Qt
 from qgis.PyQt.QtGui import QMouseEvent
 from qgis_plugin_tools.utils.typing_utils import require
 from qgis_profiler.config.event_config import (
+    DEFAULT_MAP_TOOLS_CONFIG,
     AdvancedDigitizingMapToolClickConfig,
     CustomEventFilter,
     EventResponse,
     SimpleMapToolClickConfig,
     SimpleMapToolConfig,
+    digitizing_will_show_feature_form,
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Iterator
     from unittest.mock import MagicMock
 
     from pytest_mock import MockerFixture
     from pytestqt.qtbot import QtBot
     from qgis.gui import QgsMapCanvas
+
+
+@pytest.fixture
+def line_layer() -> "Iterator[QgsVectorLayer]":
+    layer = QgsVectorLayer(
+        "LineString?crs=EPSG:4326&field=name:string", "lines", "memory"
+    )
+    assert layer.isValid()
+    assert QgsProject.instance().addMapLayer(layer) is layer
+    yield layer
+    QgsProject.instance().removeMapLayer(layer.id())
+
+
+@pytest.fixture
+def digitize_line_tool(
+    qgis_canvas: "QgsMapCanvas", line_layer: QgsVectorLayer, qtbot: "QtBot"
+) -> "Iterator[QgsMapToolDigitizeFeature]":
+    qgis_canvas.setLayers([line_layer])
+    qgis_canvas.setCurrentLayer(line_layer)
+    # The canvas owns the dock widget and the tool
+    cad_dock_widget = QgsAdvancedDigitizingDockWidget(qgis_canvas, qgis_canvas)
+    tool = QgsMapToolDigitizeFeature(
+        qgis_canvas, cad_dock_widget, QgsMapToolCapture.CaptureMode.CaptureLine
+    )
+    tool.setLayer(line_layer)
+    qgis_canvas.setMapTool(tool)
+    yield tool
+    qgis_canvas.unsetMapTool(tool)
+    # Delete the tool before the canvas scene deletes its rubber bands
+    tool.deleteLater()
+    qtbot.wait(1)
 
 
 @pytest.fixture
@@ -214,3 +260,70 @@ def test_advanced_digitizing_map_tool_click_config_should_not_match(
     assert config.initial_canvas_scene_item_count == 1
 
     assert not config.matches(sample_event, qgis_canvas.viewport())
+
+
+def test_default_digitize_config_should_start_only_if_feature_form_will_be_shown(
+    sample_event: QMouseEvent, qgis_canvas: "QgsMapCanvas"
+) -> None:
+    config = DEFAULT_MAP_TOOLS_CONFIG["QgsMapToolDigitizeFeature"]
+    assert isinstance(config, SimpleMapToolConfig)
+    assert config.start_event_filter.object_filter is digitizing_will_show_feature_form
+
+
+def test_digitizing_should_not_show_feature_form_without_digitize_tool(
+    qgis_canvas: "QgsMapCanvas",
+) -> None:
+    assert not digitizing_will_show_feature_form(qgis_canvas.viewport())
+
+
+def test_digitizing_should_show_feature_form_only_with_enough_vertices(
+    qgis_canvas: "QgsMapCanvas", digitize_line_tool: QgsMapToolDigitizeFeature
+) -> None:
+    viewport = qgis_canvas.viewport()
+
+    # Right click before any vertex: nothing is digitized and no form is shown
+    assert not digitizing_will_show_feature_form(viewport)
+    assert not digitizing_will_show_feature_form(QObject())
+
+    assert digitize_line_tool.addVertex(QgsPointXY(0, 0)) == 0
+    assert not digitizing_will_show_feature_form(viewport)
+
+    assert digitize_line_tool.addVertex(QgsPointXY(1, 1)) == 0
+    assert digitizing_will_show_feature_form(viewport)
+
+
+@pytest.mark.parametrize(
+    ("suppress", "disable_dialog_setting", "expected_result"),
+    [
+        (QgsEditFormConfig.FeatureFormSuppress.SuppressDefault, False, True),
+        (QgsEditFormConfig.FeatureFormSuppress.SuppressDefault, True, False),
+        (QgsEditFormConfig.FeatureFormSuppress.SuppressOn, False, False),
+        (QgsEditFormConfig.FeatureFormSuppress.SuppressOff, True, True),
+    ],
+)
+def test_digitizing_should_not_show_feature_form_if_suppressed(
+    qgis_canvas: "QgsMapCanvas",
+    line_layer: QgsVectorLayer,
+    digitize_line_tool: QgsMapToolDigitizeFeature,
+    suppress: QgsEditFormConfig.FeatureFormSuppress,
+    disable_dialog_setting: bool,
+    expected_result: bool,
+) -> None:
+    # Arrange
+    form_config = line_layer.editFormConfig()
+    form_config.setSuppress(suppress)
+    line_layer.setEditFormConfig(form_config)
+    settings = QgsSettings()
+    setting_key = "qgis/digitizing/disable_enter_attribute_values_dialog"
+    settings.setValue(setting_key, disable_dialog_setting)
+    assert digitize_line_tool.addVertex(QgsPointXY(0, 0)) == 0
+    assert digitize_line_tool.addVertex(QgsPointXY(1, 1)) == 0
+
+    # Act
+    try:
+        result = digitizing_will_show_feature_form(qgis_canvas.viewport())
+    finally:
+        settings.remove(setting_key)
+
+    # Assert
+    assert result is expected_result

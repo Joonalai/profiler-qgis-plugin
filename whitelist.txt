@@ -9,6 +9,7 @@ callcount
 centroid
 changelog
 checkable
+checkboxclickrect
 closest
 configs
 const
@@ -77,6 +78,7 @@ qgs
 qsci
 qtbot
 qtest
+radiobuttonclickrect
 reccallcount
 rect
 removeprefix

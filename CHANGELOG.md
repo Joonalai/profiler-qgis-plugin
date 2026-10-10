@@ -19,6 +19,7 @@
 - Fixed snakeviz failing to open `.prof` files saved from the profiler panel
 - cProfile results are cleared after saving so the next recording does not include earlier ones
 - cProfile save notification is shorter, stays visible longer and has buttons to copy the path and open the folder
+- Fixed recorded profiles accumulating the time of other events: a stop now only ends the event it was meant for, and button releases that do not trigger a click no longer start a profile
 
 ## 0.1.0 (2026-04-07)
 
