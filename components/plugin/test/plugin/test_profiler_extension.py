@@ -33,6 +33,7 @@ from qgis.PyQt.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
+from qgis_plugin_tools.utils.typing_utils import require
 from qgis_profiler.settings import Settings
 
 from profiler_plugin.ui.profiler_extension import ProfilerExtension
@@ -262,7 +263,7 @@ def test_toggle_cprofile_recording(
 
         qtbot.mouseClick(copy_button, Qt.MouseButton.LeftButton)
 
-        assert QApplication.clipboard().text() == str(file_path)
+        assert require(QApplication.clipboard()).text() == str(file_path)
 
 
 def test_save_results(

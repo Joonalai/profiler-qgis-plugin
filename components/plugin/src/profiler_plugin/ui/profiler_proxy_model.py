@@ -28,6 +28,7 @@ from qgis.PyQt.QtCore import (
     QSortFilterProxyModel,
     Qt,
 )
+from qgis_plugin_tools.utils.typing_utils import require
 from qgis_profiler.settings import Settings
 
 LOGGER = logging.getLogger(__name__)
@@ -80,14 +81,14 @@ class ProfilerProxyModel(QSortFilterProxyModel):
         if not result or self.group == "":
             return False
 
-        index = self.sourceModel().index(source_row, 0, source_parent)
-        if self.sourceModel().data(index, Role.Group.value) != self.group:
+        source_model = require(self.sourceModel())
+        index = source_model.index(source_row, 0, source_parent)
+        if source_model.data(index, Role.Group.value) != self.group:
             return False
 
-        return self.sourceModel().data(index, Role.Elapsed.value) >= self.threshold or (
+        return source_model.data(index, Role.Elapsed.value) >= self.threshold or (
             source_parent.isValid()
-            and self.sourceModel().data(index, Role.ParentElapsed.value)
-            >= self.threshold
+            and source_model.data(index, Role.ParentElapsed.value) >= self.threshold
         )
 
     def _threshold_changed(self) -> None:

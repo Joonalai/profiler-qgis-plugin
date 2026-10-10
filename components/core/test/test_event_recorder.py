@@ -27,6 +27,7 @@ from qgis.gui import (
     QgsMapToolPan,
 )
 from qgis.PyQt.QtCore import Qt
+from qgis_plugin_tools.utils.typing_utils import require
 from qgis_profiler.config.event_config import CustomEventConfig, EventResponse
 from qgis_profiler.event_recorder import ProfilerEventRecorder
 
@@ -59,7 +60,7 @@ def mock_event_config(mocker: "MockerFixture") -> "MagicMock":
 def event_recorder(
     default_group: str, map_tool_identify: "QgsMapTool", qgis_iface: "QgisInterface"
 ) -> Iterator[ProfilerEventRecorder]:
-    qgis_iface.mapCanvas().setMapTool(map_tool_identify)
+    require(qgis_iface.mapCanvas()).setMapTool(map_tool_identify)
     recorder = ProfilerEventRecorder(group_name=default_group)
     yield recorder
     recorder.stop_recording()

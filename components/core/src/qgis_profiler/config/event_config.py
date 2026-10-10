@@ -33,6 +33,7 @@ from qgis.PyQt import QtWidgets
 from qgis.PyQt.QtCore import QEvent, QObject, QPointF, Qt, QTimer
 from qgis.PyQt.QtGui import QMouseEvent
 from qgis.utils import iface as iface_
+from qgis_plugin_tools.utils.typing_utils import require
 
 if TYPE_CHECKING:
     from qgis.gui import QgisInterface
@@ -69,7 +70,11 @@ _mouse_right_button_release = QMouseEvent(
 
 def is_object_map_canvas(obj: QObject) -> bool:
     """Check whether the given object is the map canvas viewport."""
-    return obj == iface.mapCanvas().viewport()
+    return obj == require(iface.mapCanvas()).viewport()
+
+
+def _canvas_scene_item_count() -> int:
+    return len(require(require(iface.mapCanvas()).scene()).items())
 
 
 class EventResponse(enum.Enum):
@@ -229,9 +234,7 @@ class AdvancedDigitizingMapToolClickConfig(SimpleMapToolClickConfig):
         """Set the initial canvas scene item count after a short delay."""
 
         def _set_initial_count() -> None:
-            self.initial_canvas_scene_item_count = len(
-                iface.mapCanvas().scene().items()
-            )
+            self.initial_canvas_scene_item_count = _canvas_scene_item_count()
 
         # Wait a bit before setting the initial rubberband count
         # to avoid false positives because the map canvas
@@ -242,8 +245,7 @@ class AdvancedDigitizingMapToolClickConfig(SimpleMapToolClickConfig):
         """Match only when scene items have increased since activation."""
         if (
             self.event.matches(event, obj)
-            and len(iface.mapCanvas().scene().items())
-            > self.initial_canvas_scene_item_count
+            and _canvas_scene_item_count() > self.initial_canvas_scene_item_count
         ):
             return EventResponse.START_AND_STOP_DELAYED
         return None

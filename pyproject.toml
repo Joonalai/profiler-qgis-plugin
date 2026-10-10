@@ -155,6 +155,9 @@ exclude_dirs = [
   "docs",
 ]
 
+[tool.ty.src]
+exclude = ["docs"]
+
 [tool.ty.environment]
 python-version = "3.12"
 root = ["components/core/src", "components/plugin/src"]

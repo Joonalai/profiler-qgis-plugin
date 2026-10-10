@@ -92,6 +92,7 @@ def test_extension_is_added_after_qgis_initialization_completes(
         plugin_module, "_find_profiler_panel", return_value=profiler_panel
     )
     mocker.patch.object(profiler_panel.layout(), "insertWidget")
+    mocker.patch.object(profiler_panel.layout(), "removeWidget")
     plugin = ProfilerPlugin()
     plugin.initGui()
 
@@ -117,6 +118,7 @@ def test_extension_is_added_immediately_in_development_mode(
         plugin_module, "_find_profiler_panel", return_value=profiler_panel
     )
     mocker.patch.object(profiler_panel.layout(), "insertWidget")
+    mocker.patch.object(profiler_panel.layout(), "removeWidget")
     plugin = ProfilerPlugin()
 
     # Act

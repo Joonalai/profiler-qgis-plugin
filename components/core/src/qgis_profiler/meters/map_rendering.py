@@ -30,6 +30,7 @@ from typing import TYPE_CHECKING, Optional, cast
 from qgis.core import QgsApplication
 from qgis.PyQt.QtCore import QElapsedTimer
 from qgis.utils import iface as iface_
+from qgis_plugin_tools.utils.typing_utils import require
 
 from qgis_profiler.meters.meter import Meter
 from qgis_profiler.settings import Settings
@@ -81,15 +82,17 @@ class MapRenderingMeter(Meter):
 
     def _start_measuring(self) -> bool:
         LOGGER.debug("Starting map rendering measuring")
-        iface.mapCanvas().renderStarting.connect(self._rendering_started)
-        iface.mapCanvas().mapCanvasRefreshed.connect(self._rendering_finished)
+        canvas = require(iface.mapCanvas())
+        canvas.renderStarting.connect(self._rendering_started)
+        canvas.mapCanvasRefreshed.connect(self._rendering_finished)
         return True
 
     def _stop_measuring(self) -> None:
+        canvas = require(iface.mapCanvas())
         with suppress(TypeError):
-            iface.mapCanvas().renderStarting.disconnect(self._rendering_started)
+            canvas.renderStarting.disconnect(self._rendering_started)
         with suppress(TypeError):
-            iface.mapCanvas().mapCanvasRefreshed.disconnect(self._rendering_finished)
+            canvas.mapCanvasRefreshed.disconnect(self._rendering_finished)
 
     def _rendering_started(self) -> None:
         self._elapsed_timer.restart()
@@ -109,7 +112,7 @@ class MapRenderingMeter(Meter):
             )
         self._last_rendering_time_ms = 0
         self.start_measuring()
-        iface.mapCanvas().redrawAllLayers()
+        require(iface.mapCanvas()).redrawAllLayers()
         t = time.time()
         timeout = 10
 

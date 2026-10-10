@@ -45,6 +45,7 @@ from qgis.utils import iface as iface_
 from qgis_plugin_tools.tools.i18n import tr
 from qgis_plugin_tools.tools.messages import MsgBar
 from qgis_plugin_tools.tools.resources import load_ui_from_file
+from qgis_plugin_tools.utils.typing_utils import require
 from qgis_profiler.event_recorder import ProfilerEventRecorder
 from qgis_profiler.exceptions import ProfilerNotFoundError
 from qgis_profiler.meters.map_rendering import MapRenderingMeter
@@ -68,12 +69,12 @@ LOGGER = logging.getLogger(__name__)
 
 SAVED_MESSAGE_DURATION_S = 15
 
-UI_CLASS: QWidget = load_ui_from_file(
+UI_CLASS: type[QWidget] = load_ui_from_file(  # ty: ignore[invalid-assignment]
     str(Path(__file__).parent.joinpath("profiler_extension.ui"))
 )
 
 
-class ProfilerExtension(QWidget, UI_CLASS):
+class ProfilerExtension(QWidget, UI_CLASS):  # ty: ignore[unsupported-base]
     """Represent a Profiler Extension Widget in the GUI.
 
     Provide functionalities to control profiling operations,
@@ -375,18 +376,19 @@ class ProfilerExtension(QWidget, UI_CLASS):
 
 def _show_saved_file_message(title: str, file_path: Path) -> None:
     """Show a short message with buttons to copy the path and open the folder."""
-    message_bar = iface.messageBar()
-    message = message_bar.createMessage(title, file_path.name)
+    message_bar = require(iface.messageBar())
+    message = require(message_bar.createMessage(title, file_path.name))
 
     copy_button = QPushButton(tr("Copy path"), message)
     copy_button.clicked.connect(
-        lambda: QApplication.clipboard().setText(str(file_path))
+        lambda: require(QApplication.clipboard()).setText(str(file_path))
     )
     open_button = QPushButton(tr("Open folder"), message)
     open_button.clicked.connect(
         lambda: QDesktopServices.openUrl(QUrl.fromLocalFile(str(file_path.parent)))
     )
-    message.layout().addWidget(copy_button)
-    message.layout().addWidget(open_button)
+    layout = require(message.layout())
+    layout.addWidget(copy_button)
+    layout.addWidget(open_button)
 
     message_bar.pushWidget(message, Qgis.MessageLevel.Success, SAVED_MESSAGE_DURATION_S)

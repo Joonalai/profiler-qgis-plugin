@@ -200,7 +200,7 @@ def test_qgis_profiler_stats_should_link_callers(
         cprofiler.create_stats()
 
     # Assert
-    sleep_callers = cprofiler.stats[("~", 0, "sleep")][-1]  # type: ignore[attr-defined]
+    sleep_callers = cprofiler.stats[("~", 0, "sleep")][-1]
     assert set(sleep_callers) == {("~", 0, "foo"), ("~", 0, "bar")}
 
 
@@ -217,7 +217,7 @@ def test_qgis_profiler_stats_should_have_group_as_root(
         cprofiler.dump_stats(file_path)
 
     # Assert
-    stats = pstats.Stats(str(file_path)).stats  # type: ignore[attr-defined]
+    stats = pstats.Stats(str(file_path)).stats  # ty: ignore[unresolved-attribute]
     roots = [func for func, stat in stats.items() if not stat[-1]]
     assert roots == [("~", 0, "Group")]
     assert stats[("~", 0, "Group")][3] == pytest.approx(0.6)

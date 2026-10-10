@@ -30,6 +30,7 @@ from qgis.PyQt.QtWidgets import (
     QSpinBox,
     QWidget,
 )
+from qgis_plugin_tools.utils.typing_utils import require
 from qgis_profiler.meters.recovery_measurer import RecoveryMeasurer
 from qgis_profiler.meters.thread_health_checker import MainThreadHealthChecker
 from qgis_profiler.settings import SettingCategory, Settings
@@ -97,7 +98,7 @@ def test_settings_dialog_should_fit_on_small_screen(
 
     # Assert
     assert dialog.height() <= screen_height * MAX_SCREEN_HEIGHT_RATIO
-    assert dialog.scroll_area.verticalScrollBar().maximum() > 0
+    assert require(dialog.scroll_area.verticalScrollBar()).maximum() > 0
 
 
 def test_settings_dialog_should_show_all_settings_on_large_screen(
@@ -117,7 +118,7 @@ def test_settings_dialog_should_show_all_settings_on_large_screen(
     qtbot.wait(1)
 
     # Assert
-    assert dialog.scroll_area.verticalScrollBar().maximum() == 0
+    assert require(dialog.scroll_area.verticalScrollBar()).maximum() == 0
 
 
 @pytest.mark.parametrize(
@@ -162,7 +163,7 @@ def test_settings_dialog_should_show_all_settings_on_large_screen(
 def test_settings_dialog_widget_configuration(
     settings_dialog: "SettingsDialog",
     setting_key: str,
-    expected_widget: QWidget,
+    expected_widget: type[QWidget],
     test_value: Any,
     get_value_function: str,
     set_value_function: Callable[[QWidget, Any], None],

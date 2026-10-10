@@ -35,6 +35,7 @@ from qgis_plugin_tools.tools.custom_logging import (
 )
 from qgis_plugin_tools.tools.i18n import tr
 from qgis_plugin_tools.tools.messages import MsgBar
+from qgis_plugin_tools.utils.typing_utils import require, require_type
 from qgis_profiler import utils
 from qgis_profiler.constants import QT_VERSION_MIN
 from qgis_profiler.event_recorder import ProfilerEventRecorder
@@ -101,12 +102,13 @@ class ProfilerPlugin(QObject):
         if (profiler_panel := _find_profiler_panel()) is None:
             LOGGER.warning("Could not find the QGIS profiler panel")
             return
-        self._profiler_panel_layout = profiler_panel.layout()
+        layout = require_type(profiler_panel.layout(), QVBoxLayout)
+        self._profiler_panel_layout = layout
 
         self._profiler_extension = ProfilerExtension(
             self._event_recorder, profiler_panel
         )
-        self._profiler_panel_layout.insertWidget(0, self._profiler_extension)
+        layout.insertWidget(0, self._profiler_extension)
         if Settings.start_recording_on_startup.get():
             self._profiler_extension.start_recording()
 
@@ -115,15 +117,16 @@ class ProfilerPlugin(QObject):
         self._teardown_loggers()
         self._teardown_loggers = lambda: None
 
-        if self._profiler_panel_layout:
-            self._profiler_panel_layout.removeWidget(self._profiler_extension)
-        if self._profiler_extension:
+        if self._profiler_extension is not None:
+            if self._profiler_panel_layout is not None:
+                self._profiler_panel_layout.removeWidget(self._profiler_extension)
             self._profiler_extension.cleanup()
             self._profiler_extension.deleteLater()
-        self._profiler_extension = None  # type:ignore[assignment]
+        self._profiler_extension = None
 
 
 def _find_profiler_panel() -> QWidget | None:
-    if (tools := iface.mainWindow().findChild(QDockWidget, "DevTools")) is None:
+    main_window = require(iface.mainWindow())
+    if (tools := main_window.findChild(QDockWidget, "DevTools")) is None:
         return None
     return tools.findChild(QWidget, "QgsProfilerPanelBase")

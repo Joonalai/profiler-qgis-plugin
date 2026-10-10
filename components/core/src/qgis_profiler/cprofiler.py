@@ -31,7 +31,7 @@ from collections.abc import Generator, Sequence
 from contextlib import contextmanager
 from dataclasses import dataclass, field, replace
 from types import CodeType
-from typing import TYPE_CHECKING, Any, Union
+from typing import TYPE_CHECKING, Any, Literal, Union
 
 from qgis_profiler.constants import EPSILON
 
@@ -107,7 +107,7 @@ class ProfilerEntry:  # noqa: PLW1641
         call_dict = {call.code: call for call in self.calls}
         for call in calls:
             if call.code in call_dict:
-                call_dict[call.code] += call  # type: ignore
+                call_dict[call.code] += call
             else:
                 call_dict[call.code] = call
         self.calls = list(call_dict.values())
@@ -223,7 +223,9 @@ class QCProfiler(cProfile.Profile):
         super().disable()
         self._profiling = False
 
-    def getstats(self) -> Sequence[Union[ProfilerEntry, "profiler_entry"]]:  # type: ignore[override]
+    def getstats(  # ty: ignore[invalid-method-override]
+        self,
+    ) -> Sequence[Union[ProfilerEntry, "profiler_entry"]]:
         """Return QGIS stats if available, otherwise standard cProfile stats."""
         if self._qgis_stats:
             return self._qgis_stats
@@ -235,23 +237,25 @@ class QCProfiler(cProfile.Profile):
 
     def get_stat_report(
         self,
-        sort: str | tuple[str, ...] | int = -1,
+        sort: str | tuple[str, ...] | Literal[-1, 0, 1, 2] = -1,
         max_line_count: int = 1000,
         trim_zeros: bool = False,  # noqa: FBT001 FBT002
     ) -> str:
         """Get the profile report as a string.
 
-        :param sort: Sort method. Can be a string or a tuple of strings.
+        :param sort: Sort method. Can be a string, a tuple of strings or
+            one of the integer sort keys accepted by :meth:`pstats.Stats.sort_stats`.
         :param max_line_count: Maximum number of lines to return.
         :param trim_zeros: Trim lines with zero times from the report.
         :return: The profile report as a string.
         """
-        if not isinstance(sort, tuple):
-            sort = (sort,)  # type: ignore[assignment]
         with io.StringIO() as stream:
-            pstats.Stats(self, stream=stream).strip_dirs().sort_stats(  # type: ignore[misc]
-                *sort
-            ).print_stats()
+            stats = pstats.Stats(self, stream=stream).strip_dirs()
+            if isinstance(sort, int):
+                stats.sort_stats(sort)
+            else:
+                stats.sort_stats(*(sort if isinstance(sort, tuple) else (sort,)))
+            stats.print_stats()
             report = stream.getvalue()
         report_lines = []
         if trim_zeros:

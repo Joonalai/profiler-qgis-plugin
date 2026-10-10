@@ -158,7 +158,11 @@ class Meter(QObject):
         def wrapper(*args: Any, **kwargs: Any) -> Any:
             func = cast("Callable", function)
             group_name = resolve_group_name_with_cache(group)
-            context_name = name if name is not None else func.__name__
+            context_name = (
+                name
+                if name is not None
+                else qgis_profiler.utils.get_function_name(func)
+            )
             if name_args:
                 context_name += qgis_profiler.utils.parse_arguments(
                     func, name_args, args, kwargs

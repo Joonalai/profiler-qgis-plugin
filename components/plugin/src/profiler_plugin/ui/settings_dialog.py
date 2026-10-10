@@ -20,7 +20,7 @@
 
 import logging
 from pathlib import Path
-from typing import cast
+from typing import Any, cast
 
 from qgis.core import QgsApplication
 from qgis.gui import QgsCollapsibleGroupBox
@@ -47,13 +47,14 @@ from qgis_plugin_tools.tools.custom_logging import (
 from qgis_plugin_tools.tools.i18n import tr
 from qgis_plugin_tools.tools.resources import load_ui_from_file
 from qgis_plugin_tools.tools.settings import set_setting
+from qgis_plugin_tools.utils.typing_utils import require, require_type
 from qgis_profiler.meters.map_rendering import MapRenderingMeter
 from qgis_profiler.meters.meter import Meter
 from qgis_profiler.meters.recovery_measurer import RecoveryMeasurer
 from qgis_profiler.meters.thread_health_checker import MainThreadHealthChecker
-from qgis_profiler.settings import SettingCategory, Settings, WidgetType
+from qgis_profiler.settings import SettingCategory, Settings, WidgetConfig, WidgetType
 
-UI_CLASS: QWidget = load_ui_from_file(
+UI_CLASS: type[QWidget] = load_ui_from_file(  # ty: ignore[invalid-assignment]
     str(Path(__file__).parent.joinpath("settings_dialog.ui"))
 )
 
@@ -84,7 +85,7 @@ METER_DESCRIPTIONS: dict[SettingCategory, str] = {
 }
 
 
-class SettingsDialog(QDialog, UI_CLASS):  # type: ignore
+class SettingsDialog(QDialog, UI_CLASS):  # ty: ignore[unsupported-base]
     """Provide a dialog for configuring profiler settings.
 
     Originally adapted from
@@ -120,9 +121,10 @@ class SettingsDialog(QDialog, UI_CLASS):  # type: ignore
         self._setup_logging_settings()
 
         self.button_box.accepted.connect(self.close)
-        self.button_box.button(QDialogButtonBox.StandardButton.Reset).clicked.connect(
-            self._reset_settings
+        reset_button = require(
+            self.button_box.button(QDialogButtonBox.StandardButton.Reset)
         )
+        reset_button.clicked.connect(self._reset_settings)
         self._button_calibrate_recovery_meter.clicked.connect(
             self._calibrate_recovery_meter
         )
@@ -170,8 +172,8 @@ class SettingsDialog(QDialog, UI_CLASS):  # type: ignore
         # Clear all items from the settings layout
         while self.layout_setting_items.count():
             child = self.layout_setting_items.takeAt(0)
-            if child.widget():
-                child.widget().deleteLater()
+            if child is not None and (widget := child.widget()) is not None:
+                widget.deleteLater()
 
         # Clear stored widgets and group boxes
         self._widgets.clear()
@@ -203,7 +205,9 @@ class SettingsDialog(QDialog, UI_CLASS):  # type: ignore
                 layout.addRow(info_label)
             self._groups[category] = group_box
             if category in METER_CATEGORIES:
-                self._get_or_create_meters_group().layout().addWidget(group_box)
+                require(self._get_or_create_meters_group().layout()).addWidget(
+                    group_box
+                )
             else:
                 self.layout_setting_items.addWidget(group_box)
         return self._groups[category]
@@ -216,7 +220,7 @@ class SettingsDialog(QDialog, UI_CLASS):  # type: ignore
 
         group_box = self._get_or_create_group(setting_meta.category)
 
-        group_layout = group_box.layout()
+        group_layout = require_type(group_box.layout(), QFormLayout)
 
         label = QLabel(setting_meta.description)
 
@@ -230,18 +234,7 @@ class SettingsDialog(QDialog, UI_CLASS):  # type: ignore
             widget.setChecked(setting.get())
             widget.stateChanged.connect(setting.set)
         elif widget_type == WidgetType.SPIN_BOX:
-            if isinstance(setting_meta.default, int):
-                widget = QSpinBox()
-            else:
-                widget = QDoubleSpinBox()
-                widget.setDecimals(3)
-            if widget_config:
-                if widget_config.minimum is not None:
-                    widget.setMinimum(widget_config.minimum)
-                if widget_config.maximum is not None:
-                    widget.setMaximum(widget_config.maximum)
-                if widget_config.step is not None:
-                    widget.setSingleStep(widget_config.step)
+            widget = _create_spin_box(setting_meta.default, widget_config)
             widget.setValue(setting.get())
             widget.valueChanged.connect(setting.set)
         else:
@@ -334,3 +327,30 @@ def _calibrate_threshold(
             LOGGER.debug("Calibrated %s threshold: %s seconds", name, value)
     finally:
         button.setEnabled(True)
+
+
+def _create_spin_box(
+    default: Any, widget_config: WidgetConfig | None
+) -> QSpinBox | QDoubleSpinBox:
+    """Create an integer or float spin box depending on the default value type."""
+    if isinstance(default, int):
+        spin_box = QSpinBox()
+        if widget_config:
+            if widget_config.minimum is not None:
+                spin_box.setMinimum(int(widget_config.minimum))
+            if widget_config.maximum is not None:
+                spin_box.setMaximum(int(widget_config.maximum))
+            if widget_config.step is not None:
+                spin_box.setSingleStep(int(widget_config.step))
+        return spin_box
+
+    double_spin_box = QDoubleSpinBox()
+    double_spin_box.setDecimals(3)
+    if widget_config:
+        if widget_config.minimum is not None:
+            double_spin_box.setMinimum(widget_config.minimum)
+        if widget_config.maximum is not None:
+            double_spin_box.setMaximum(widget_config.maximum)
+        if widget_config.step is not None:
+            double_spin_box.setSingleStep(widget_config.step)
+    return double_spin_box
