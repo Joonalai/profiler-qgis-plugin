@@ -124,8 +124,7 @@ def test_recorder_should_stop_gracefully_if_recording_is_in_progress(
 ) -> None:
     # Arrange
     event_recorder.start_recording()
-    mock_profiler.end_all.assert_called_once_with(default_group)
-    mock_profiler.reset_mock()
+    mock_profiler.end_event.assert_not_called()
 
     # Act
     qtbot.mouseMove(dialog.button)
@@ -133,8 +132,11 @@ def test_recorder_should_stop_gracefully_if_recording_is_in_progress(
     event_recorder.stop_recording()
 
     # Assert
-    mock_profiler.start.assert_any_call(dialog.button.text(), default_group)
-    mock_profiler.end_all.assert_called_once_with(default_group)
+    mock_profiler.start.assert_called_once_with(dialog.button.text(), default_group)
+    mock_profiler.end_event.assert_called_once_with(
+        mock_profiler.start.return_value, default_group
+    )
+    mock_profiler.end_all.assert_not_called()
 
 
 def test_recorder_should_handle_stop_without_start(
@@ -297,6 +299,38 @@ def test_recorder_should_not_accumulate_time_of_other_events(
     assert [result.name for result in results] == [dialog.button2.text()]
     assert results[0].children == []
     assert results[0].duration < 0.1
+
+
+def test_recorder_should_not_end_events_started_elsewhere(
+    event_recorder: ProfilerEventRecorder,
+    profiler: "ProfilerWrapper",
+    map_tool_pan: "QgsMapTool",
+    qgis_canvas: "QgsMapCanvas",
+    qtbot: "QtBot",
+    default_group: str,
+) -> None:
+    """Map tool change and stop must end only the recorder's own events."""
+    # Arrange
+    event_recorder.start_recording()
+    decorated_event = profiler.start("decorated function", default_group)
+    event_recorder._start_profiling("recorder event")
+
+    # Act
+    with qtbot.waitSignal(event_recorder.event_finished):
+        qgis_canvas.setMapTool(map_tool_pan)
+
+    # Assert
+    assert profiler.is_event_active(decorated_event, default_group)
+
+    # Act
+    event_recorder.stop_recording()
+
+    # Assert
+    assert profiler.is_event_active(decorated_event, default_group)
+    assert profiler.end_event(decorated_event, default_group)
+    results = profiler.get_profiler_data(group=default_group)
+    assert [result.name for result in results] == ["decorated function"]
+    assert [child.name for child in results[0].children] == ["recorder event"]
 
 
 def test_recorder_should_handle_map_tool_change(

@@ -29,17 +29,10 @@ from pathlib import Path
 from typing import Any, Protocol, runtime_checkable
 
 from qgis.PyQt.QtCore import QT_VERSION_STR, pyqtBoundSignal
-from qgis.PyQt.QtGui import QCursor
-from qgis.PyQt.QtWidgets import QApplication, QWidget
 
 from qgis_profiler.constants import QT_VERSION_MIN
 
 LOGGER = logging.getLogger(__name__)
-
-
-def get_widget_under_cursor() -> QWidget | None:
-    """Get the widget under mouse cursor."""
-    return QApplication.widgetAt(QCursor.pos())
 
 
 def has_suitable_qt_version(suitable_qt_version: str = QT_VERSION_MIN) -> bool:

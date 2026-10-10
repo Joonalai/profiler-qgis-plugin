@@ -262,7 +262,16 @@ class ProfilerEventRecorder(QObject):
             self.event_finished.emit(ended_name)
 
     def _end_all_events(self) -> None:
-        ProfilerWrapper.get().end_all(self.group)
+        """End the events started by this recorder, most recent first.
+
+        Events of the group started elsewhere, e.g. with the profile
+        decorator, are left running.
+        """
+        profiler = ProfilerWrapper.get()
+        for name, event_id in reversed(self._started_events):
+            if profiler.end_event(event_id, self.group):
+                LOGGER.debug("Stop profiling: %s", name)
+                self.event_finished.emit(name)
         self._started_events.clear()
 
     def _stop_profiling_after_signal_is_emitted(self, name: str) -> None:
