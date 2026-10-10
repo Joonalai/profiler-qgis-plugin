@@ -21,7 +21,7 @@ from typing import TYPE_CHECKING
 import pytest
 from pytest_lazy_fixtures import lf
 from qgis.core import (
-    QgsEditFormConfig,
+    Qgis,
     QgsPointXY,
     QgsProject,
     QgsSettings,
@@ -60,9 +60,9 @@ def line_layer() -> "Iterator[QgsVectorLayer]":
         "LineString?crs=EPSG:4326&field=name:string", "lines", "memory"
     )
     assert layer.isValid()
-    assert QgsProject.instance().addMapLayer(layer) is layer
+    assert require(QgsProject.instance()).addMapLayer(layer) is layer
     yield layer
-    QgsProject.instance().removeMapLayer(layer.id())
+    require(QgsProject.instance()).removeMapLayer(layer.id())
 
 
 @pytest.fixture
@@ -273,13 +273,13 @@ def test_default_digitize_config_should_start_only_if_feature_form_will_be_shown
 def test_digitizing_should_not_show_feature_form_without_digitize_tool(
     qgis_canvas: "QgsMapCanvas",
 ) -> None:
-    assert not digitizing_will_show_feature_form(qgis_canvas.viewport())
+    assert not digitizing_will_show_feature_form(require(qgis_canvas.viewport()))
 
 
 def test_digitizing_should_show_feature_form_only_with_enough_vertices(
     qgis_canvas: "QgsMapCanvas", digitize_line_tool: QgsMapToolDigitizeFeature
 ) -> None:
-    viewport = qgis_canvas.viewport()
+    viewport = require(qgis_canvas.viewport())
 
     # Right click before any vertex: nothing is digitized and no form is shown
     assert not digitizing_will_show_feature_form(viewport)
@@ -295,17 +295,17 @@ def test_digitizing_should_show_feature_form_only_with_enough_vertices(
 @pytest.mark.parametrize(
     ("suppress", "disable_dialog_setting", "expected_result"),
     [
-        (QgsEditFormConfig.FeatureFormSuppress.SuppressDefault, False, True),
-        (QgsEditFormConfig.FeatureFormSuppress.SuppressDefault, True, False),
-        (QgsEditFormConfig.FeatureFormSuppress.SuppressOn, False, False),
-        (QgsEditFormConfig.FeatureFormSuppress.SuppressOff, True, True),
+        (Qgis.AttributeFormSuppression.Default, False, True),
+        (Qgis.AttributeFormSuppression.Default, True, False),
+        (Qgis.AttributeFormSuppression.On, False, False),
+        (Qgis.AttributeFormSuppression.Off, True, True),
     ],
 )
 def test_digitizing_should_not_show_feature_form_if_suppressed(
     qgis_canvas: "QgsMapCanvas",
     line_layer: QgsVectorLayer,
     digitize_line_tool: QgsMapToolDigitizeFeature,
-    suppress: QgsEditFormConfig.FeatureFormSuppress,
+    suppress: Qgis.AttributeFormSuppression,
     disable_dialog_setting: bool,
     expected_result: bool,
 ) -> None:
@@ -321,7 +321,7 @@ def test_digitizing_should_not_show_feature_form_if_suppressed(
 
     # Act
     try:
-        result = digitizing_will_show_feature_form(qgis_canvas.viewport())
+        result = digitizing_will_show_feature_form(require(qgis_canvas.viewport()))
     finally:
         settings.remove(setting_key)
 

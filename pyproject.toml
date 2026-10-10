@@ -31,7 +31,7 @@ dev = [
   "pytest-dotenv>=0.5.2",
   "pytest-lazy-fixtures>=1.1.2",
   "pytest-qt",
-  "pytest-qgis",
+  "pytest-qgis>=5.0.1",
   "pytest-mock",
   "pytest-subtests",
   "pytest-timeout",
