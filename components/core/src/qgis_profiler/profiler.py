@@ -264,7 +264,7 @@ class ProfilerWrapper:
         :param group: Group of the event.
         :return: True if the event was active and got ended, False otherwise.
         """
-        if event_id not in self._active_events.get(group, []):
+        if not self.is_event_active(event_id, group):
             LOGGER.debug("Event %s is not active in group %s", event_id, group)
             return False
         while self.end(group) != event_id:
