@@ -43,7 +43,6 @@ from qgis.PyQt.QtWidgets import (
 )
 from qgis.utils import iface as iface_
 from qgis_plugin_tools.tools.i18n import tr
-from qgis_plugin_tools.tools.messages import MsgBar
 from qgis_plugin_tools.tools.resources import load_ui_from_file
 from qgis_plugin_tools.utils.typing_utils import require
 from qgis_profiler.event_recorder import ProfilerEventRecorder
@@ -55,6 +54,7 @@ from qgis_profiler.profiler import ProfilerWrapper
 from qgis_profiler.settings import Settings
 from qgis_profiler.utils import get_rotated_path
 
+from profiler_plugin.snakeviz_server import SnakevizServer
 from profiler_plugin.ui.profiler_proxy_model import ProfilerProxyModel
 from profiler_plugin.ui.settings_dialog import SettingsDialog
 
@@ -101,6 +101,7 @@ class ProfilerExtension(QWidget, UI_CLASS):  # ty: ignore[unsupported-base]
         self.setupUi(self)
         self._event_recorder: ProfilerEventRecorder | None = event_recorder
         self._meters: list[Meter] = []
+        self._snakeviz_server = SnakevizServer()
         self._meters_group = Settings.meters_group.get()
 
         combo_box = profiler_panel.findChild(QComboBox)
@@ -157,6 +158,7 @@ class ProfilerExtension(QWidget, UI_CLASS):  # ty: ignore[unsupported-base]
         for meter in self._meters:
             meter.cleanup()
         self._meters.clear()
+        self._snakeviz_server.stop()
 
         if self._event_recorder:
             with suppress(TypeError):
@@ -291,11 +293,7 @@ class ProfilerExtension(QWidget, UI_CLASS):  # ty: ignore[unsupported-base]
             ProfilerWrapper.get().save_profiler_results_as_prof_file(
                 self._current_group(), path
             )
-            MsgBar.info(
-                tr("Profiler results saved"),
-                tr("File saved to {}", str(path)),
-                success=True,
-            )
+            self._show_saved_file_message(tr("Profiler results saved"), path)
 
     def _toggle_cprofile_recording(self) -> None:
         if not ProfilerWrapper.get().cprofiler_available:
@@ -320,7 +318,9 @@ class ProfilerExtension(QWidget, UI_CLASS):  # ty: ignore[unsupported-base]
             # Start the next recording from scratch
             ProfilerWrapper.get().cprofiler.clear()
             LOGGER.info("cProfile results saved to %s", output_file_path)
-            _show_saved_file_message(tr("cProfile results saved"), output_file_path)
+            self._show_saved_file_message(
+                tr("cProfile results saved"), output_file_path
+            )
 
         self._update_ui_state()
 
@@ -351,6 +351,37 @@ class ProfilerExtension(QWidget, UI_CLASS):  # ty: ignore[unsupported-base]
         self._reset_meters()
         self._update_ui_state()
 
+    def _show_saved_file_message(self, title: str, file_path: Path) -> None:
+        """Show a short message with buttons to view, copy and locate the file."""
+        message_bar = require(iface.messageBar())
+        message = require(message_bar.createMessage(title, file_path.name))
+
+        snakeviz_button = QPushButton(tr("Open in snakeviz"), message)
+        snakeviz_button.clicked.connect(lambda: self._open_in_snakeviz(file_path))
+        copy_button = QPushButton(tr("Copy path"), message)
+        copy_button.clicked.connect(
+            lambda: require(QApplication.clipboard()).setText(str(file_path))
+        )
+        open_button = QPushButton(tr("Open folder"), message)
+        open_button.clicked.connect(
+            lambda: QDesktopServices.openUrl(QUrl.fromLocalFile(str(file_path.parent)))
+        )
+        layout = require(message.layout())
+        layout.addWidget(snakeviz_button)
+        layout.addWidget(copy_button)
+        layout.addWidget(open_button)
+
+        message_bar.pushWidget(
+            message, Qgis.MessageLevel.Success, SAVED_MESSAGE_DURATION_S
+        )
+        if Settings.open_saved_profiles_in_snakeviz.get():
+            self._open_in_snakeviz(file_path)
+
+    def _open_in_snakeviz(self, file_path: Path) -> None:
+        url = self._snakeviz_server.url_for(file_path)
+        LOGGER.info("Opening %s in snakeviz: %s", file_path, url)
+        QDesktopServices.openUrl(QUrl(url))
+
     def _update_ui_state(self, *args: Any) -> None:  # noqa: ARG002
         """Update UI component states based on the current profiling state."""
         self.button_record.setEnabled(self._event_recorder is not None)
@@ -372,23 +403,3 @@ class ProfilerExtension(QWidget, UI_CLASS):  # ty: ignore[unsupported-base]
             self.combo_box_group.currentText()
             not in ProfilerWrapper.get().qgis_groups()
         )
-
-
-def _show_saved_file_message(title: str, file_path: Path) -> None:
-    """Show a short message with buttons to copy the path and open the folder."""
-    message_bar = require(iface.messageBar())
-    message = require(message_bar.createMessage(title, file_path.name))
-
-    copy_button = QPushButton(tr("Copy path"), message)
-    copy_button.clicked.connect(
-        lambda: require(QApplication.clipboard()).setText(str(file_path))
-    )
-    open_button = QPushButton(tr("Open folder"), message)
-    open_button.clicked.connect(
-        lambda: QDesktopServices.openUrl(QUrl.fromLocalFile(str(file_path.parent)))
-    )
-    layout = require(message.layout())
-    layout.addWidget(copy_button)
-    layout.addWidget(open_button)
-
-    message_bar.pushWidget(message, Qgis.MessageLevel.Success, SAVED_MESSAGE_DURATION_S)

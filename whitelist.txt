@@ -6,6 +6,7 @@ basemap
 basemaps
 bbox
 callcount
+callees
 centroid
 changelog
 checkable
@@ -24,6 +25,7 @@ docstrings
 dropdown
 epsg
 eq
+fds
 fid
 fids
 formatter
@@ -41,6 +43,7 @@ geom
 geoms
 geopackage
 getfixturevalue
+getsockname
 getstats
 globals
 gpkg
@@ -49,7 +52,9 @@ hookwrapper
 i18n
 iface
 inlinetime
+ioloop
 ismethod
+iterdir
 joinpath
 levelname
 linestring
@@ -58,6 +63,7 @@ lru
 measurer
 metaclass
 multipolygonz
+netutil
 nonlocal
 normpath
 num
@@ -70,6 +76,7 @@ pointz
 poller
 polyline
 pos
+posix
 proj
 pstats
 pyqt
@@ -96,6 +103,7 @@ rubberband
 runtest
 selectable
 singleband
+snakeviz
 srid
 stacklevel
 subcalls
@@ -103,6 +111,7 @@ subentry
 subtests
 taskify
 teardown
+threadsafe
 tmp
 tooltip
 totaltime
@@ -116,6 +125,7 @@ uic
 unary
 unittest
 unregister
+urlsafe
 utils
 validator
 varnames

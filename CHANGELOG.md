@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Switched type checking from mypy to ty
+- Bundled snakeviz to open saved profiles from the save notification
 - Fixed recorded profiles including the time of other events
 - Fixed button releases without a click starting a profile
 

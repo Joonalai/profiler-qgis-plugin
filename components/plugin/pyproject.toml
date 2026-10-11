@@ -11,7 +11,12 @@ classifiers = [
   "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: 3.14",
 ]
-dependencies = ["qgis_plugin_tools>=2.1.2", "profiler-qgis-core"]
+dependencies = [
+  "qgis_plugin_tools>=2.1.2",
+  "profiler-qgis-core",
+  "snakeviz>=2.2.2",
+  "tornado>=6.5",
+]
 
 [project.urls]
 homepage = "https://profiler-qgis-plugin.readthedocs.io"
@@ -38,6 +43,8 @@ runtime_requires = [
   "qgis_plugin_tools>=2.1.2",
   "profiler-qgis-plugin",
   "profiler-qgis-core",
+  "snakeviz",
+  "tornado",
 ]
 
 [project.entry-points.qgis_plugin_dev_tools]

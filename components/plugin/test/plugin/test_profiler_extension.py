@@ -21,7 +21,7 @@ from typing import TYPE_CHECKING, cast
 import pytest
 from pytest_mock import MockerFixture
 from qgis.gui import QgsMessageBar
-from qgis.PyQt.QtCore import QObject, QStringListModel, Qt, pyqtSignal
+from qgis.PyQt.QtCore import QObject, QStringListModel, Qt, QUrl, pyqtSignal
 from qgis.PyQt.QtWidgets import (
     QApplication,
     QComboBox,
@@ -299,7 +299,7 @@ def test_save_results_without_suffix(
     stub_profiler_panel: StubProfilerPanel,
     qtbot: "QtBot",
     monkeypatch: "pytest.MonkeyPatch",
-    mocker: MockerFixture,
+    message_bar: QgsMessageBar,
     tmp_path: Path,
 ) -> None:
     # Arrange
@@ -307,7 +307,6 @@ def test_save_results_without_suffix(
     monkeypatch.setattr(
         QFileDialog, "getSaveFileName", classmethod(lambda *args: (str(file_path), ""))
     )
-    mock_msg_bar = mocker.patch("profiler_plugin.ui.profiler_extension.MsgBar")
 
     # Act
     qtbot.mouseClick(profiler_extension.button_save, Qt.MouseButton.LeftButton)
@@ -316,8 +315,90 @@ def test_save_results_without_suffix(
     mock_profiler.save_profiler_results_as_prof_file.assert_called_once_with(
         INITIAL_GROUPS[0], file_path.with_suffix(".prof")
     )
-    mock_msg_bar.info.assert_called_once()
-    assert str(file_path.with_suffix(".prof")) in mock_msg_bar.info.call_args.args[1]
+    message = message_bar.currentItem()
+    assert message is not None
+    assert message.text() == "file.prof"
+
+
+@pytest.fixture
+def mock_open_url(mocker: MockerFixture) -> "MagicMock":
+    return mocker.patch(
+        "profiler_plugin.ui.profiler_extension.QDesktopServices.openUrl"
+    )
+
+
+@pytest.fixture
+def mock_snakeviz_url_for(
+    mocker: MockerFixture, profiler_extension: ProfilerExtension
+) -> "MagicMock":
+    return mocker.patch.object(
+        profiler_extension._snakeviz_server,
+        "url_for",
+        return_value="http://127.0.0.1:1/snakeviz/id",
+    )
+
+
+def _save_results(
+    profiler_extension: ProfilerExtension,
+    qtbot: "QtBot",
+    monkeypatch: "pytest.MonkeyPatch",
+    file_path: Path,
+) -> None:
+    monkeypatch.setattr(
+        QFileDialog, "getSaveFileName", classmethod(lambda *args: (str(file_path), ""))
+    )
+    qtbot.mouseClick(profiler_extension.button_save, Qt.MouseButton.LeftButton)
+
+
+@pytest.mark.usefixtures("mock_profiler")
+def test_saved_message_should_open_file_in_snakeviz(
+    profiler_extension: ProfilerExtension,
+    message_bar: QgsMessageBar,
+    mock_open_url: "MagicMock",
+    mock_snakeviz_url_for: "MagicMock",
+    qtbot: "QtBot",
+    monkeypatch: "pytest.MonkeyPatch",
+    tmp_path: Path,
+) -> None:
+    # Arrange
+    file_path = tmp_path / "file.prof"
+    _save_results(profiler_extension, qtbot, monkeypatch, file_path)
+    message = require(message_bar.currentItem())
+    snakeviz_button = next(
+        button
+        for button in message.findChildren(QPushButton)
+        if button.text() == "Open in snakeviz"
+    )
+    mock_open_url.assert_not_called()
+
+    # Act
+    qtbot.mouseClick(snakeviz_button, Qt.MouseButton.LeftButton)
+
+    # Assert
+    mock_snakeviz_url_for.assert_called_once_with(file_path)
+    mock_open_url.assert_called_once_with(QUrl("http://127.0.0.1:1/snakeviz/id"))
+
+
+@pytest.mark.usefixtures("mock_profiler")
+def test_saved_file_should_open_in_snakeviz_automatically_if_enabled(
+    profiler_extension: ProfilerExtension,
+    message_bar: QgsMessageBar,
+    mock_open_url: "MagicMock",
+    mock_snakeviz_url_for: "MagicMock",
+    qtbot: "QtBot",
+    monkeypatch: "pytest.MonkeyPatch",
+    tmp_path: Path,
+) -> None:
+    # Arrange
+    Settings.open_saved_profiles_in_snakeviz.set(True)
+    file_path = tmp_path / "file.prof"
+
+    # Act
+    _save_results(profiler_extension, qtbot, monkeypatch, file_path)
+
+    # Assert
+    mock_snakeviz_url_for.assert_called_once_with(file_path)
+    mock_open_url.assert_called_once_with(QUrl("http://127.0.0.1:1/snakeviz/id"))
 
 
 def test_clear_button_should_clear_current_group(

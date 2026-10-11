@@ -56,6 +56,11 @@ is compatible with standard Python profiling tools such as
 [snakeviz](https://jiffyclub.github.io/snakeviz/#snakeviz) for further analysis
 and visualization.
 
+Saved `.prof` files can be opened in the bundled snakeviz straight from the
+save notification, or automatically after saving if enabled in the settings.
+The URL contains the file path: edit it to open another profile, or point it at
+a directory to browse its profiles.
+
 ### Python cProfile Integration
 
 Toggle the **cProfile button** (Python icon) to record Python-level profiling data.
