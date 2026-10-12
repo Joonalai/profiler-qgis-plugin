@@ -4,7 +4,7 @@ version = "1.0.0.post0"
 description = "A library for profiling QGIS and QGIS plugins."
 readme = "README.md"
 requires-python = ">=3.12"
-license = "GPL-3.0-only"
+license = "GPL-2.0-or-later"
 classifiers = [
   "Programming Language :: Python",
   "Programming Language :: Python :: 3.12",
