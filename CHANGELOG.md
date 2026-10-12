@@ -1,5 +1,7 @@
 # CHANGELOG
 
+## Unreleased
+
 ## 1.0.1 - 2026-10-12
 
 - Changed license from GPL-3.0-only to GPL-2.0-or-later
