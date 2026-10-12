@@ -2,7 +2,7 @@
 name = "profiler-qgis-plugin-root"
 version = "0.0.1"
 readme = "README.md"
-license = "GPL-3.0-only"
+license = "GPL-2.0-or-later"
 license-files = ["LICENSE"]
 requires-python = ">=3.12"
 classifiers = [
