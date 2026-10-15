@@ -153,6 +153,11 @@ class Settings(enum.Enum):
         default=100,
         category=SettingCategory.CPROFILER,
     )
+    open_saved_profiles_in_snakeviz = Setting(
+        description=tr("Open saved profiles in snakeviz automatically"),
+        default=False,
+        category=SettingCategory.CPROFILER,
+    )
 
     # Recovery meter settings
     recovery_meter_enabled = Setting(
